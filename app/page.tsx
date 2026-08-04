@@ -131,29 +131,71 @@ export default function HomePage() {
       </section>
 
       {/* Featured Research Laboratories */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-8 gap-4">
-          <div>
-            <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block">
-              Innovation Hubs
-            </span>
-            <h2 className="font-serif text-3xl font-bold text-oxford">
-              Featured Research Laboratories
-            </h2>
-          </div>
-          <Link
-            href="/research-labs"
-            className="inline-flex items-center space-x-1 text-sm font-semibold text-oxford hover:text-cyan-accent transition-colors"
-          >
-            <span>View All 9 Laboratories</span>
-            <ChevronRight className="w-4 h-4 text-cyan-accent" />
-          </Link>
+      <section className="relative w-full bg-oxford-dark text-white overflow-hidden py-24 sm:py-28 lg:py-32 border-y border-white/5 shadow-[inset_0_0_80px_rgba(0,0,0,0.9)]">
+        {/* Background Image & Overlay */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <div
+            className="absolute left-0 top-0 bottom-0 w-full lg:w-1/2 bg-cover bg-left opacity-50 sm:opacity-65"
+            style={{
+              backgroundImage: "url('/physics.png')",
+              maskImage: "linear-gradient(to right, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)",
+              WebkitMaskImage: "linear-gradient(to right, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)",
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#000A1E]/30 via-[#000A1E]/85 to-[#000A1E]" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {RESEARCH_LABS.slice(0, 3).map((lab) => (
-            <LabCard key={lab.id} lab={lab} />
-          ))}
+        {/* Content Container */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+          
+          {/* Header Row */}
+          <div className="flex items-center justify-between border-b border-white/10 pb-4">
+            <div>
+              <h2 className="font-serif text-4xl sm:text-5xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                Featured Research Laboratories
+              </h2>
+            </div>
+            <Link
+              href="/research-labs"
+              className="inline-flex items-center space-x-1.5 text-xs sm:text-sm font-bold bg-cyan-accent hover:bg-cyan-dark text-white px-5 py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(2,132,199,0.3)] hover:shadow-[0_0_25px_rgba(2,132,199,0.5)] border border-cyan-accent"
+            >
+              <span>View All</span>
+              <ChevronRight className="w-4 h-4 text-white" />
+            </Link>
+          </div>
+
+          {/* Grid Layout: Text on Left (lg), Scroll on Right (lg) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+            
+            {/* Left side: Description */}
+            <div className="lg:col-span-4 space-y-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+              <p className="text-slate-100 text-lg sm:text-xl font-medium leading-relaxed">
+                The Department of Physics features specialized research facilities driving scientific breakthroughs in materials science, laser spectroscopy, thin-film photovoltaics, and theoretical cosmology.
+              </p>
+            </div>
+
+            {/* Right side: Horizontal Scroll of Lab Cards */}
+            <div className="lg:col-span-8 overflow-hidden -mx-4 px-4 sm:mx-0 sm:px-0">
+              <div className="flex gap-6 overflow-hidden group/marquee">
+                <div className="flex gap-6 shrink-0 animate-marquee-labs group-hover/marquee:[animation-play-state:paused]">
+                  {RESEARCH_LABS.map((lab) => (
+                    <div key={lab.id} className="w-[280px] sm:w-[320px] flex-shrink-0">
+                      <LabCard lab={lab} variant="dark" />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-6 shrink-0 animate-marquee-labs group-hover/marquee:[animation-play-state:paused]">
+                  {RESEARCH_LABS.map((lab) => (
+                    <div key={`dup-${lab.id}`} className="w-[280px] sm:w-[320px] flex-shrink-0">
+                      <LabCard lab={lab} variant="dark" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </section>
 

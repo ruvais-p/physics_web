@@ -80,7 +80,11 @@ const SLIDE_DURATION_MS = 6000;
 
 interface HeroProps {
   badge?: string;
+<<<<<<< HEAD
   title?: string;
+=======
+  title: string;
+>>>>>>> 9d327e48c02b4f965d7978f27b0eac6ebbbeeb06
   subtitle?: string;
   primaryCtaText?: string;
   primaryCtaLink?: string;
@@ -93,7 +97,7 @@ interface HeroProps {
 export default function Hero({
   badge,
   title,
-  subtitle,
+  subtitle = 'Bridging academic tradition with pioneering research.',
   primaryCtaText,
   primaryCtaLink,
   secondaryCtaText,
