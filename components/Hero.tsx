@@ -1,10 +1,11 @@
 import Link from 'next/link';
-import { ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
+import PixelSnow from './PixelSnow';
 
 interface HeroProps {
   badge?: string;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   primaryCtaText?: string;
   primaryCtaLink?: string;
   secondaryCtaText?: string;
@@ -13,40 +14,52 @@ interface HeroProps {
 }
 
 export default function Hero({
-  badge = 'DEPARTMENT OF PHYSICS • CUSAT',
   title,
   subtitle,
   primaryCtaText,
   primaryCtaLink,
   secondaryCtaText,
   secondaryCtaLink,
-  bgImage = 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=1600&q=80',
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  bgImage,
 }: HeroProps) {
   return (
-    <section className="relative bg-oxford text-white overflow-hidden py-20 lg:py-28">
-      {/* Background Image with Dark Gradient Overlay */}
-      <div className="absolute inset-0 z-0">
-        <div
-          className="absolute inset-0 bg-cover bg-center mix-blend-overlay opacity-25 transform scale-105 transition-transform duration-1000"
-          style={{ backgroundImage: `url(${bgImage})` }}
-        />
-        <div className="absolute inset-0 bg-gradient-to-r from-oxford-dark via-oxford/95 to-oxford/80" />
+    <section className="-mt-[84px] sm:-mt-[96px] w-full relative bg-oxford-dark text-white overflow-hidden pt-32 sm:pt-40 lg:pt-44 pb-20 sm:pb-28 lg:pb-32 min-h-[680px] flex items-center">
+
+      {/* Right Side: PixelSnow Background Animation with Circle Particles */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[#000A1E]">
+          <PixelSnow
+            color="#0284C7"
+            flakeSize={0.015}
+            minFlakeSize={1.5}
+            pixelResolution={200}
+            speed={1.2}
+            density={0.35}
+            direction={125}
+            brightness={1.4}
+            variant="round"
+          />
+        </div>
       </div>
 
-      {/* Hero Content */}
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="max-w-3xl space-y-6">
-          
-          {/* Badge */}
-          {badge && (
-            <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-cyan-accent/30 text-cyan-accent text-xs font-semibold tracking-wider uppercase shadow-inner">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-accent animate-pulse" />
-              <span>{badge}</span>
-            </div>
-          )}
+      {/* Left Side: Opaque Blue Slanted Polygon Overlay (No accent line, seamless tilt) */}
+      <div
+        className="absolute inset-0 z-10 bg-gradient-to-br from-[#000A1E] via-[#001B3A] to-[#002855] hidden lg:block"
+        style={{
+          clipPath: 'polygon(0 0, 58% 0, 42% 100%, 0 100%)'
+        }}
+      />
 
-          {/* Title in Source Serif 4 */}
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.12]">
+      {/* Mobile/Tablet Fallback Opaque Gradient Overlay */}
+      <div className="absolute inset-0 z-10 bg-gradient-to-b from-[#000A1E] via-[#001B3A]/95 to-transparent lg:hidden" />
+
+      {/* Hero Content Layer - Full Width Edge to Edge */}
+      <div className="relative z-30 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16">
+        <div className="max-w-2xl lg:max-w-[48%] space-y-6">
+
+          {/* Title */}
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.12] drop-shadow-md">
             {title}
           </h1>
 
@@ -61,7 +74,7 @@ export default function Hero({
               {primaryCtaText && primaryCtaLink && (
                 <Link
                   href={primaryCtaLink}
-                  className="inline-flex items-center space-x-2 bg-cyan-accent hover:bg-cyan-accent/90 text-oxford-dark font-sans font-semibold px-6 py-3.5 rounded-lg shadow-lg hover:shadow-cyan-accent/20 transition-all text-base group"
+                  className="inline-flex items-center space-x-2 bg-cyan-accent hover:bg-sky-600 text-white font-sans font-semibold px-6 py-3.5 rounded-xl shadow-lg shadow-sky-600/20 transition-all text-base group"
                 >
                   <span>{primaryCtaText}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -70,7 +83,7 @@ export default function Hero({
               {secondaryCtaText && secondaryCtaLink && (
                 <Link
                   href={secondaryCtaLink}
-                  className="inline-flex items-center space-x-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-sans font-medium px-6 py-3.5 rounded-lg backdrop-blur-sm transition-all text-base"
+                  className="inline-flex items-center space-x-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 font-sans font-medium px-6 py-3.5 rounded-xl backdrop-blur-sm transition-all text-base"
                 >
                   <span>{secondaryCtaText}</span>
                 </Link>

@@ -4,8 +4,8 @@
   :root {
     --oxford-blue: #002147;
     --oxford-blue-dark: #000a1e;
-    --science-cyan: #00A3C1;
-    --science-cyan-dark: #00687b;
+    --science-cyan: #0284C7;
+    --science-cyan-dark: #0369a1;
     --heritage-red: #AB0613;
     --bg-canvas: #f9f9ff;
     --surface-lowest: #ffffff;
@@ -34,8 +34,8 @@
 @theme {
   --color-oxford: #002147;
   --color-oxford-dark: #000a1e;
-  --color-cyan-accent: #00A3C1;
-  --color-cyan-dark: #00687b;
+  --color-cyan-accent: #0284C7;
+  --color-cyan-dark: #0369a1;
   --color-heritage-red: #AB0613;
   --color-surface-canvas: #f9f9ff;
   --color-surface-lowest: #ffffff;
@@ -65,15 +65,15 @@
 }
 
 .bg-cyan-accent {
-  background-color: #00A3C1;
+  background-color: #0284C7;
 }
 
 .text-cyan-accent {
-  color: #00A3C1;
+  color: #0284C7;
 }
 
 .border-cyan-accent {
-  border-color: #00A3C1;
+  border-color: #0284C7;
 }
 
 .bg-heritage-red {
@@ -96,3 +96,24 @@
   transform: translateY(-4px);
   box-shadow: 0 16px 36px -6px rgba(0, 33, 71, 0.12);
 }
+
+/* Continuous Running Notification Ticker Marquee */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+

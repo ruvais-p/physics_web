@@ -23,41 +23,66 @@ import {
 export default function HomePage() {
   return (
     <div className="space-y-16 pb-20">
-      
+
       {/* Hero Section */}
       <Hero
-        badge="DEPARTMENT OF PHYSICS • CUSAT KOCHI"
         title="Unraveling the Quantum Frontiers of Matter & Cosmos"
-        subtitle="Bridging academic tradition with pioneering research in materials physics, photonics, theoretical cosmology, and energy storage."
-        primaryCtaText="Explore Degree Programs"
-        primaryCtaLink="/courses"
-        secondaryCtaText="Research Laboratories"
-        secondaryCtaLink="/research-labs"
       />
 
       {/* Announcements Alert Ticker */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-lg p-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="flex items-center space-x-3 text-oxford">
-            <span className="bg-heritage-red/10 text-heritage-red p-2 rounded-lg shrink-0">
-              <Bell className="w-5 h-5 animate-bounce" />
+        <div className="bg-white rounded-xl border border-slate-200/80 shadow-lg p-3.5 sm:p-4 flex items-center gap-4 overflow-hidden">
+
+          {/* Badge */}
+          <div className="flex items-center space-x-2 shrink-0 bg-heritage-red/10 border border-heritage-red/20 px-3 py-1.5 rounded-lg text-heritage-red z-10">
+            <Bell className="w-4 h-4 animate-bounce" />
+            <span className="text-xs font-bold uppercase tracking-wider whitespace-nowrap">
+              Announcements
             </span>
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-heritage-red block">
-                Latest Announcements
-              </span>
-              <p className="text-sm font-medium text-slate-800 line-clamp-1">
-                {ANNOUNCEMENTS[0].title} ({ANNOUNCEMENTS[0].date})
-              </p>
+          </div>
+
+          {/* Running Continuous Marquee Ticker */}
+          <div className="overflow-hidden whitespace-nowrap flex-1 py-1 relative">
+            <div className="animate-marquee inline-flex space-x-10 items-center text-slate-800 font-medium text-sm">
+              {ANNOUNCEMENTS.map((item) => (
+                <Link
+                  key={item.id}
+                  href={item.link}
+                  className="hover:text-cyan-accent transition-colors flex items-center space-x-2 group"
+                >
+                  <span className="bg-sky-100 text-sky-800 text-[10px] font-bold px-2 py-0.5 rounded border border-sky-300">
+                    {item.date}
+                  </span>
+                  <span className="group-hover:underline">{item.title}</span>
+                  <span className="text-slate-300 font-bold ml-4">✦</span>
+                </Link>
+              ))}
+              {/* Duplicate array for seamless infinite looping */}
+              {ANNOUNCEMENTS.map((item) => (
+                <Link
+                  key={`dup-${item.id}`}
+                  href={item.link}
+                  className="hover:text-cyan-accent transition-colors flex items-center space-x-2 group"
+                >
+                  <span className="bg-sky-100 text-sky-800 text-[10px] font-bold px-2 py-0.5 rounded border border-sky-300">
+                    {item.date}
+                  </span>
+                  <span className="group-hover:underline">{item.title}</span>
+                  <span className="text-slate-300 font-bold ml-4">✦</span>
+                </Link>
+              ))}
             </div>
           </div>
+
+          {/* Right Action Link */}
           <Link
-            href={ANNOUNCEMENTS[0].link}
-            className="inline-flex items-center space-x-1 text-xs font-bold text-cyan-accent hover:text-cyan-dark transition-colors shrink-0 bg-surface-low px-4 py-2 rounded-lg border border-cyan-accent/20"
+            href="/about"
+            className="hidden sm:inline-flex items-center space-x-1 text-xs font-bold text-cyan-accent hover:text-cyan-dark transition-colors shrink-0 bg-surface-low px-3.5 py-2 rounded-lg border border-cyan-accent/20 z-10"
           >
             <span>View All Notices</span>
-            <ArrowRight className="w-4 h-4" />
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
+
         </div>
       </section>
 
@@ -83,50 +108,68 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Overview Pillars Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-12 space-y-3">
-          <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block">
-            Pillars of Scientific Distinction
-          </span>
-          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-oxford">
-            A Legacy of Physical Science Excellence
-          </h2>
-          <p className="text-slate-600 text-base">
-            Since its inception, the Department of Physics at CUSAT has established itself as one of India’s premier centers for postgraduate instruction and advanced research.
-          </p>
-        </div>
+      {/* Department Legacy & Courses Section matching user screenshot */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm hover-lift space-y-3">
-            <div className="w-12 h-12 rounded-lg bg-surface-low flex items-center justify-center text-oxford">
-              <GraduationCap className="w-6 h-6 text-cyan-accent" />
-            </div>
-            <h3 className="font-serif text-xl font-bold text-oxford">Rigorous Academics</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Offering M.Sc., Ph.D., and Integrated M.Sc. programs designed under CBCS with advanced computational physics and quantum mechanics modules.
+          {/* Content Column */}
+          <div className="lg:col-span-7 space-y-6">
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight font-normal">
+              Department of Physics - <span className="text-cyan-accent font-semibold">CUSAT</span>
+            </h2>
+
+            <p className="text-slate-700 text-sm sm:text-base leading-relaxed">
+              Established in 1971, the Department of Physics, CUSAT has maintained the highest standards in postgraduate education and research in physics. Over the years, the Department has become the go-to place for students in Kerala who wish to pursue advanced studies in Physics. Our researchers and postgraduates are consistently placed in faculty, postdoctoral and PhD positions in world-renowned institutions and universities across the globe.
             </p>
+
+            <p className="text-slate-700 text-sm sm:text-base leading-relaxed">
+              Going forward, the Department of Physics envisions continuing the mission of providing quality advanced training in Physics to students through its Masters and newly established Integrated M.Sc. programs and carrying out excellent scientific research. The Department aims to take a leading role in the revolutionary changes envisaged in the 21st century in science in general and physics in particular.
+            </p>
+
+            {/* Courses Links */}
+            <div className="pt-4 space-y-3">
+              <h3 className="font-serif text-2xl font-bold text-slate-900">
+                Courses
+              </h3>
+              <div className="space-y-2">
+                <Link
+                  href="/courses#msc"
+                  className="flex items-center space-x-2.5 text-cyan-accent hover:text-cyan-dark font-semibold text-lg transition-colors group"
+                >
+                  <span className="w-6 h-6 rounded-full bg-cyan-accent text-white flex items-center justify-center text-xs font-bold shadow-sm group-hover:scale-110 transition-transform">
+                    ➔
+                  </span>
+                  <span className="underline underline-offset-4">MSc</span>
+                </Link>
+                <Link
+                  href="/courses#phd"
+                  className="flex items-center space-x-2.5 text-cyan-accent hover:text-cyan-dark font-semibold text-lg transition-colors group"
+                >
+                  <span className="w-6 h-6 rounded-full bg-cyan-accent text-white flex items-center justify-center text-xs font-bold shadow-sm group-hover:scale-110 transition-transform">
+                    ➔
+                  </span>
+                  <span className="underline underline-offset-4">PhD</span>
+                </Link>
+              </div>
+            </div>
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm hover-lift space-y-3">
-            <div className="w-12 h-12 rounded-lg bg-surface-low flex items-center justify-center text-oxford">
-              <Microscope className="w-6 h-6 text-cyan-accent" />
+          {/* Building Photo Column with Offset Red Border Frame */}
+          <div className="lg:col-span-5 relative pl-6 pt-6 sm:pl-8 sm:pt-8">
+            <div className="relative w-full">
+              {/* Offset Red Frame */}
+              <div className="absolute -top-6 -left-6 bottom-6 right-6 border-4 border-heritage-red rounded-sm pointer-events-none" />
+              {/* Department Building Photo */}
+              <div className="relative z-10 shadow-2xl rounded-sm overflow-hidden bg-slate-200">
+                <img
+                  src="/cusat-building.png"
+                  alt="Department of Physics CUSAT Building"
+                  className="w-full h-auto object-cover aspect-[4/3]"
+                />
+              </div>
             </div>
-            <h3 className="font-serif text-xl font-bold text-oxford">Advanced Instrumentation</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Equipped with high-resolution FE-SEM, XRD diffractometer, micro-Raman spectrometer, VSM magnetometers, and thin-film RF sputtering systems.
-            </p>
           </div>
 
-          <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm hover-lift space-y-3">
-            <div className="w-12 h-12 rounded-lg bg-surface-low flex items-center justify-center text-oxford">
-              <BookOpenCheck className="w-6 h-6 text-cyan-accent" />
-            </div>
-            <h3 className="font-serif text-xl font-bold text-oxford">Global Impact Research</h3>
-            <p className="text-sm text-slate-600 leading-relaxed">
-              Over 1,200 research publications in top-tier peer-reviewed international journals like Physical Review B, ACS Materials, and Nature Physics.
-            </p>
-          </div>
         </div>
       </section>
 
@@ -154,53 +197,6 @@ export default function HomePage() {
           {RESEARCH_LABS.slice(0, 3).map((lab) => (
             <LabCard key={lab.id} lab={lab} />
           ))}
-        </div>
-      </section>
-
-      {/* Degree Programs Summary */}
-      <section className="bg-surface-low py-16 border-y border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
-            <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block">
-              Academic Offerings
-            </span>
-            <h2 className="font-serif text-3xl font-bold text-oxford">
-              Degree Programs at Physics Department
-            </h2>
-            <p className="text-sm text-slate-600">
-              Transforming students into world-class physicists through immersive classroom & lab training.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {COURSES.map((course) => (
-              <div key={course.id} className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover-lift flex flex-col justify-between">
-                <div className="space-y-4">
-                  <span className="inline-block bg-oxford text-white text-[11px] font-bold px-2.5 py-0.5 rounded">
-                    {course.level}
-                  </span>
-                  <h3 className="font-serif text-xl font-bold text-oxford">
-                    {course.title}
-                  </h3>
-                  <p className="text-xs text-slate-600 line-clamp-3">
-                    {course.description}
-                  </p>
-                  <div className="text-xs text-slate-500 font-medium">
-                    Duration: <strong className="text-oxford">{course.duration}</strong>
-                  </div>
-                </div>
-                <div className="pt-4 border-t border-slate-100 mt-6">
-                  <Link
-                    href={`/courses#${course.id}`}
-                    className="inline-flex items-center space-x-1 text-xs font-bold text-cyan-accent hover:text-cyan-dark"
-                  >
-                    <span>View Curriculum & Eligibility</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       </section>
 

@@ -1,127 +1,252 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Menu, X, Atom, ChevronRight } from 'lucide-react';
+import { Menu, X, ChevronRight, ChevronDown } from 'lucide-react';
 
-const NAV_LINKS = [
-  { name: 'Home', href: '/' },
-  { name: 'About', href: '/about' },
-  { name: 'People', href: '/people' },
-  { name: 'Courses', href: '/courses' },
-  { name: 'Research Labs', href: '/research-labs' },
-  { name: 'Facilities', href: '/facilities' },
-  { name: 'Journals', href: '/journals' },
-  { name: 'Contact', href: '/contact' },
+interface SubItem {
+  name: string;
+  href: string;
+}
+
+interface NavItem {
+  name: string;
+  href: string;
+  iconType: 'chevron' | 'dropdown';
+  dropdown?: SubItem[];
+}
+
+const NAV_ITEMS: NavItem[] = [
+  {
+    name: 'Home',
+    href: '/',
+    iconType: 'chevron',
+  },
+  {
+    name: 'Undergraduate',
+    href: '/courses#msc',
+    iconType: 'chevron',
+    dropdown: [
+      { name: 'M.Sc. Physics', href: '/courses#msc' },
+      { name: 'Integrated M.Sc.', href: '/courses#integrated' },
+    ],
+  },
+  {
+    name: 'Graduate',
+    href: '/courses#phd',
+    iconType: 'chevron',
+    dropdown: [
+      { name: 'Ph.D. Doctoral Program', href: '/courses#phd' },
+      { name: 'Coursework & Fellowships', href: '/courses#phd' },
+    ],
+  },
+  {
+    name: 'Research',
+    href: '/research-labs',
+    iconType: 'dropdown',
+    dropdown: [
+      { name: 'Research Laboratories', href: '/research-labs' },
+      { name: 'Journals & Publications', href: '/journals' },
+      { name: 'Central Facilities', href: '/facilities' },
+    ],
+  },
+  {
+    name: 'People',
+    href: '/people',
+    iconType: 'chevron',
+  },
+  {
+    name: 'About',
+    href: '/about',
+    iconType: 'chevron',
+  },
+  {
+    name: 'Contact',
+    href: '/contact',
+    iconType: 'chevron',
+  },
 ];
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
 
-  return (
-    <header className="bg-oxford text-white sticky top-0 z-50 shadow-md border-b border-white/10">
-      {/* Top Notification / Crest Bar */}
-      <div className="bg-oxford-dark py-1.5 px-4 text-xs font-sans text-slate-300 border-b border-white/5">
-        <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-2">
-          <div className="flex items-center space-x-2">
-            <span className="bg-cyan-accent text-slate-950 font-bold px-1.5 py-0.5 rounded text-[10px] tracking-wider uppercase">CUSAT</span>
-            <span className="text-slate-300">Department of Physics | Cochin University of Science and Technology</span>
-          </div>
-          <div className="flex items-center space-x-4 text-[11px] text-slate-400">
-            <span>NAAC Accredited A+ Grade</span>
-            <span>|</span>
-            <Link href="https://cusat.ac.in" target="_blank" className="hover:text-cyan-accent transition-colors">
-              CUSAT Portal ↗
-            </Link>
-          </div>
-        </div>
-      </div>
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 40) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-      {/* Main Navigation Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+  return (
+    <header className="sticky top-4 z-50 px-3 sm:px-6 lg:px-8 w-full max-w-[96%] xl:max-w-[1536px] mx-auto transition-all duration-300">
+      {/* Dynamic Glassmorphic Navbar Container */}
+      <div 
+        className={`rounded-2xl sm:rounded-3xl shadow-2xl px-6 sm:px-10 py-4 transition-all duration-300 ${
+          isScrolled 
+            ? 'bg-white/95 backdrop-blur-xl border border-cyan-accent/30 shadow-oxford-dark/10' 
+            : 'bg-white/15 backdrop-blur-xl border border-cyan-accent/40 ring-1 ring-cyan-accent/20'
+        }`}
+      >
+        <div className="flex items-center justify-between">
           
-          {/* Brand Logo & Title */}
-          <Link id="nav-brand-link" href="/" className="flex items-center space-x-3.5 group">
-            <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-cyan-500 to-oxford flex items-center justify-center shadow-lg border border-cyan-400/30 group-hover:scale-105 transition-transform">
-              <Atom className="w-7 h-7 text-white animate-spin-slow" />
+          {/* Brand Title with DOP Logo */}
+          <Link id="nav-brand-link" href="/" className="flex items-center space-x-3 group">
+            <div className="h-9 sm:h-11 w-auto text-cyan-accent group-hover:scale-105 transition-transform duration-300 drop-shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 160" className="h-full w-auto fill-current text-cyan-accent">
+                <text x="5" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">D</text>
+                <g transform="translate(110, 80)">
+                  <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="3" fill="none"/>
+                  <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="3" fill="none" transform="rotate(60)"/>
+                  <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="3" fill="none" transform="rotate(-60)"/>
+                  <circle cx="0" cy="0" r="16" fill="currentColor"/>
+                </g>
+                <text x="150" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">P</text>
+              </svg>
             </div>
-            <div>
-              <span className="block font-serif text-xl sm:text-2xl font-bold tracking-tight text-white leading-tight">
+            <div className="hidden xl:block">
+              <span className={`block font-serif text-base font-bold tracking-tight leading-tight transition-colors ${
+                isScrolled ? 'text-oxford' : 'text-cyan-accent'
+              }`}>
                 Department of Physics
-              </span>
-              <span className="block text-xs font-sans tracking-wider uppercase text-cyan-accent/90 font-medium">
-                Lumen Academicus • CUSAT
               </span>
             </div>
           </Link>
 
-          {/* Desktop Links */}
-          <nav id="desktop-navbar" className="hidden lg:flex items-center space-x-1 xl:space-x-2">
-            {NAV_LINKS.map((link) => {
-              const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+          {/* Desktop Navigation Links */}
+          <nav id="desktop-navbar" className="hidden lg:flex items-center space-x-6 xl:space-x-10">
+            {NAV_ITEMS.map((item) => {
+              const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href.split('#')[0]));
+              const hasDropdown = item.dropdown && item.dropdown.length > 0;
+
               return (
-                <Link
-                  key={link.href}
-                  id={`nav-link-${link.name.toLowerCase().replace(/\s+/g, '-')}`}
-                  href={link.href}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-all duration-200 relative ${
-                    isActive
-                      ? 'text-cyan-accent font-semibold bg-white/10'
-                      : 'text-slate-200 hover:text-white hover:bg-white/5'
-                  }`}
+                <div
+                  key={item.name}
+                  className="relative group"
+                  onMouseEnter={() => hasDropdown && setActiveDropdown(item.name)}
+                  onMouseLeave={() => setActiveDropdown(null)}
                 >
-                  {link.name}
-                  {isActive && (
-                    <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-cyan-accent rounded-full" />
+                  <Link
+                    id={`nav-link-${item.name.toLowerCase()}`}
+                    href={item.href}
+                    className={`flex items-center space-x-1 text-base sm:text-lg font-medium transition-colors ${
+                      isScrolled
+                        ? isActive ? 'text-cyan-accent font-bold' : 'text-oxford hover:text-cyan-accent'
+                        : isActive ? 'text-white font-bold drop-shadow' : 'text-white/90 hover:text-cyan-accent'
+                    }`}
+                  >
+                    <span>{item.name}</span>
+                    {item.iconType === 'dropdown' ? (
+                      <ChevronDown className={`w-4 h-4 transition-transform group-hover:translate-y-0.5 ${
+                        isScrolled ? 'text-oxford' : 'text-white/80'
+                      }`} />
+                    ) : (
+                      <ChevronRight className={`w-4 h-4 transition-transform group-hover:translate-x-0.5 ${
+                        isScrolled ? 'text-oxford' : 'text-white/80'
+                      }`} />
+                    )}
+                  </Link>
+
+                  {/* Dropdown Menu */}
+                  {hasDropdown && activeDropdown === item.name && (
+                    <div className={`absolute top-full left-0 mt-3 w-64 border rounded-xl shadow-2xl p-2 z-50 transition-colors ${
+                      isScrolled 
+                        ? 'bg-white/95 border-slate-200 shadow-xl' 
+                        : 'bg-slate-900/95 backdrop-blur-2xl border-white/20'
+                    }`}>
+                      {item.dropdown?.map((sub) => (
+                        <Link
+                          key={sub.name}
+                          href={sub.href}
+                          className={`block px-4 py-2.5 rounded-lg text-sm transition-colors ${
+                            isScrolled
+                              ? 'text-slate-800 hover:bg-slate-100 hover:text-cyan-accent font-medium'
+                              : 'text-slate-200 hover:bg-white/15 hover:text-sky-300'
+                          }`}
+                        >
+                          {sub.name}
+                        </Link>
+                      ))}
+                    </div>
                   )}
-                </Link>
+                </div>
               );
             })}
           </nav>
 
           {/* Mobile Menu Toggle Button */}
-          <div className="flex lg:hidden">
+          <div className="flex lg:hidden items-center">
             <button
               id="mobile-menu-toggle-btn"
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-md text-slate-200 hover:text-white hover:bg-white/10 focus:outline-none"
+              className={`p-2 rounded-lg focus:outline-none transition-colors ${
+                isScrolled ? 'text-oxford hover:bg-slate-100' : 'text-white hover:bg-white/20'
+              }`}
               aria-expanded={mobileMenuOpen}
               aria-label="Toggle navigation menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6 text-cyan-accent" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
 
         </div>
-      </div>
 
-      {/* Mobile Menu Drawer */}
-      {mobileMenuOpen && (
-        <div id="mobile-nav-drawer" className="lg:hidden bg-oxford-dark border-t border-white/10 px-4 pt-2 pb-6 space-y-1 shadow-2xl">
-          {NAV_LINKS.map((link) => {
-            const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center justify-between px-4 py-3 rounded-lg text-base font-medium transition-colors ${
-                  isActive
-                    ? 'bg-cyan-accent/20 text-cyan-accent font-semibold border-l-4 border-cyan-accent'
-                    : 'text-slate-200 hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                <span>{link.name}</span>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
-              </Link>
-            );
-          })}
-        </div>
-      )}
+        {/* Mobile Menu Drawer */}
+        {mobileMenuOpen && (
+          <div className={`lg:hidden mt-4 pt-4 border-t space-y-2 ${
+            isScrolled ? 'border-slate-200' : 'border-white/20'
+          }`}>
+            {NAV_ITEMS.map((item) => (
+              <div key={item.name} className="space-y-1">
+                <Link
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium transition-colors ${
+                    isScrolled ? 'text-oxford hover:bg-slate-100' : 'text-white hover:bg-white/20'
+                  }`}
+                >
+                  <span className="flex items-center gap-1.5">
+                    {item.name}
+                    {item.iconType === 'dropdown' ? (
+                      <ChevronDown className="w-4 h-4 opacity-80" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 opacity-80" />
+                    )}
+                  </span>
+                </Link>
+                {item.dropdown && (
+                  <div className={`pl-6 space-y-1 border-l ml-4 ${
+                    isScrolled ? 'border-slate-200' : 'border-white/20'
+                  }`}>
+                    {item.dropdown.map((sub) => (
+                      <Link
+                        key={sub.name}
+                        href={sub.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
+                          isScrolled ? 'text-slate-700 hover:text-cyan-accent' : 'text-slate-200 hover:text-white'
+                        }`}
+                      >
+                        {sub.name}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+      </div>
     </header>
   );
 }
