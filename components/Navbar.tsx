@@ -87,7 +87,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <header className="sticky top-4 z-50 px-3 sm:px-6 lg:px-8 w-full max-w-[96%] xl:max-w-[1536px] mx-auto transition-all duration-300">
+    <header className="sticky top-8 sm:top-10 z-50 px-3 sm:px-6 lg:px-8 w-full max-w-[96%] xl:max-w-[1536px] mx-auto transition-all duration-300">
       {/* Dynamic Glassmorphic Navbar Container */}
       <div 
         className={`rounded-2xl sm:rounded-3xl shadow-2xl px-6 sm:px-10 py-4 transition-all duration-300 ${
@@ -112,11 +112,16 @@ export default function Navbar() {
                 <text x="150" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">P</text>
               </svg>
             </div>
-            <div className="hidden xl:block">
-              <span className={`block font-serif text-base font-bold tracking-tight leading-tight transition-colors ${
+            <div className="hidden sm:block">
+              <span className={`block font-sans text-sm sm:text-base font-bold uppercase tracking-wider leading-tight transition-colors ${
                 isScrolled ? 'text-oxford' : 'text-cyan-accent'
               }`}>
-                Department of Physics
+                DEPARTMENT OF PHYSICS
+              </span>
+              <span className={`block font-sans text-[11px] sm:text-xs font-normal tracking-tight transition-colors ${
+                isScrolled ? 'text-slate-600' : 'text-cyan-accent/90'
+              }`}>
+                Cochin University of Science &amp; Technology
               </span>
             </div>
           </Link>

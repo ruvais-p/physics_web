@@ -6,7 +6,7 @@ export default function Footer() {
     <footer className="bg-oxford-dark text-slate-300 border-t border-white/10 pt-16 pb-12 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-          
+
           {/* Column 1: Brand & Philosophy */}
           <div className="space-y-4">
             <div className="flex items-center space-x-3">
@@ -20,10 +20,10 @@ export default function Footer() {
             <p className="text-sm text-slate-400 leading-relaxed">
               Cochin University of Science and Technology (CUSAT). Advancing fundamental physics, materials science, quantum technology, and photonics since 1963.
             </p>
-            <div className="pt-2 flex items-center space-x-2 text-xs text-slate-400">
+            <div className="pt-2 flex flex-wrap gap-2 text-xs text-slate-400">
               <span className="bg-white/10 text-cyan-accent px-2 py-1 rounded font-semibold">NAAC A+</span>
               <span className="bg-white/10 text-slate-300 px-2 py-1 rounded">NIRF Top 40</span>
-              <span className="bg-white/10 text-slate-300 px-2 py-1 rounded">DST-FIST Supported</span>
+              <span className="bg-white/10 text-slate-300 px-2 py-1 rounded">DST-FIST</span>
             </div>
           </div>
 
@@ -95,25 +95,50 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Column 4: Contact Info */}
-          <div>
-            <h3 className="font-serif text-lg font-semibold text-white mb-4 border-b border-cyan-accent/30 pb-2 inline-block">
-              Department Contact
+          {/* Column 4: Contact & Google Map Location */}
+          <div className="space-y-3">
+            <h3 className="font-serif text-lg font-semibold text-white mb-2 border-b border-cyan-accent/30 pb-2 inline-block">
+              Campus Location & Contact
             </h3>
-            <ul className="space-y-3 text-sm text-slate-300">
-              <li className="flex items-start space-x-2.5">
-                <MapPin className="w-4 h-4 text-cyan-accent shrink-0 mt-1" />
-                <span>Department of Physics, CUSAT Campus, Kalamassery, Kochi - 682022, Kerala, India</span>
+            <ul className="space-y-2 text-xs text-slate-300">
+              <li className="flex items-start space-x-2">
+                <MapPin className="w-4 h-4 text-cyan-accent shrink-0 mt-0.5" />
+                <span>Department of Physics, CUSAT, Kalamassery, Kochi - 682022, Kerala, India</span>
               </li>
-              <li className="flex items-center space-x-2.5">
+              <li className="flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-cyan-accent shrink-0" />
                 <span>+91 484 2577404 / 2577401</span>
               </li>
-              <li className="flex items-center space-x-2.5">
+              <li className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-cyan-accent shrink-0" />
                 <span>phys@cusat.ac.in</span>
               </li>
             </ul>
+
+            {/* Interactive Embedded Google Map */}
+            <div className="pt-2">
+              <div className="w-full h-36 rounded-xl overflow-hidden border border-white/20 shadow-lg relative group">
+                <iframe
+                  title="Department of Physics CUSAT Google Map Location"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3928.6534591461974!2d76.32483837494498!3d10.04543949006198!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b080c361eb00001%3A0xe54e60e81c00fdfb!2sDepartment%20of%20Physics%2C%20CUSAT!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                  width="100%"
+                  height="100%"
+                  style={{ border: 0, filter: 'contrast(1.05) brightness(0.95)' }}
+                  allowFullScreen={false}
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+              <a
+                href="https://www.google.com/maps/place/Department+of+Applied+Chemistry+and+Department+of+Physics+,+CUSAT/@10.0459694,76.3265267,17.8z/data=!4m6!3m5!1s0x3b080c370e2c0b3b:0x83497fa6cb0e123a!8m2!3d10.044099!4d76.327021!16s%2Fg%2F1vjdnhd_?hl=en&entry=ttu&g_ep=EgoyMDI2MDcyOS4wIKXMDSoASAFQAw%3D%3D"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-2 inline-flex items-center space-x-1 text-[11px] font-semibold text-cyan-accent hover:underline"
+              >
+                <MapPin className="w-3 h-3" />
+                <span>Open in Google Maps</span>
+              </a>
+            </div>
           </div>
 
         </div>

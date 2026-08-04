@@ -1,22 +1,12 @@
 import Link from 'next/link';
 import Hero from '@/components/Hero';
 import LabCard from '@/components/LabCard';
-import JournalCard from '@/components/JournalCard';
 import {
-  DEPARTMENT_STATS,
   ANNOUNCEMENTS,
   RESEARCH_LABS,
-  PUBLICATIONS,
-  COURSES,
 } from '@/lib/data';
 import {
   Bell,
-  ArrowRight,
-  GraduationCap,
-  Microscope,
-  BookOpenCheck,
-  Award,
-  Sparkles,
   ChevronRight,
 } from 'lucide-react';
 
@@ -25,14 +15,12 @@ export default function HomePage() {
     <div className="space-y-16 pb-20">
 
       {/* Hero Section */}
-      <Hero
-        title="Unraveling the Quantum Frontiers of Matter & Cosmos"
-      />
+      <Hero />
 
-      {/* Announcements Alert Ticker */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
-        <div className="bg-white rounded-xl border border-slate-200/80 shadow-lg p-3.5 sm:p-4 flex items-center gap-4 overflow-hidden">
-
+      {/* Announcements Alert Ticker (100% Full Bleed Screen-Wide Bar) */}
+      <section className="w-full -mt-10 relative z-20">
+        <div className="w-full bg-white border-y border-slate-200/80 shadow-lg px-6 sm:px-12 lg:px-16 py-3.5 sm:py-4 flex items-center gap-4 overflow-hidden">
+          
           {/* Badge */}
           <div className="flex items-center space-x-2 shrink-0 bg-heritage-red/10 border border-heritage-red/20 px-3 py-1.5 rounded-lg text-heritage-red z-10">
             <Bell className="w-4 h-4 animate-bounce" />
@@ -74,44 +62,13 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Right Action Link */}
-          <Link
-            href="/about"
-            className="hidden sm:inline-flex items-center space-x-1 text-xs font-bold text-cyan-accent hover:text-cyan-dark transition-colors shrink-0 bg-surface-low px-3.5 py-2 rounded-lg border border-cyan-accent/20 z-10"
-          >
-            <span>View All Notices</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-
         </div>
       </section>
 
-      {/* Department Statistics Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-oxford text-white rounded-2xl p-8 lg:p-12 shadow-xl relative overflow-hidden">
-          <div className="absolute -right-10 -bottom-10 opacity-10 pointer-events-none">
-            <Sparkles className="w-96 h-96 text-cyan-accent" />
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-8 text-center relative z-10">
-            {DEPARTMENT_STATS.map((stat, idx) => (
-              <div key={idx} className="space-y-1">
-                <div className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-cyan-accent">
-                  {stat.value}
-                </div>
-                <div className="text-xs sm:text-sm font-sans font-medium text-slate-300">
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Department Legacy & Courses Section matching user screenshot */}
+      {/* Department Legacy & Courses Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-
+          
           {/* Content Column */}
           <div className="lg:col-span-7 space-y-6">
             <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight font-normal">
@@ -196,33 +153,6 @@ export default function HomePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {RESEARCH_LABS.slice(0, 3).map((lab) => (
             <LabCard key={lab.id} lab={lab} />
-          ))}
-        </div>
-      </section>
-
-      {/* High-Impact Research Showcase */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-8 gap-4">
-          <div>
-            <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block">
-              Scientific Publications
-            </span>
-            <h2 className="font-serif text-3xl font-bold text-oxford">
-              Recent High-Impact Papers
-            </h2>
-          </div>
-          <Link
-            href="/journals"
-            className="inline-flex items-center space-x-1 text-sm font-semibold text-oxford hover:text-cyan-accent transition-colors"
-          >
-            <span>Browse All Publications</span>
-            <ChevronRight className="w-4 h-4 text-cyan-accent" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {PUBLICATIONS.slice(0, 4).map((pub) => (
-            <JournalCard key={pub.id} publication={pub} />
           ))}
         </div>
       </section>
