@@ -1,11 +1,11 @@
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 import PixelSnow from './PixelSnow';
 
 interface HeroProps {
   badge?: string;
   title: string;
-  subtitle?: string;
+  subtitle: string;
   primaryCtaText?: string;
   primaryCtaLink?: string;
   secondaryCtaText?: string;
@@ -14,6 +14,7 @@ interface HeroProps {
 }
 
 export default function Hero({
+  badge = 'DEPARTMENT OF PHYSICS • CUSAT',
   title,
   subtitle,
   primaryCtaText,
@@ -30,7 +31,7 @@ export default function Hero({
       <div className="absolute inset-0 z-0 pointer-events-none">
         <div className="absolute inset-0 bg-[#000A1E]">
           <PixelSnow
-            color="#0284C7"
+            color="#00A3C1"
             flakeSize={0.015}
             minFlakeSize={1.5}
             pixelResolution={200}
@@ -58,6 +59,14 @@ export default function Hero({
       <div className="relative z-30 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16">
         <div className="max-w-2xl lg:max-w-[48%] space-y-6">
 
+          {/* Badge */}
+          {badge && (
+            <div className="inline-flex items-center space-x-2 bg-cyan-accent/15 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-cyan-accent/40 text-cyan-accent text-xs font-semibold tracking-wider uppercase shadow-lg">
+              <Sparkles className="w-3.5 h-3.5 text-cyan-accent animate-pulse" />
+              <span>{badge}</span>
+            </div>
+          )}
+
           {/* Title */}
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-white leading-[1.12] drop-shadow-md">
             {title}
@@ -74,7 +83,7 @@ export default function Hero({
               {primaryCtaText && primaryCtaLink && (
                 <Link
                   href={primaryCtaLink}
-                  className="inline-flex items-center space-x-2 bg-cyan-accent hover:bg-sky-600 text-white font-sans font-semibold px-6 py-3.5 rounded-xl shadow-lg shadow-sky-600/20 transition-all text-base group"
+                  className="inline-flex items-center space-x-2 bg-cyan-accent hover:bg-cyan-400 text-slate-950 font-sans font-semibold px-6 py-3.5 rounded-xl shadow-lg shadow-cyan-500/20 transition-all text-base group"
                 >
                   <span>{primaryCtaText}</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
