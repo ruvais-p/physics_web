@@ -390,7 +390,7 @@ export const RESEARCH_LABS: ResearchLab[] = [
     description: 'The Magnetics Lab focuses on pioneering research in magnetic nanocomposites, magnetostrictive materials, multiferroic heterostructures, and magnetic fluid hyperthermia for biomedical applications.',
     equipment: ['VSM (Vibrating Sample Magnetometer)', 'High-Temp Sintering Furnaces', 'Impedance Analyzer (1MHz - 3GHz)', 'Sol-Gel Chemical Synthesis Rig'],
     focusAreas: ['Soft & Hard Ferrite Nanoparticles', 'Magneto-electric Sensors', 'Electromagnetic Interference (EMI) Shielding'],
-    image: 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?w=600&q=80',
+    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600&q=80',
     activeProjects: 5,
   },
   {

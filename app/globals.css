@@ -117,3 +117,18 @@
   animation-play-state: paused;
 }
 
+/* Continuous Running Laboratories Marquee */
+@keyframes marquee-labs {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(calc(-100% - 1.5rem));
+  }
+}
+
+.animate-marquee-labs {
+  display: inline-flex;
+  animation: marquee-labs 45s linear infinite;
+}
+

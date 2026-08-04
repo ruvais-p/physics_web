@@ -5,7 +5,7 @@ import PixelSnow from './PixelSnow';
 interface HeroProps {
   badge?: string;
   title: string;
-  subtitle: string;
+  subtitle?: string;
   primaryCtaText?: string;
   primaryCtaLink?: string;
   secondaryCtaText?: string;
@@ -16,7 +16,7 @@ interface HeroProps {
 export default function Hero({
   badge = 'DEPARTMENT OF PHYSICS • CUSAT',
   title,
-  subtitle,
+  subtitle = 'Bridging academic tradition with pioneering research.',
   primaryCtaText,
   primaryCtaLink,
   secondaryCtaText,
