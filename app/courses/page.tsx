@@ -21,7 +21,14 @@ export default function CoursesPage() {
 
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    
+    // Periodic check to capture Next.js client-side routing hash updates
+    const interval = setInterval(handleHashChange, 150);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      clearInterval(interval);
+    };
   }, []);
 
   const selectedCourse = COURSES.find(c => c.id === activeCourseId) || COURSES[0];

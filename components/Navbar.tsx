@@ -84,15 +84,15 @@ export default function Navbar() {
   const shouldBeBlue = isScrolled || forceBlue;
 
   return (
-    <header className="sticky top-8 sm:top-10 z-50 px-3 sm:px-6 lg:px-8 w-full max-w-[96%] xl:max-w-[1536px] mx-auto transition-all duration-300">
-      {/* Dynamic Glassmorphic Navbar Container */}
+    <header className="sticky top-0 z-50 w-full transition-all duration-300">
+      {/* Dynamic Top-Attached Navbar Container */}
       <div
-        className={`rounded-2xl sm:rounded-3xl shadow-2xl px-6 sm:px-10 py-4 transition-all duration-300 ${shouldBeBlue
-          ? 'bg-white/95 backdrop-blur-xl border border-cyan-accent/30 shadow-oxford-dark/10'
-          : 'bg-white/15 backdrop-blur-xl border border-cyan-accent/40 ring-1 ring-cyan-accent/20'
+        className={`w-full px-6 sm:px-10 py-4 transition-all duration-300 border-b ${shouldBeBlue
+          ? 'bg-white/95 backdrop-blur-xl border-cyan-accent/20 shadow-md shadow-oxford-dark/5'
+          : 'bg-[#000a1e]/40 backdrop-blur-md border-white/10'
           }`}
       >
-        <div className="flex items-center justify-between">
+        <div className="max-w-[1536px] mx-auto flex items-center justify-between">
 
           {/* Brand Title with DOP Logo */}
           <Link id="nav-brand-link" href="/" className="flex items-center space-x-3 group">
