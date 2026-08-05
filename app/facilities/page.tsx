@@ -1,7 +1,6 @@
-import Hero from '@/components/Hero';
 import FacilityCard from '@/components/FacilityCard';
 import { FACILITIES } from '@/lib/data';
-import { FileText, ShieldAlert, CheckCircle, Clock } from 'lucide-react';
+import { FileText, Clock } from 'lucide-react';
 import Link from 'next/link';
 
 export const metadata = {
@@ -13,13 +12,20 @@ export default function FacilitiesPage() {
   return (
     <div className="space-y-12 pb-20">
       
-      {/* Hero */}
-      <Hero
-        badge="CENTRAL INSTRUMENTATION"
-        title="Sophisticated Analytical Equipment Facilities"
-        subtitle="Providing state-of-the-art analytical characterization services for internal researchers, academic institutes, and industrial R&D laboratories."
-        bgImage="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1600&q=80"
-      />
+      {/* Page Header (No Hero image, clean text block) */}
+      <div className="-mt-[84px] sm:-mt-[96px] bg-slate-50 border-b border-slate-200/80 pt-36 sm:pt-44 pb-12 lg:pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4">
+          <span className="inline-block text-xs font-bold uppercase tracking-wider text-cyan-accent">
+            Central Instrumentation
+          </span>
+          <h1 className="font-serif text-4xl sm:text-5xl font-extrabold text-oxford">
+            Sophisticated Analytical Equipment Facilities
+          </h1>
+          <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed font-sans">
+            Providing state-of-the-art analytical characterization services for internal researchers, academic institutes, and industrial R&D laboratories.
+          </p>
+        </div>
+      </div>
 
       {/* Facilities Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
@@ -41,7 +47,7 @@ export default function FacilitiesPage() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-700">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-700 font-sans">
             <div className="bg-white p-5 rounded-xl border border-slate-200 space-y-2">
               <div className="w-8 h-8 rounded-lg bg-cyan-accent/10 text-cyan-dark flex items-center justify-center font-bold">
                 1
@@ -73,7 +79,7 @@ export default function FacilitiesPage() {
             </div>
           </div>
 
-          <div className="pt-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200">
+          <div className="pt-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 font-sans">
             <div className="flex items-center space-x-2 text-xs text-slate-500">
               <Clock className="w-4 h-4 text-cyan-accent" />
               <span>Facility Working Hours: Monday – Friday (9:30 AM – 4:30 PM)</span>

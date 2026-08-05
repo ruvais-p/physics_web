@@ -1,10 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Hero from '@/components/Hero';
 import JournalCard from '@/components/JournalCard';
 import { PUBLICATIONS } from '@/lib/data';
-import { Search, BookOpen, ExternalLink, Filter } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 export default function JournalsPage() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,16 +25,23 @@ export default function JournalsPage() {
   return (
     <div className="space-y-12 pb-20">
       
-      {/* Hero */}
-      <Hero
-        badge="DEPARTMENT PUBLICATIONS"
-        title="Peer-Reviewed Journals & Publications"
-        subtitle="Exploring ground-breaking papers authored by our faculty and research scholars in Physical Review, ACS, Nature Physics, and EPJ."
-        bgImage="https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?w=1600&q=80"
-      />
+      {/* Page Header (No Hero image, clean text block) */}
+      <div className="-mt-[84px] sm:-mt-[96px] bg-slate-50 border-b border-slate-200/80 pt-36 sm:pt-44 pb-12 lg:pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4">
+          <span className="inline-block text-xs font-bold uppercase tracking-wider text-cyan-accent">
+            Department Publications
+          </span>
+          <h1 className="font-serif text-4xl sm:text-5xl font-extrabold text-oxford">
+            Peer-Reviewed Journals & Publications
+          </h1>
+          <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed font-sans">
+            Exploring ground-breaking papers authored by our faculty and research scholars in Physical Review, ACS, Nature Physics, and EPJ.
+          </p>
+        </div>
+      </div>
 
       {/* Filter & Search Bar */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 font-sans">
         
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
           

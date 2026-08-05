@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Hero from '@/components/Hero';
 import FacultyCard from '@/components/FacultyCard';
 import { FACULTY_MEMBERS, SCHOLARS } from '@/lib/data';
 import { Search, UserCheck, GraduationCap } from 'lucide-react';
@@ -26,13 +25,20 @@ export default function PeoplePage() {
   return (
     <div className="space-y-12 pb-20">
       
-      {/* Hero */}
-      <Hero
-        badge="PEOPLE & ACADEMICS"
-        title="Faculty & Research Scholars"
-        subtitle="Meet the distinguished professors, scientists, and PhD scholars driving scientific research across experimental and theoretical physics."
-        bgImage="https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=1600&q=80"
-      />
+      {/* Page Header (No Hero image, clean text block) */}
+      <div className="-mt-[84px] sm:-mt-[96px] bg-slate-50 border-b border-slate-200/80 pt-36 sm:pt-44 pb-12 lg:pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4">
+          <span className="inline-block text-xs font-bold uppercase tracking-wider text-cyan-accent">
+            People & Academics
+          </span>
+          <h1 className="font-serif text-4xl sm:text-5xl font-extrabold text-oxford">
+            Faculty & Research Scholars
+          </h1>
+          <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed font-sans">
+            Meet the distinguished professors, scientists, and PhD scholars driving scientific research across experimental and theoretical physics.
+          </p>
+        </div>
+      </div>
 
       {/* Filter Tabs & Search Bar */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -40,7 +46,7 @@ export default function PeoplePage() {
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
           
           {/* Option Buttons: Faculty vs Scholars */}
-          <div className="flex items-center space-x-2 bg-surface-low p-1.5 rounded-lg border border-slate-200 w-full md:w-auto">
+          <div className="flex items-center space-x-2 bg-surface-low p-1.5 rounded-lg border border-slate-200 w-full md:w-auto font-sans">
             <button
               id="tab-faculty-btn"
               onClick={() => setActiveTab('faculty')}
@@ -69,7 +75,7 @@ export default function PeoplePage() {
           </div>
 
           {/* Search Box */}
-          <div className="relative w-full md:w-72">
+          <div className="relative w-full md:w-72 font-sans">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               id="people-search-input"
@@ -84,7 +90,7 @@ export default function PeoplePage() {
         </div>
 
         {/* Results Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 font-sans">
           {filteredList.length > 0 ? (
             filteredList.map((person) => (
               <FacultyCard key={person.id} person={person} />
