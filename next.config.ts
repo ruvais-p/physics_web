@@ -11,4 +11,5 @@ const nextConfig: NextConfig = {
   },
 };
 
+// Force Next.js server cache refresh after schema update
 export default nextConfig;

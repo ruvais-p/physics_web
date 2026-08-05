@@ -2,14 +2,9 @@ import Link from 'next/link';
 import Hero from '@/components/Hero';
 import LabCard from '@/components/LabCard';
 import Testimonials from '@/components/Testimonials';
-import {
-  ANNOUNCEMENTS,
-  RESEARCH_LABS,
-} from '@/lib/data';
-import {
-  Bell,
-  ChevronRight,
-} from 'lucide-react';
+import NotificationsTicker from '@/components/NotificationsTicker';
+import { RESEARCH_LABS } from '@/lib/data';
+import { ChevronRight } from 'lucide-react';
 
 export default function HomePage() {
   return (
@@ -18,53 +13,8 @@ export default function HomePage() {
       {/* Hero Section */}
       <Hero />
 
-      {/* Announcements Alert Ticker (100% Full Bleed Screen-Wide Bar) */}
-      <section className="w-full relative z-20">
-        <div className="w-full bg-white border-y border-oxford/15 shadow-dark-blue-glow px-6 sm:px-12 lg:px-16 py-3.5 sm:py-4 flex items-center gap-4 overflow-hidden">
-
-          {/* Badge */}
-          <div className="flex items-center space-x-2 shrink-0 bg-heritage-red/10 border border-heritage-red/20 px-3 py-1.5 rounded-lg text-heritage-red z-10">
-            <Bell className="w-4 h-4 animate-bounce" />
-            <span className="text-sm font-bold uppercase tracking-wider whitespace-nowrap">
-              Announcements
-            </span>
-          </div>
-
-          {/* Running Continuous Marquee Ticker */}
-          <div className="overflow-hidden whitespace-nowrap flex-1 py-1 relative">
-            <div className="animate-marquee inline-flex space-x-10 items-center text-slate-800 font-medium text-base">
-              {ANNOUNCEMENTS.map((item) => (
-                <Link
-                  key={item.id}
-                  href={item.link}
-                  className="hover:text-cyan-accent transition-colors flex items-center space-x-2 group"
-                >
-                  <span className="bg-sky-100 text-sky-800 text-xs font-bold px-2 py-0.5 rounded border border-sky-300">
-                    {item.date}
-                  </span>
-                  <span className="group-hover:underline">{item.title}</span>
-                  <span className="text-slate-300 font-bold ml-4">✦</span>
-                </Link>
-              ))}
-              {/* Duplicate array for seamless infinite looping */}
-              {ANNOUNCEMENTS.map((item) => (
-                <Link
-                  key={`dup-${item.id}`}
-                  href={item.link}
-                  className="hover:text-cyan-accent transition-colors flex items-center space-x-2 group"
-                >
-                  <span className="bg-sky-100 text-sky-800 text-xs font-bold px-2 py-0.5 rounded border border-sky-300">
-                    {item.date}
-                  </span>
-                  <span className="group-hover:underline">{item.title}</span>
-                  <span className="text-slate-300 font-bold ml-4">✦</span>
-                </Link>
-              ))}
-            </div>
-          </div>
-
-        </div>
-      </section>
+      {/* Announcements Alert Ticker (Fetched Live from PostgreSQL DB) */}
+      <NotificationsTicker />
 
       {/* Department Legacy & Academics Section */}
       <section className="w-full px-6 sm:px-12 lg:px-16 py-12 sm:py-16 bg-gradient-to-b from-white via-slate-50/50 to-white">
@@ -186,7 +136,7 @@ export default function HomePage() {
               {/* Fade masks on the edges */}
               <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#000A1E] to-transparent z-10 pointer-events-none" />
               <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#000A1E] to-transparent z-10 pointer-events-none" />
-              
+
               <div className="flex gap-0 animate-marquee-labs hover:[animation-play-state:paused] py-4 cursor-pointer">
                 {RESEARCH_LABS.map((lab) => (
                   <div key={`orig-${lab.id}`} className="w-[280px] sm:w-[320px] pr-6 flex-shrink-0">

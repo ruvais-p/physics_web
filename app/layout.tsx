@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import { League_Spartan, Inter } from 'next/font/google';
 import '@/app/globals.css';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
+import LayoutWrapper from '@/components/LayoutWrapper';
 
 const leagueSpartan = League_Spartan({
   subsets: ['latin'],
@@ -45,9 +44,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${leagueSpartan.variable} ${inter.variable}`}>
       <body className="min-h-screen flex flex-col bg-surface-canvas text-on-surface font-sans antialiased">
-        <Navbar />
-        <main className="flex-grow">{children}</main>
-        <Footer />
+        <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
   );
