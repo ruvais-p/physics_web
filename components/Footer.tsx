@@ -4,7 +4,7 @@ import { Atom, MapPin, Mail, Phone, ExternalLink } from 'lucide-react';
 export default function Footer() {
   return (
     <footer className="bg-oxford-dark text-slate-300 border-t border-white/10 pt-16 pb-12 font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="w-full px-6 sm:px-12 lg:px-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
 
           {/* Column 1: Brand & Philosophy */}
@@ -17,7 +17,7 @@ export default function Footer() {
                 Department of Physics
               </span>
             </div>
-            <p className="text-sm text-slate-400 leading-relaxed">
+            <p className="text-sm text-slate-400 leading-relaxed text-justify">
               Cochin University of Science and Technology (CUSAT). Advancing fundamental physics, materials science, quantum technology, and photonics since 1963.
             </p>
             <div className="pt-2 flex flex-wrap gap-2 text-xs text-slate-400">

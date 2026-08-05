@@ -1,18 +1,19 @@
 import type { Metadata } from 'next';
-import { Source_Serif_4, Hanken_Grotesk } from 'next/font/google';
+import { League_Spartan, Inter } from 'next/font/google';
 import '@/app/globals.css';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
-const sourceSerif = Source_Serif_4({
+const leagueSpartan = League_Spartan({
   subsets: ['latin'],
-  variable: '--font-serif',
+  weight: ['400', '600', '700', '800', '900'],
+  variable: '--font-spartan',
   display: 'swap',
 });
 
-const hankenGrotesk = Hanken_Grotesk({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-hanken',
+  variable: '--font-inter',
   display: 'swap',
 });
 
@@ -42,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${sourceSerif.variable} ${hankenGrotesk.variable}`}>
+    <html lang="en" className={`${leagueSpartan.variable} ${inter.variable}`}>
       <body className="min-h-screen flex flex-col bg-surface-canvas text-on-surface font-sans antialiased">
         <Navbar />
         <main className="flex-grow">{children}</main>

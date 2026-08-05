@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Hero from '@/components/Hero';
 import LabCard from '@/components/LabCard';
+import Testimonials from '@/components/Testimonials';
 import {
   ANNOUNCEMENTS,
   RESEARCH_LABS,
@@ -12,13 +13,13 @@ import {
 
 export default function HomePage() {
   return (
-    <div className="space-y-16 pb-20">
+    <div className="space-y-0 pb-0">
 
       {/* Hero Section */}
       <Hero />
 
       {/* Announcements Alert Ticker (100% Full Bleed Screen-Wide Bar) */}
-      <section className="w-full -mt-10 relative z-20">
+      <section className="w-full relative z-20">
         <div className="w-full bg-white border-y border-slate-200/80 shadow-lg px-6 sm:px-12 lg:px-16 py-3.5 sm:py-4 flex items-center gap-4 overflow-hidden">
           
           {/* Badge */}
@@ -65,73 +66,71 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Department Legacy & Courses Section */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+      {/* Department Legacy & Academics Section */}
+      <section className="w-full px-6 sm:px-12 lg:px-16 py-12 sm:py-16 bg-gradient-to-b from-white via-slate-50/50 to-white">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
           
-          {/* Content Column */}
-          <div className="lg:col-span-7 space-y-6">
-            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-slate-900 tracking-tight font-normal">
-              Department of Physics - <span className="text-cyan-accent font-semibold">CUSAT</span>
-            </h2>
-
-            <p className="text-slate-700 text-sm sm:text-base leading-relaxed">
-              Established in 1971, the Department of Physics, CUSAT has maintained the highest standards in postgraduate education and research in physics. Over the years, the Department has become the go-to place for students in Kerala who wish to pursue advanced studies in Physics. Our researchers and postgraduates are consistently placed in faculty, postdoctoral and PhD positions in world-renowned institutions and universities across the globe.
-            </p>
-
-            <p className="text-slate-700 text-sm sm:text-base leading-relaxed">
-              Going forward, the Department of Physics envisions continuing the mission of providing quality advanced training in Physics to students through its Masters and newly established Integrated M.Sc. programs and carrying out excellent scientific research. The Department aims to take a leading role in the revolutionary changes envisaged in the 21st century in science in general and physics in particular.
-            </p>
-
-            {/* Courses Links */}
-            <div className="pt-4 space-y-3">
-              <h3 className="font-serif text-2xl font-bold text-slate-900">
-                Courses
-              </h3>
-              <div className="space-y-2">
-                <Link
-                  href="/courses#msc"
-                  className="flex items-center space-x-2.5 text-cyan-accent hover:text-cyan-dark font-semibold text-lg transition-colors group"
-                >
-                  <span className="w-6 h-6 rounded-full bg-cyan-accent text-white flex items-center justify-center text-xs font-bold shadow-sm group-hover:scale-110 transition-transform">
-                    ➔
-                  </span>
-                  <span className="underline underline-offset-4">MSc</span>
-                </Link>
-                <Link
-                  href="/courses#phd"
-                  className="flex items-center space-x-2.5 text-cyan-accent hover:text-cyan-dark font-semibold text-lg transition-colors group"
-                >
-                  <span className="w-6 h-6 rounded-full bg-cyan-accent text-white flex items-center justify-center text-xs font-bold shadow-sm group-hover:scale-110 transition-transform">
-                    ➔
-                  </span>
-                  <span className="underline underline-offset-4">PhD</span>
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Building Photo Column with Offset Red Border Frame */}
-          <div className="lg:col-span-5 relative pl-6 pt-6 sm:pl-8 sm:pt-8">
-            <div className="relative w-full">
-              {/* Offset Red Frame */}
-              <div className="absolute -top-6 -left-6 bottom-6 right-6 border-4 border-heritage-red rounded-sm pointer-events-none" />
-              {/* Department Building Photo */}
-              <div className="relative z-10 shadow-2xl rounded-sm overflow-hidden bg-slate-200">
+          {/* Arched Window Image Column */}
+          <div className="lg:col-span-5 flex justify-center items-center mx-auto">
+            <div className="relative w-full max-w-[380px] sm:max-w-[440px]">
+              {/* Outer Decorative Arch Halo */}
+              <div className="absolute -inset-3 rounded-t-[180px] sm:rounded-t-[240px] rounded-b-3xl border-2 border-cyan-accent/40 bg-cyan-accent/5 -z-10 transform -rotate-1" />
+              
+              {/* Main Arched Window Frame */}
+              <div className="relative w-full aspect-[4/5] rounded-t-[160px] sm:rounded-t-[220px] rounded-b-3xl border-4 border-heritage-red/80 overflow-hidden shadow-2xl bg-oxford-dark group">
                 <img
                   src="/cusat-building.png"
                   alt="Department of Physics CUSAT Building"
-                  className="w-full h-auto object-cover aspect-[4/3]"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-oxford-dark/80 via-transparent to-transparent" />
               </div>
             </div>
           </div>
 
+          {/* Content Column */}
+          <div className="lg:col-span-7 space-y-6">
+            <div className="space-y-2">
+              <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold text-oxford tracking-tight leading-tight">
+                Academics done <span className="text-cyan-accent italic font-light">differently.</span>
+              </h2>
+            </div>
+
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-800 font-sans">
+              Dive into world-class programs &amp; research
+            </h3>
+
+            <p className="text-slate-700 text-sm sm:text-base leading-relaxed text-justify">
+              Established in 1971, the Department of Physics, CUSAT has maintained the highest standards in postgraduate education and scientific research. Over the years, the Department has become the premier destination for students in Kerala and across India seeking advanced studies in Physics. Our postgraduates and researchers are consistently placed in top faculty, postdoctoral, and Ph.D. positions at world-renowned research centers across the globe.
+            </p>
+
+            <p className="text-slate-700 text-sm sm:text-base leading-relaxed text-justify">
+              Going forward, the Department envisions continuing its mission of providing quality advanced training in Physics through its M.Sc., Integrated M.Sc., and Ph.D. research programs, driving fundamental scientific breakthroughs in materials science, quantum technology, and photonics.
+            </p>
+
+            {/* Action CTA Buttons */}
+            <div className="pt-3 flex flex-wrap items-center gap-4">
+              <Link
+                href="/courses"
+                className="inline-flex items-center space-x-2 bg-heritage-red hover:bg-red-800 text-white font-sans font-bold px-6 py-3 rounded-xl shadow-lg transition-all duration-200 text-sm hover:scale-105"
+              >
+                <span>Search Degrees &amp; Programs</span>
+                <ChevronRight className="w-4 h-4" />
+              </Link>
+              <Link
+                href="/people"
+                className="inline-flex items-center space-x-2 bg-oxford hover:bg-oxford-dark text-white font-sans font-bold px-6 py-3 rounded-xl shadow-lg transition-all duration-200 text-sm hover:scale-105"
+              >
+                <span>Meet the Faculty</span>
+                <ChevronRight className="w-4 h-4 text-cyan-accent" />
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
       {/* Featured Research Laboratories */}
-      <section className="relative w-full bg-oxford-dark text-white overflow-hidden py-24 sm:py-28 lg:py-32 border-y border-white/5 shadow-[inset_0_0_80px_rgba(0,0,0,0.9)]">
+      <section className="relative w-full bg-oxford-dark text-white overflow-hidden py-12 sm:py-16 border-y border-white/5 shadow-[inset_0_0_80px_rgba(0,0,0,0.9)]">
         {/* Background Image & Overlay */}
         <div className="absolute inset-0 z-0 pointer-events-none">
           <div
@@ -145,8 +144,8 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-r from-[#000A1E]/30 via-[#000A1E]/85 to-[#000A1E]" />
         </div>
 
-        {/* Content Container */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+        {/* Content Container (Matching Testimonials Size & Padding) */}
+        <div className="relative z-10 w-full max-w-[1536px] mx-auto px-4 sm:px-8 lg:px-12 space-y-12">
           
           {/* Header Row */}
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
@@ -169,7 +168,7 @@ export default function HomePage() {
             
             {/* Left side: Description */}
             <div className="lg:col-span-4 space-y-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-              <p className="text-slate-100 text-lg sm:text-xl font-medium leading-relaxed">
+              <p className="text-slate-100 text-lg sm:text-xl font-medium leading-relaxed text-justify">
                 The Department of Physics features specialized research facilities driving scientific breakthroughs in materials science, laser spectroscopy, thin-film photovoltaics, and theoretical cosmology.
               </p>
             </div>
@@ -198,6 +197,9 @@ export default function HomePage() {
 
         </div>
       </section>
+
+      {/* Alumni & Scholar Testimonials Section */}
+      <Testimonials />
 
     </div>
   );

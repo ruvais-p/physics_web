@@ -22,12 +22,12 @@
   body {
     background-color: var(--bg-canvas);
     color: var(--on-surface);
-    font-family: var(--font-hanken), system-ui, sans-serif;
+    font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
-  h1, h2, h3, h4, .font-serif-heading {
-    font-family: var(--font-serif), Georgia, serif;
+  h1, h2, h3, h4, .font-serif-heading, .font-serif {
+    font-family: var(--font-spartan), 'League Spartan', system-ui, sans-serif;
   }
 }
 
@@ -47,8 +47,8 @@
   --color-on-surface-muted: #44474e;
   --color-outline-subtle: #c4c6cf;
 
-  --font-serif: var(--font-serif);
-  --font-sans: var(--font-hanken);
+  --font-serif: var(--font-spartan);
+  --font-sans: var(--font-inter);
 }
 
 /* Custom Utilities for Design System */

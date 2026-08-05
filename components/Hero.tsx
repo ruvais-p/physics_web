@@ -3,7 +3,8 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowRight, Sparkles, Pause, Play } from 'lucide-react';
+import { Sparkles, Pause, Play } from 'lucide-react';
+import TextReveal from '@/components/TextReveal';
 
 export type Slide = {
   id: string;
@@ -26,7 +27,7 @@ const DEFAULT_SLIDES: Slide[] = [
     subtitle: 'Pioneering research in magnetic nanocomposites, quantum transport, and 2D topological insulator heterostructures.',
     image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=1920&auto=format&fit=crop',
     overlay: 'rgba(0, 10, 30, 0.65)',
-    titleColor: '#ffffff',
+    titleColor: '#0284c7',
     ctaText: 'Explore Laboratories',
     ctaLink: '/research-labs',
   },
@@ -35,9 +36,9 @@ const DEFAULT_SLIDES: Slide[] = [
     tab: 'Academics',
     title: ['Advanced Degree', 'Programs'],
     subtitle: 'Choice-Based Credit System (CBCS) offering M.Sc., Ph.D., and 5-Year Integrated M.Sc. degree programs.',
-    image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=1920&auto=format&fit=crop',
+    image: '/faculty.png',
     overlay: 'rgba(0, 33, 71, 0.65)',
-    titleColor: '#ffffff',
+    titleColor: '#0284c7',
     ctaText: 'View Degree Programs',
     ctaLink: '/courses',
   },
@@ -48,7 +49,7 @@ const DEFAULT_SLIDES: Slide[] = [
     subtitle: 'Equipped with FE-SEM, XRD Diffractometer, Confocal Raman Spectrometer, and VSM Magnetometers.',
     image: '/phy_dept.png',
     overlay: 'rgba(0, 20, 45, 0.65)',
-    titleColor: '#ffffff',
+    titleColor: '#0284c7',
     ctaText: 'Book Central Facilities',
     ctaLink: '/facilities',
   },
@@ -59,7 +60,7 @@ const DEFAULT_SLIDES: Slide[] = [
     subtitle: 'Laser-matter interactions, Z-scan optical limiting, and rare-earth doped photothermal sensors.',
     image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1920&auto=format&fit=crop',
     overlay: 'rgba(10, 15, 35, 0.65)',
-    titleColor: '#00A3C1',
+    titleColor: '#0284c7',
     ctaText: 'Read Publications',
     ctaLink: '/journals',
   },
@@ -70,7 +71,7 @@ const DEFAULT_SLIDES: Slide[] = [
     subtitle: 'Modeling dark energy dynamics, entropic gravity, black hole thermodynamics, and FLRW expanding spacetimes.',
     image: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=1920&auto=format&fit=crop',
     overlay: 'rgba(12, 10, 30, 0.65)',
-    titleColor: '#facc15',
+    titleColor: '#0284c7',
     ctaText: 'Meet Our Faculty',
     ctaLink: '/people',
   },
@@ -80,11 +81,7 @@ const SLIDE_DURATION_MS = 6000;
 
 interface HeroProps {
   badge?: string;
-<<<<<<< HEAD
   title?: string;
-=======
-  title: string;
->>>>>>> 9d327e48c02b4f965d7978f27b0eac6ebbbeeb06
   subtitle?: string;
   primaryCtaText?: string;
   primaryCtaLink?: string;
@@ -199,12 +196,12 @@ export default function Hero({
 
           {/* Headline */}
           <h1
-            className="font-serif text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] drop-shadow-xl"
-            style={{ color: currentSlide.titleColor }}
+            className="font-serif text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] text-cyan-accent drop-shadow-2xl"
+            style={{ color: currentSlide.titleColor || '#0284c7' }}
           >
             {currentSlide.title.map((line, idx) => (
               <span key={idx} className="block">
-                {line}
+                <TextReveal text={line} animKey={`${index}-${idx}`} delay={idx * 0.15} />
               </span>
             ))}
           </h1>
@@ -216,98 +213,46 @@ export default function Hero({
             </p>
           )}
 
-          {/* CTA Buttons */}
-          {(currentSlide.ctaText || primaryCtaText || secondaryCtaText) && (
-            <div className="pt-2 flex flex-wrap items-center gap-4">
-              {(currentSlide.ctaText || primaryCtaText) && (
-                <Link
-                  href={currentSlide.ctaLink || primaryCtaLink || '/courses'}
-                  className="inline-flex items-center space-x-2 bg-cyan-accent hover:bg-cyan-400 text-slate-950 font-sans font-bold px-7 py-3.5 rounded-xl shadow-xl shadow-cyan-500/25 transition-all duration-200 text-base group hover:scale-105"
-                >
-                  <span>{currentSlide.ctaText || primaryCtaText}</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </Link>
-              )}
-              {secondaryCtaText && secondaryCtaLink && (
-                <Link
-                  href={secondaryCtaLink}
-                  className="inline-flex items-center space-x-2 bg-white/15 hover:bg-white/25 text-white border border-white/30 font-sans font-medium px-6 py-3.5 rounded-xl backdrop-blur-md transition-all text-base"
-                >
-                  <span>{secondaryCtaText}</span>
-                </Link>
-              )}
-            </div>
-          )}
+
 
         </div>
       </div>
 
-      {/* Bottom Tabs & Controls Bar */}
+      {/* Bottom Right Slide Controls (5 Dots & Animation Play/Pause Toggle) */}
       {total > 1 && (
-        <div className="absolute bottom-0 inset-x-0 z-20 bg-gradient-to-t from-black/90 via-black/60 to-transparent pt-8 pb-4 px-6 sm:px-12 lg:px-16 flex flex-col md:flex-row items-stretch md:items-end justify-between gap-4">
-
-          {/* Tabs with Animated Progress Line */}
-          <div className="flex items-center space-x-6 sm:space-x-8 overflow-x-auto no-scrollbar py-2 flex-1 border-b md:border-b-0 border-white/10">
-            {effectiveSlides.map((s, i) => {
-              const isActive = i === index;
-              return (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => goTo(i)}
-                  className={`flex flex-col items-start space-y-2 text-left transition-all shrink-0 cursor-pointer group ${isActive ? 'text-white font-bold' : 'text-white/60 hover:text-white font-medium'
-                    }`}
-                >
-                  <span className="text-xs sm:text-sm tracking-wide">
-                    {s.tab}
-                  </span>
-                  {/* Progress Line Track */}
-                  <div className="w-20 sm:w-28 h-1 bg-white/20 rounded-full overflow-hidden relative">
-                    {isActive && (
-                      <div
-                        key={`${s.id}-${isPlaying}`}
-                        className="absolute inset-0 bg-cyan-accent origin-left animate-hero-progress"
-                        style={{
-                          animationDuration: `${SLIDE_DURATION_MS}ms`,
-                          animationPlayState: isPlaying ? 'running' : 'paused',
-                        }}
-                      />
-                    )}
-                  </div>
-                </button>
-              );
-            })}
+        <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-12 z-20 flex items-center space-x-4">
+          {/* Dots */}
+          <div className="flex items-center space-x-3" role="tablist" aria-label="Slides">
+            {effectiveSlides.map((s, i) => (
+              <button
+                key={s.id}
+                type="button"
+                role="tab"
+                aria-selected={i === index}
+                aria-label={`Go to slide ${i + 1}`}
+                onClick={() => goTo(i)}
+                className={`w-3 h-3 rounded-full transition-all cursor-pointer ${
+                  i === index
+                    ? 'bg-white scale-110 shadow-md'
+                    : 'bg-white/40 hover:bg-white/70'
+                }`}
+              />
+            ))}
           </div>
 
-          {/* Dot Pagination & Play/Pause Button */}
-          <div className="flex items-center justify-between md:justify-end space-x-4 shrink-0 pt-2 md:pt-0">
-            {/* Dots */}
-            <div className="flex items-center space-x-2" role="tablist" aria-label="Slides">
-              {effectiveSlides.map((s, i) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={i === index}
-                  aria-label={`Go to slide ${i + 1}`}
-                  onClick={() => goTo(i)}
-                  className={`w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${i === index ? 'bg-cyan-accent w-6' : 'bg-white/40 hover:bg-white'
-                    }`}
-                />
-              ))}
-            </div>
-
-            {/* Play/Pause Toggle */}
-            <button
-              type="button"
-              onClick={() => setIsPlaying((prev) => !prev)}
-              className="p-2 rounded-full border border-white/40 bg-black/40 hover:bg-white/20 text-white transition-all cursor-pointer"
-              aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
-            >
-              {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
-            </button>
-          </div>
-
+          {/* Play/Pause Toggle */}
+          <button
+            type="button"
+            onClick={() => setIsPlaying((prev) => !prev)}
+            className="w-8 h-8 rounded-full border border-white/60 hover:border-white bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition-all cursor-pointer"
+            aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
+          >
+            {isPlaying ? (
+              <Pause className="w-3.5 h-3.5 fill-white text-white" />
+            ) : (
+              <Play className="w-3.5 h-3.5 fill-white text-white translate-x-0.5" />
+            )}
+          </button>
         </div>
       )}
 
