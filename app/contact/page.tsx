@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import Hero from '@/components/Hero';
-import { MapPin, Phone, Mail, Clock, Send, CheckCircle2, Building, ShieldCheck } from 'lucide-react';
+import { MapPin, Phone, Mail, Clock, Send, CheckCircle2, Building } from 'lucide-react';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -23,20 +22,27 @@ export default function ContactPage() {
   return (
     <div className="space-y-12 pb-20">
       
-      {/* Hero */}
-      <Hero
-        badge="REACH US"
-        title="Department Location & Contact Directory"
-        subtitle="Get in touch for academic admissions, research collaborations, instrumentation slot bookings, and student verification."
-        bgImage="https://images.unsplash.com/photo-1576086213369-97a306d36557?w=1600&q=80"
-      />
+      {/* Page Header (No Hero image, clean text block) */}
+      <div className="-mt-[84px] sm:-mt-[96px] bg-slate-50 border-b border-slate-200/80 pt-36 sm:pt-44 pb-12 lg:pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4">
+          <span className="inline-block text-xs font-bold uppercase tracking-wider text-cyan-accent">
+            Reach Us
+          </span>
+          <h1 className="font-serif text-4xl sm:text-5xl font-extrabold text-oxford">
+            Department Location & Contact Directory
+          </h1>
+          <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed font-sans">
+            Get in touch for academic admissions, research collaborations, instrumentation slot bookings, and student verification.
+          </p>
+        </div>
+      </div>
 
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
           
           {/* Contact Details Column */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="lg:col-span-5 space-y-6 font-sans">
             
             <div className="bg-white p-6 lg:p-8 rounded-xl border border-slate-200 shadow-sm space-y-6">
               <div>
@@ -52,7 +58,7 @@ export default function ContactPage() {
                 <div className="flex items-start space-x-3">
                   <MapPin className="w-5 h-5 text-cyan-accent shrink-0 mt-1" />
                   <div>
-                    <strong className="text-oxford block font-semibold">Department of Physics</strong>
+                    <strong className="text-oxford block font-semibold font-serif text-base">Department of Physics</strong>
                     <span>Cochin University of Science and Technology (CUSAT)</span>
                     <span className="block text-slate-500 text-xs">South Kalamassery, Kochi – 682022, Kerala, India</span>
                   </div>
@@ -87,7 +93,7 @@ export default function ContactPage() {
               </div>
             </div>
 
-            {/* Map Placeholder Card */}
+            {/* Access & Transit */}
             <div className="bg-oxford text-white p-6 rounded-xl border border-white/10 shadow-lg relative overflow-hidden space-y-3">
               <div className="flex items-center space-x-2">
                 <Building className="w-5 h-5 text-cyan-accent" />
@@ -103,8 +109,8 @@ export default function ContactPage() {
 
           </div>
 
-          {/* Contact Enquiry Form Column */}
-          <div className="lg:col-span-7">
+          {/* Contact Inquiry Form Column */}
+          <div className="lg:col-span-7 font-sans">
             <div className="bg-white p-6 lg:p-10 rounded-xl border border-slate-200 shadow-sm space-y-6">
               <div>
                 <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block">

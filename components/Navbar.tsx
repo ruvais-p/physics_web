@@ -24,21 +24,23 @@ const NAV_ITEMS: NavItem[] = [
     iconType: 'chevron',
   },
   {
-    name: 'Undergraduate',
-    href: '/courses#msc',
+    name: 'About',
+    href: '/about',
+    iconType: 'chevron',
+  },
+  {
+    name: 'People',
+    href: '/people',
+    iconType: 'chevron',
+  },
+  {
+    name: 'Courses',
+    href: '/courses',
     iconType: 'chevron',
     dropdown: [
       { name: 'M.Sc. Physics', href: '/courses#msc' },
       { name: 'Integrated M.Sc.', href: '/courses#integrated' },
-    ],
-  },
-  {
-    name: 'Graduate',
-    href: '/courses#phd',
-    iconType: 'chevron',
-    dropdown: [
-      { name: 'Ph.D. Doctoral Program', href: '/courses#phd' },
-      { name: 'Coursework & Fellowships', href: '/courses#phd' },
+      { name: 'Ph.D. Program', href: '/courses#phd' },
     ],
   },
   {
@@ -50,16 +52,6 @@ const NAV_ITEMS: NavItem[] = [
       { name: 'Journals & Publications', href: '/journals' },
       { name: 'Central Facilities', href: '/facilities' },
     ],
-  },
-  {
-    name: 'People',
-    href: '/people',
-    iconType: 'chevron',
-  },
-  {
-    name: 'About',
-    href: '/about',
-    iconType: 'chevron',
   },
   {
     name: 'Contact',
@@ -74,6 +66,9 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
 
+  const isHome = pathname === '/';
+  const forceBlue = !isHome;
+
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 40) {
@@ -86,13 +81,15 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const shouldBeBlue = isScrolled || forceBlue;
+
   return (
     <header className="sticky top-8 sm:top-10 z-50 px-3 sm:px-6 lg:px-8 w-full max-w-[96%] xl:max-w-[1536px] mx-auto transition-all duration-300">
       {/* Dynamic Glassmorphic Navbar Container */}
       <div
-        className={`rounded-2xl sm:rounded-3xl shadow-2xl px-6 sm:px-10 py-4 transition-all duration-300 ${isScrolled
-            ? 'bg-white/95 backdrop-blur-xl border border-cyan-accent/30 shadow-oxford-dark/10'
-            : 'bg-white/15 backdrop-blur-xl border border-cyan-accent/40 ring-1 ring-cyan-accent/20'
+        className={`rounded-2xl sm:rounded-3xl shadow-2xl px-6 sm:px-10 py-4 transition-all duration-300 ${shouldBeBlue
+          ? 'bg-white/95 backdrop-blur-xl border border-cyan-accent/30 shadow-oxford-dark/10'
+          : 'bg-white/15 backdrop-blur-xl border border-cyan-accent/40 ring-1 ring-cyan-accent/20'
           }`}
       >
         <div className="flex items-center justify-between">
@@ -112,7 +109,7 @@ export default function Navbar() {
               </svg>
             </div>
             <div className="hidden sm:block">
-              <span className={`block font-sans text-sm sm:text-base font-bold uppercase tracking-wider leading-tight transition-colors ${isScrolled ? 'text-oxford' : 'text-cyan-accent'
+              <span className={`block font-sans text-sm sm:text-base font-bold uppercase tracking-wider leading-tight transition-colors ${shouldBeBlue ? 'text-oxford' : 'text-cyan-accent'
                 }`}>
                 DEPARTMENT OF PHYSICS
               </span>
@@ -135,39 +132,41 @@ export default function Navbar() {
                   <Link
                     id={`nav-link-${item.name.toLowerCase()}`}
                     href={item.href}
-                    className={`flex items-center space-x-1 text-base sm:text-lg font-medium transition-colors ${isScrolled
-                        ? isActive ? 'text-cyan-accent font-bold' : 'text-oxford hover:text-cyan-accent'
-                        : isActive ? 'text-white font-bold drop-shadow' : 'text-white/90 hover:text-cyan-accent'
+                    className={`flex items-center space-x-1 text-base sm:text-lg font-medium transition-colors ${shouldBeBlue
+                      ? isActive ? 'text-cyan-accent font-bold' : 'text-oxford hover:text-cyan-accent'
+                      : isActive ? 'text-white font-bold drop-shadow' : 'text-white/90 hover:text-cyan-accent'
                       }`}
                   >
                     <span>{item.name}</span>
                     {item.iconType === 'dropdown' ? (
-                      <ChevronDown className={`w-4 h-4 transition-transform group-hover:translate-y-0.5 ${isScrolled ? 'text-oxford' : 'text-white/80'
+                      <ChevronDown className={`w-4 h-4 transition-transform group-hover:translate-y-0.5 ${shouldBeBlue ? 'text-oxford' : 'text-white/80'
                         }`} />
                     ) : (
-                      <ChevronRight className={`w-4 h-4 transition-transform group-hover:translate-x-0.5 ${isScrolled ? 'text-oxford' : 'text-white/80'
+                      <ChevronRight className={`w-4 h-4 transition-transform group-hover:translate-x-0.5 ${shouldBeBlue ? 'text-oxford' : 'text-white/80'
                         }`} />
                     )}
                   </Link>
 
                   {/* Dropdown Menu */}
                   {hasDropdown && activeDropdown === item.name && (
-                    <div className={`absolute top-full left-0 mt-3 w-64 border rounded-xl shadow-2xl p-2 z-50 transition-colors ${isScrolled
+                    <div className="absolute top-full left-0 pt-3 z-50">
+                      <div className={`w-64 border rounded-xl shadow-2xl p-2 transition-colors ${shouldBeBlue
                         ? 'bg-white/95 border-slate-200 shadow-xl'
                         : 'bg-slate-900/95 backdrop-blur-2xl border-white/20'
-                      }`}>
-                      {item.dropdown?.map((sub) => (
-                        <Link
-                          key={sub.name}
-                          href={sub.href}
-                          className={`block px-4 py-2.5 rounded-lg text-sm transition-colors ${isScrolled
+                        }`}>
+                        {item.dropdown?.map((sub) => (
+                          <Link
+                            key={sub.name}
+                            href={sub.href}
+                            className={`block px-4 py-2.5 rounded-lg text-sm transition-colors ${shouldBeBlue
                               ? 'text-slate-800 hover:bg-slate-100 hover:text-cyan-accent font-medium'
                               : 'text-slate-200 hover:bg-white/15 hover:text-sky-300'
-                            }`}
-                        >
-                          {sub.name}
-                        </Link>
-                      ))}
+                              }`}
+                          >
+                            {sub.name}
+                          </Link>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -181,7 +180,7 @@ export default function Navbar() {
               id="mobile-menu-toggle-btn"
               type="button"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className={`p-2 rounded-lg focus:outline-none transition-colors ${isScrolled ? 'text-oxford hover:bg-slate-100' : 'text-white hover:bg-white/20'
+              className={`p-2 rounded-lg focus:outline-none transition-colors ${shouldBeBlue ? 'text-oxford hover:bg-slate-100' : 'text-white hover:bg-white/20'
                 }`}
               aria-expanded={mobileMenuOpen}
               aria-label="Toggle navigation menu"
@@ -194,14 +193,14 @@ export default function Navbar() {
 
         {/* Mobile Menu Drawer */}
         {mobileMenuOpen && (
-          <div className={`lg:hidden mt-4 pt-4 border-t space-y-2 ${isScrolled ? 'border-slate-200' : 'border-white/20'
+          <div className={`lg:hidden mt-4 pt-4 border-t space-y-2 ${shouldBeBlue ? 'border-slate-200' : 'border-white/20'
             }`}>
             {NAV_ITEMS.map((item) => (
               <div key={item.name} className="space-y-1">
                 <Link
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium transition-colors ${isScrolled ? 'text-oxford hover:bg-slate-100' : 'text-white hover:bg-white/20'
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium transition-colors ${shouldBeBlue ? 'text-oxford hover:bg-slate-100' : 'text-white hover:bg-white/20'
                     }`}
                 >
                   <span className="flex items-center gap-1.5">
@@ -214,14 +213,14 @@ export default function Navbar() {
                   </span>
                 </Link>
                 {item.dropdown && (
-                  <div className={`pl-6 space-y-1 border-l ml-4 ${isScrolled ? 'border-slate-200' : 'border-white/20'
+                  <div className={`pl-6 space-y-1 border-l ml-4 ${shouldBeBlue ? 'border-slate-200' : 'border-white/20'
                     }`}>
                     {item.dropdown.map((sub) => (
                       <Link
                         key={sub.name}
                         href={sub.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${isScrolled ? 'text-slate-700 hover:text-cyan-accent' : 'text-slate-200 hover:text-white'
+                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${shouldBeBlue ? 'text-slate-700 hover:text-cyan-accent' : 'text-slate-200 hover:text-white'
                           }`}
                       >
                         {sub.name}

@@ -1,6 +1,5 @@
-import Hero from '@/components/Hero';
 import Image from 'next/image';
-import { ShieldCheck, Award, Target, Eye, Landmark, Compass } from 'lucide-react';
+import { Award, Target, Eye, Landmark, Compass } from 'lucide-react';
 
 export const metadata = {
   title: 'About Department',
@@ -11,20 +10,27 @@ export default function AboutPage() {
   return (
     <div className="space-y-16 pb-20">
       
-      {/* Hero */}
-      <Hero
-        badge="ABOUT OUR DEPARTMENT"
-        title="Six Decades of Scientific Pursuit & Pedagogical Mastery"
-        subtitle="Established in 1963, the Department of Physics at CUSAT has pioneered research in magnetic nanocomposites, quantum optics, thin film photovoltaics, and theoretical cosmology."
-        bgImage="https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=1600&q=80"
-      />
+      {/* Page Header (No Hero image, clean text block) */}
+      <div className="-mt-[84px] sm:-mt-[96px] bg-slate-50 border-b border-slate-200/80 pt-36 sm:pt-44 pb-12 lg:pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4">
+          <span className="inline-block text-xs font-bold uppercase tracking-wider text-cyan-accent">
+            About Our Department
+          </span>
+          <h1 className="font-serif text-4xl sm:text-5xl font-extrabold text-oxford">
+            Six Decades of Scientific Pursuit & Pedagogical Mastery
+          </h1>
+          <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed font-sans">
+            Established in 1963, the Department of Physics at CUSAT has pioneered research in magnetic nanocomposites, quantum optics, thin film photovoltaics, and theoretical cosmology.
+          </p>
+        </div>
+      </div>
 
       {/* Vision & Mission Cards */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           
           {/* Vision */}
-          <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover-lift space-y-4">
+          <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover-lift space-y-4 font-sans">
             <div className="w-12 h-12 rounded-lg bg-surface-low text-oxford flex items-center justify-center">
               <Eye className="w-6 h-6 text-cyan-accent" />
             </div>
@@ -35,7 +41,7 @@ export default function AboutPage() {
           </div>
 
           {/* Mission */}
-          <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover-lift space-y-4">
+          <div className="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover-lift space-y-4 font-sans">
             <div className="w-12 h-12 rounded-lg bg-surface-low text-oxford flex items-center justify-center">
               <Target className="w-6 h-6 text-cyan-accent" />
             </div>
@@ -72,7 +78,7 @@ export default function AboutPage() {
           </div>
 
           <div className="space-y-4">
-            <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block">
+            <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block font-sans">
               MESSAGE FROM THE HEAD OF DEPARTMENT
             </span>
             <h2 className="font-serif text-3xl font-bold text-oxford">
@@ -81,7 +87,7 @@ export default function AboutPage() {
             <blockquote className="text-sm sm:text-base text-slate-700 italic leading-relaxed font-serif">
               "Physics is not merely a subject; it is the fundamental language of nature. For over 60 years, our department has nurtured generations of scholars, researchers, and scientific leaders who continue to shape academia and industry worldwide."
             </blockquote>
-            <div className="pt-2">
+            <div className="pt-2 font-sans">
               <span className="font-bold text-oxford block text-base">Dr. B. Pradeep</span>
               <span className="text-xs text-slate-500 font-sans">Professor & Head of Department</span>
             </div>
@@ -90,7 +96,7 @@ export default function AboutPage() {
       </section>
 
       {/* History & Genesis */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 font-sans">
         <div className="max-w-3xl mx-auto space-y-6">
           <h2 className="font-serif text-3xl font-bold text-oxford text-center">
             Departmental History & Evolution
@@ -111,21 +117,21 @@ export default function AboutPage() {
             <div className="space-y-2">
               <Award className="w-10 h-10 text-cyan-accent mx-auto" />
               <h3 className="font-serif text-xl font-bold">NAAC A+ Grade</h3>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-slate-300 font-sans">
                 Accredited with highest academic grade by National Assessment and Accreditation Council.
               </p>
             </div>
             <div className="space-y-2">
               <Landmark className="w-10 h-10 text-cyan-accent mx-auto" />
               <h3 className="font-serif text-xl font-bold">DST-FIST Level II</h3>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-slate-300 font-sans">
                 Supported by Department of Science & Technology for advanced research infrastructure.
               </p>
             </div>
             <div className="space-y-2">
               <Compass className="w-10 h-10 text-cyan-accent mx-auto" />
               <h3 className="font-serif text-xl font-bold">Global Alumni Network</h3>
-              <p className="text-xs text-slate-300">
+              <p className="text-xs text-slate-300 font-sans">
                 Alumni holding faculty and research scientist positions in Ivy League, Max Planck, and ISRO.
               </p>
             </div>

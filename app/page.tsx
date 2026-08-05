@@ -20,26 +20,26 @@ export default function HomePage() {
 
       {/* Announcements Alert Ticker (100% Full Bleed Screen-Wide Bar) */}
       <section className="w-full relative z-20">
-        <div className="w-full bg-white border-y border-slate-200/80 shadow-lg px-6 sm:px-12 lg:px-16 py-3.5 sm:py-4 flex items-center gap-4 overflow-hidden">
-          
+        <div className="w-full bg-white border-y border-oxford/15 shadow-dark-blue-glow px-6 sm:px-12 lg:px-16 py-3.5 sm:py-4 flex items-center gap-4 overflow-hidden">
+
           {/* Badge */}
           <div className="flex items-center space-x-2 shrink-0 bg-heritage-red/10 border border-heritage-red/20 px-3 py-1.5 rounded-lg text-heritage-red z-10">
             <Bell className="w-4 h-4 animate-bounce" />
-            <span className="text-xs font-bold uppercase tracking-wider whitespace-nowrap">
+            <span className="text-sm font-bold uppercase tracking-wider whitespace-nowrap">
               Announcements
             </span>
           </div>
 
           {/* Running Continuous Marquee Ticker */}
           <div className="overflow-hidden whitespace-nowrap flex-1 py-1 relative">
-            <div className="animate-marquee inline-flex space-x-10 items-center text-slate-800 font-medium text-sm">
+            <div className="animate-marquee inline-flex space-x-10 items-center text-slate-800 font-medium text-base">
               {ANNOUNCEMENTS.map((item) => (
                 <Link
                   key={item.id}
                   href={item.link}
                   className="hover:text-cyan-accent transition-colors flex items-center space-x-2 group"
                 >
-                  <span className="bg-sky-100 text-sky-800 text-[10px] font-bold px-2 py-0.5 rounded border border-sky-300">
+                  <span className="bg-sky-100 text-sky-800 text-xs font-bold px-2 py-0.5 rounded border border-sky-300">
                     {item.date}
                   </span>
                   <span className="group-hover:underline">{item.title}</span>
@@ -53,7 +53,7 @@ export default function HomePage() {
                   href={item.link}
                   className="hover:text-cyan-accent transition-colors flex items-center space-x-2 group"
                 >
-                  <span className="bg-sky-100 text-sky-800 text-[10px] font-bold px-2 py-0.5 rounded border border-sky-300">
+                  <span className="bg-sky-100 text-sky-800 text-xs font-bold px-2 py-0.5 rounded border border-sky-300">
                     {item.date}
                   </span>
                   <span className="group-hover:underline">{item.title}</span>
@@ -69,13 +69,13 @@ export default function HomePage() {
       {/* Department Legacy & Academics Section */}
       <section className="w-full px-6 sm:px-12 lg:px-16 py-12 sm:py-16 bg-gradient-to-b from-white via-slate-50/50 to-white">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-          
+
           {/* Arched Window Image Column */}
           <div className="lg:col-span-5 flex justify-center items-center mx-auto">
             <div className="relative w-full max-w-[380px] sm:max-w-[440px]">
               {/* Outer Decorative Arch Halo */}
               <div className="absolute -inset-3 rounded-t-[180px] sm:rounded-t-[240px] rounded-b-3xl border-2 border-cyan-accent/40 bg-cyan-accent/5 -z-10 transform -rotate-1" />
-              
+
               {/* Main Arched Window Frame */}
               <div className="relative w-full aspect-[4/5] rounded-t-[160px] sm:rounded-t-[220px] rounded-b-3xl border-4 border-heritage-red/80 overflow-hidden shadow-2xl bg-oxford-dark group">
                 <img
@@ -130,23 +130,28 @@ export default function HomePage() {
       </section>
 
       {/* Featured Research Laboratories */}
-      <section className="relative w-full bg-oxford-dark text-white overflow-hidden py-12 sm:py-16 border-y border-white/5 shadow-[inset_0_0_80px_rgba(0,0,0,0.9)]">
+      <section className="relative w-full bg-oxford-dark text-white overflow-hidden py-16 sm:py-20 border-y border-[#002147]/20 shadow-[inset_0_0_100px_rgba(0,0,0,0.95)]">
         {/* Background Image & Overlay */}
-        <div className="absolute inset-0 z-0 pointer-events-none">
+        <div className="absolute inset-0 z-0 pointer-events-none bg-[#000A1E]">
           <div
-            className="absolute left-0 top-0 bottom-0 w-full lg:w-1/2 bg-cover bg-left opacity-50 sm:opacity-65"
+            className="absolute left-0 top-0 bottom-0 w-full lg:w-2/3 bg-cover bg-left opacity-75"
             style={{
               backgroundImage: "url('/physics.png')",
-              maskImage: "linear-gradient(to right, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)",
-              WebkitMaskImage: "linear-gradient(to right, rgba(0,0,0,1) 40%, rgba(0,0,0,0) 100%)",
+              maskImage: "linear-gradient(to right, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%)",
+              WebkitMaskImage: "linear-gradient(to right, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%)",
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#000A1E]/30 via-[#000A1E]/85 to-[#000A1E]" />
+          {/* Enhanced gradients to soften edges and deepen colors */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-[#000A1E]/95 to-[#000A1E]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#000A1E] via-transparent to-[#000A1E] opacity-95" />
+          {/* Profound Cyan & Blue glows */}
+          <div className="absolute right-[-10%] top-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-accent/35 rounded-full blur-[140px]" />
+          <div className="absolute left-[15%] top-1/4 w-[350px] h-[350px] bg-[#002147]/70 rounded-full blur-[120px]" />
         </div>
 
         {/* Content Container (Matching Testimonials Size & Padding) */}
         <div className="relative z-10 w-full max-w-[1536px] mx-auto px-4 sm:px-8 lg:px-12 space-y-12">
-          
+
           {/* Header Row */}
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <div>
@@ -156,40 +161,44 @@ export default function HomePage() {
             </div>
             <Link
               href="/research-labs"
-              className="inline-flex items-center space-x-1.5 text-xs sm:text-sm font-bold bg-cyan-accent hover:bg-cyan-dark text-white px-5 py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(2,132,199,0.3)] hover:shadow-[0_0_25px_rgba(2,132,199,0.5)] border border-cyan-accent"
+              className="inline-flex items-center space-x-1.5 text-xs sm:text-sm font-bold bg-[#00d2ff] hover:bg-[#00b5dd] text-[#000a1e] px-5 py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(0,210,255,0.4)] hover:shadow-[0_0_25px_rgba(0,210,255,0.6)] font-sans hover:scale-105 transform duration-300"
             >
               <span>View All</span>
-              <ChevronRight className="w-4 h-4 text-white" />
+              <ChevronRight className="w-4 h-4 text-[#000a1e]" />
             </Link>
           </div>
 
           {/* Grid Layout: Text on Left (lg), Scroll on Right (lg) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            
+
             {/* Left side: Description */}
             <div className="lg:col-span-4 space-y-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
               <p className="text-slate-100 text-lg sm:text-xl font-medium leading-relaxed text-justify">
                 The Department of Physics features specialized research facilities driving scientific breakthroughs in materials science, laser spectroscopy, thin-film photovoltaics, and theoretical cosmology.
               </p>
+              <p className="text-sm text-[#00d2ff]/80 font-bold hidden lg:block">
+                ✦ Laboratories scroll automatically
+              </p>
             </div>
 
             {/* Right side: Horizontal Scroll of Lab Cards */}
-            <div className="lg:col-span-8 overflow-hidden -mx-4 px-4 sm:mx-0 sm:px-0">
-              <div className="flex gap-6 overflow-hidden group/marquee">
-                <div className="flex gap-6 shrink-0 animate-marquee-labs group-hover/marquee:[animation-play-state:paused]">
-                  {RESEARCH_LABS.map((lab) => (
-                    <div key={lab.id} className="w-[280px] sm:w-[320px] flex-shrink-0">
-                      <LabCard lab={lab} variant="dark" />
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-6 shrink-0 animate-marquee-labs group-hover/marquee:[animation-play-state:paused]">
-                  {RESEARCH_LABS.map((lab) => (
-                    <div key={`dup-${lab.id}`} className="w-[280px] sm:w-[320px] flex-shrink-0">
-                      <LabCard lab={lab} variant="dark" />
-                    </div>
-                  ))}
-                </div>
+            <div className="lg:col-span-8 overflow-hidden relative -mx-4 px-4 sm:mx-0 sm:px-0">
+              {/* Fade masks on the edges */}
+              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#000A1E] to-transparent z-10 pointer-events-none" />
+              <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#000A1E] to-transparent z-10 pointer-events-none" />
+              
+              <div className="flex gap-0 animate-marquee-labs hover:[animation-play-state:paused] py-4 cursor-pointer">
+                {RESEARCH_LABS.map((lab) => (
+                  <div key={`orig-${lab.id}`} className="w-[280px] sm:w-[320px] pr-6 flex-shrink-0">
+                    <LabCard lab={lab} variant="dark" />
+                  </div>
+                ))}
+                {/* Duplicate array for seamless infinite looping */}
+                {RESEARCH_LABS.map((lab) => (
+                  <div key={`dup-${lab.id}`} className="w-[280px] sm:w-[320px] pr-6 flex-shrink-0">
+                    <LabCard lab={lab} variant="dark" />
+                  </div>
+                ))}
               </div>
             </div>
 

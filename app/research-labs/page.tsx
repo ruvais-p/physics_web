@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Hero from '@/components/Hero';
 import LabCard from '@/components/LabCard';
 import { RESEARCH_LABS } from '@/lib/data';
 
@@ -18,16 +17,23 @@ export default function ResearchLabsPage() {
   return (
     <div className="space-y-12 pb-20">
       
-      {/* Hero */}
-      <Hero
-        badge="DEPARTMENT RESEARCH LABS"
-        title="Specialized Research Laboratories & Centers"
-        subtitle="Exploring nanostructures, quantum condensed matter, laser spectroscopy, solar energy, and theoretical gravitation."
-        bgImage="https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?w=1600&q=80"
-      />
+      {/* Page Header (No Hero image, clean text block) */}
+      <div className="-mt-[84px] sm:-mt-[96px] bg-slate-50 border-b border-slate-200/80 pt-36 sm:pt-44 pb-12 lg:pb-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4">
+          <span className="inline-block text-xs font-bold uppercase tracking-wider text-cyan-accent">
+            Department Research Labs
+          </span>
+          <h1 className="font-serif text-4xl sm:text-5xl font-extrabold text-oxford">
+            Specialized Research Laboratories & Centers
+          </h1>
+          <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed font-sans">
+            Exploring nanostructures, quantum condensed matter, laser spectroscopy, solar energy, and theoretical gravitation.
+          </p>
+        </div>
+      </div>
 
       {/* Category Filters */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 font-sans">
         
         <div className="flex flex-wrap items-center justify-center gap-2 bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
           {categories.map((cat) => (
