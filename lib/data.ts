@@ -89,13 +89,6 @@ export const DEPARTMENT_STATS = [
   { label: 'Extramural Grants', value: '₹14.5 Cr' },
 ];
 
-export const ANNOUNCEMENTS = [
-  { id: '1', title: 'Applications invited for Ph.D. Admissions 2026 Batch - Deadline Aug 25', date: 'Aug 01, 2026', link: '/courses' },
-  { id: '2', title: 'International Conference on Advanced Photonic Materials (ICAPM-2026) announced', date: 'Jul 28, 2026', link: '/about' },
-  { id: '3', title: 'Research paper from Quantum Materials Lab published in Nature Physics', date: 'Jul 15, 2026', link: '/journals' },
-  { id: '4', title: 'New High-Resolution FE-SEM Facility commissioned for inter-departmental research', date: 'Jul 02, 2026', link: '/facilities' },
-];
-
 export const FACULTY_MEMBERS: FacultyMember[] = [
   {
     id: 'f1',
