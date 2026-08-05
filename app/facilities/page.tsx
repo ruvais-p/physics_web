@@ -16,13 +16,13 @@ export default function FacilitiesPage() {
       <div className="-mt-[84px] sm:-mt-[96px] bg-slate-50 border-b border-slate-200/80 pt-36 sm:pt-44 pb-12 lg:pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4">
           <span className="inline-block text-xs font-bold uppercase tracking-wider text-cyan-accent">
-            Central Instrumentation
+            OUR FACILITIES
           </span>
           <h1 className="font-serif text-4xl sm:text-5xl font-extrabold text-oxford">
-            Sophisticated Analytical Equipment Facilities
+            Explore our state-of-the-art research instrumentation.
           </h1>
           <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed font-sans">
-            Providing state-of-the-art analytical characterization services for internal researchers, academic institutes, and industrial R&D laboratories.
+            Providing advanced analytical characterization services for internal researchers, academic institutes, and industrial R&D laboratories.
           </p>
         </div>
       </div>
