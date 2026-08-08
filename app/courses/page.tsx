@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import CourseCard from '@/components/CourseCard';
 import { COURSES } from '@/lib/data';
 
@@ -34,10 +36,39 @@ export default function CoursesPage() {
   const selectedCourse = COURSES.find(c => c.id === activeCourseId) || COURSES[0];
 
   return (
-    <div className="space-y-12 pb-20 pt-36 sm:pt-44">
+    <div className="space-y-12 pb-20 relative">
       
+      {/* Page Header (Campus image background) */}
+      <div className="-mt-[116px] sm:-mt-[128px] relative bg-slate-900 text-white overflow-hidden">
+        {/* Background Image with Dark Blue Overlay */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/campus.jpg"
+            alt="Academic Programs Banner"
+            fill
+            className="object-cover opacity-45"
+            priority
+          />
+          <div className="absolute inset-0 bg-oxford/75 mix-blend-multiply" />
+        </div>
+
+        {/* Content (Centered) */}
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 pt-36 pb-16 sm:pb-20 text-center space-y-3">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white uppercase">
+            Academic Programs
+          </h1>
+          
+          {/* Centered Breadcrumbs */}
+          <div className="flex items-center justify-center space-x-2 text-xs sm:text-sm font-sans font-medium text-slate-300">
+            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
+            <span>&gt;</span>
+            <span className="text-white font-semibold">Academic Programs</span>
+          </div>
+        </div>
+      </div>
+
       {/* Course Selector Bar - Styled like the glassmorphic navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center pt-6">
         <div className="inline-flex flex-wrap items-center gap-1.5 p-1.5 bg-white/95 backdrop-blur-xl border border-cyan-accent/30 shadow-lg rounded-2xl sm:rounded-3xl">
           {COURSES.map((course) => {
             const isActive = activeCourseId === course.id;

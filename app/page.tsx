@@ -1,10 +1,76 @@
 import Link from 'next/link';
 import Hero from '@/components/Hero';
-import LabCard from '@/components/LabCard';
 import Testimonials from '@/components/Testimonials';
 import NotificationsTicker from '@/components/NotificationsTicker';
 import { RESEARCH_LABS } from '@/lib/data';
 import { ChevronRight } from 'lucide-react';
+
+function LabCard({ lab, className = "h-64" }: { lab: typeof RESEARCH_LABS[0]; className?: string }) {
+  const isLogo = lab.image === '/dop-logo.svg';
+
+  return (
+    <div className={`flip-card w-full cursor-pointer group ${className}`}>
+      <div className="flip-card-inner w-full h-full">
+        
+        {/* Front Side: Only the Image / Logo */}
+        <div className="flip-card-front w-full h-full bg-white rounded-2xl shadow-sm relative overflow-hidden flex items-center justify-center">
+          {isLogo ? (
+            <div className="w-full h-full flex items-center justify-center bg-slate-50/50 rounded-xl p-6 border border-slate-100/80">
+              <div className="relative w-32 h-24 flex items-center justify-center">
+                <svg
+                  className="w-full h-full text-blue-600"
+                  viewBox="0 0 220 160"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <text x="5" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">D</text>
+                  <g transform="translate(110, 80)">
+                    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="2.5" fill="none"/>
+                    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="2.5" fill="none" transform="rotate(60)"/>
+                    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="2.5" fill="none" transform="rotate(-60)"/>
+                    <circle cx="0" cy="0" r="15" fill="currentColor"/>
+                  </g>
+                  <text x="150" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">P</text>
+                </svg>
+              </div>
+            </div>
+          ) : (
+            <img
+              src={lab.image}
+              alt={lab.name}
+              className="w-full h-full object-cover rounded-2xl"
+            />
+          )}
+        </div>
+
+        {/* Back Side: Laboratory Details */}
+        <Link
+          href={`/research-labs#${lab.id}`}
+          className="flip-card-back w-full h-full bg-[#000a1e] text-white border border-slate-800 rounded-2xl flex flex-col justify-between items-center text-center p-5 shadow-lg"
+        >
+          <div className="space-y-2 my-auto">
+            <span className="text-[9px] font-bold text-cyan-accent uppercase tracking-widest block">
+              {lab.category}
+            </span>
+            <h4 className="font-sans text-xs sm:text-sm font-bold text-white leading-tight">
+              {lab.name}
+            </h4>
+            <p className="text-[10px] text-slate-400 font-sans mt-2">
+              Director: <span className="font-semibold text-slate-300">{lab.director}</span>
+            </p>
+            <p className="text-[9px] text-slate-400 font-sans line-clamp-3">
+              {lab.shortDesc}
+            </p>
+          </div>
+          <div className="w-full flex items-center justify-center text-[10px] font-bold text-cyan-accent font-sans mt-1">
+            <span>Explore Lab →</span>
+          </div>
+        </Link>
+
+      </div>
+    </div>
+  );
+}
 
 export default function HomePage() {
   return (
@@ -59,79 +125,276 @@ export default function HomePage() {
             </p>
           </div>
         </div>
-      </section>
-
-      {/* Featured Research Laboratories */}
-      <section className="relative w-full bg-oxford-dark text-white overflow-hidden py-16 sm:py-20 border-y border-[#002147]/20 shadow-[inset_0_0_100px_rgba(0,0,0,0.95)]">
-        {/* Background Image & Overlay */}
-        <div className="absolute inset-0 z-0 pointer-events-none bg-[#000A1E]">
-          <div
-            className="absolute left-0 top-0 bottom-0 w-full lg:w-2/3 bg-cover bg-left opacity-75"
-            style={{
-              backgroundImage: "url('/physics.png')",
-              maskImage: "linear-gradient(to right, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%)",
-              WebkitMaskImage: "linear-gradient(to right, rgba(0,0,0,1) 30%, rgba(0,0,0,0) 100%)",
-            }}
-          />
-          {/* Enhanced gradients to soften edges and deepen colors */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-[#000A1E]/95 to-[#000A1E]" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#000A1E] via-transparent to-[#000A1E] opacity-95" />
-          {/* Profound Cyan & Blue glows */}
-          <div className="absolute right-[-10%] top-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-accent/35 rounded-full blur-[140px]" />
-          <div className="absolute left-[15%] top-1/4 w-[350px] h-[350px] bg-[#002147]/70 rounded-full blur-[120px]" />
-        </div>
-
-        {/* Content Container (Matching Testimonials Size & Padding) */}
-        <div className="relative z-10 w-full max-w-[1536px] mx-auto px-4 sm:px-8 lg:px-12 space-y-12">
-
-          {/* Header Row */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
-            <div>
-              <h2 className="font-serif text-4xl sm:text-5xl font-bold text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                Featured Research Laboratories
-              </h2>
-            </div>
-            <Link
-              href="/research-labs"
-              className="inline-flex items-center space-x-1.5 text-xs sm:text-sm font-bold bg-[#00d2ff] hover:bg-[#00b5dd] text-[#000a1e] px-5 py-2.5 rounded-xl transition-all shadow-[0_0_15px_rgba(0,210,255,0.4)] hover:shadow-[0_0_25px_rgba(0,210,255,0.6)] font-sans hover:scale-105 transform duration-300"
-            >
-              <span>View All</span>
-              <ChevronRight className="w-4 h-4 text-[#000a1e]" />
-            </Link>
-          </div>
-
-          {/* Grid Layout: Text on Left (lg), Scroll on Right (lg) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-
-            {/* Left side: Description */}
-            <div className="lg:col-span-4 space-y-5 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-              <p className="text-slate-100 text-lg sm:text-xl font-medium leading-relaxed text-justify">
-                The Department of Physics features specialized research facilities driving scientific breakthroughs in materials science, laser spectroscopy, thin-film photovoltaics, and theoretical cosmology.
-              </p>
-
-            </div>
-
-            {/* Right side: Horizontal Scroll of Lab Cards */}
-            <div className="lg:col-span-8 overflow-hidden relative -mx-4 px-4 sm:mx-0 sm:px-0">
-              {/* Fade masks on the edges */}
-              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-[#000A1E] to-transparent z-10 pointer-events-none" />
-              <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-[#000A1E] to-transparent z-10 pointer-events-none" />
-
-              <div className="flex gap-0 animate-marquee-labs hover:[animation-play-state:paused] py-4 cursor-pointer">
-                {RESEARCH_LABS.map((lab) => (
-                  <div key={`orig-${lab.id}`} className="w-[280px] sm:w-[320px] pr-6 flex-shrink-0">
-                    <LabCard lab={lab} variant="dark" />
+      </section>      {/* News & Events Section */}
+      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-slate-50/50 border-b border-slate-100">
+        <div className="max-w-[1536px] mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+            
+            {/* Left: News */}
+            <div className="lg:col-span-7 flex flex-col justify-between">
+              <div className="space-y-6">
+                <h3 className="font-serif text-3xl font-extrabold text-oxford border-b border-slate-200 pb-3">
+                  News
+                </h3>
+                
+                {/* News Card */}
+                <div className="bg-white border border-slate-200/85 rounded-2xl shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300">
+                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
+                    {/* Date Badge */}
+                    <div className="absolute top-4 left-4 z-10 bg-cyan-accent text-white font-sans font-bold text-xs px-3.5 py-2 rounded-lg flex flex-col items-center justify-center text-center shadow-md">
+                      <span className="text-base leading-none">16</span>
+                      <span className="text-[10px] uppercase tracking-wider leading-none mt-0.5">Jul</span>
+                      <span className="text-[9px] font-medium leading-none mt-0.5">2026</span>
+                    </div>
+                    
+                    <img
+                      src="/cusat-building.png"
+                      alt="CUSAT Department of Physics"
+                      className="w-full h-full object-cover transition-transform duration-75 group-hover:scale-[1.02]"
+                    />
                   </div>
-                ))}
-                {/* Duplicate array for seamless infinite looping */}
-                {RESEARCH_LABS.map((lab) => (
-                  <div key={`dup-${lab.id}`} className="w-[280px] sm:w-[320px] pr-6 flex-shrink-0">
-                    <LabCard lab={lab} variant="dark" />
+                  
+                  <div className="p-6 space-y-3">
+                    <h4 className="font-sans text-lg sm:text-xl font-bold text-oxford leading-snug group-hover:text-cyan-accent transition-colors">
+                      Department of Physics to Co-Develop Advanced Astro-payloads with National Space Agencies
+                    </h4>
+                    <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+                      A pioneering agreement has been reached to design and build lightweight cosmic-ray detectors and semiconductor payloads. The project will run out of our thin film and electronics laboratories, providing doctoral students and M.Sc. researchers with hands-on development experience.
+                    </p>
                   </div>
-                ))}
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <Link
+                  href="/news"
+                  className="inline-flex items-center text-xs sm:text-sm font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors duration-200"
+                >
+                  View More News &gt;
+                </Link>
               </div>
             </div>
 
+            {/* Right: Events */}
+            <div className="lg:col-span-5 flex flex-col justify-between">
+              <div className="space-y-6">
+                <h3 className="font-serif text-3xl font-extrabold text-oxford border-b border-slate-200 pb-3">
+                  Events
+                </h3>
+                
+                {/* Events Stack */}
+                <div className="space-y-6">
+                  {/* Event 1 */}
+                  <div className="flex gap-4 items-start group">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-cyan-accent text-white rounded-xl flex flex-col items-center justify-center text-center p-1.5 shadow-sm font-sans font-bold">
+                      <span className="text-sm sm:text-base leading-none">19</span>
+                      <span className="text-[9px] uppercase tracking-wider leading-none mt-0.5">Jul</span>
+                      <span className="text-[8px] font-medium leading-none mt-0.5">2026</span>
+                    </div>
+                    <div className="space-y-1">
+                      <Link href="/events#e1" className="font-sans text-sm sm:text-base font-bold text-cyan-accent hover:text-cyan-dark leading-snug block transition-colors">
+                        15th Department Endowment & Memorial Oration Lecture
+                      </Link>
+                      <p className="text-slate-600 text-xs sm:text-sm leading-normal line-clamp-2">
+                        Distinguished national physicists will speak on breakthroughs in low-temperature magnetics and topological insulators.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Event 2 */}
+                  <div className="flex gap-4 items-start group">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-cyan-accent text-white rounded-xl flex flex-col items-center justify-center text-center p-1.5 shadow-sm font-sans font-bold">
+                      <span className="text-sm sm:text-base leading-none">06</span>
+                      <span className="text-[9px] uppercase tracking-wider leading-none mt-0.5">Jul</span>
+                      <span className="text-[8px] font-medium leading-none mt-0.5">2026</span>
+                    </div>
+                    <div className="space-y-1">
+                      <Link href="/events#e2" className="font-sans text-sm sm:text-base font-bold text-cyan-accent hover:text-cyan-dark leading-snug block transition-colors">
+                        Hands-On Workshop on FE-SEM & micro-Raman Spectroscopy
+                      </Link>
+                      <p className="text-slate-600 text-xs sm:text-sm leading-normal line-clamp-2">
+                        A focused session on equipment slot bookings and instrumentation data analysis for regional researchers.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Event 3 */}
+                  <div className="flex gap-4 items-start group">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-cyan-accent text-white rounded-xl flex flex-col items-center justify-center text-center p-1.5 shadow-sm font-sans font-bold">
+                      <span className="text-sm sm:text-base leading-none">30</span>
+                      <span className="text-[9px] uppercase tracking-wider leading-none mt-0.5">Jun</span>
+                      <span className="text-[8px] font-medium leading-none mt-0.5">2026</span>
+                    </div>
+                    <div className="space-y-1">
+                      <Link href="/events#e3" className="font-sans text-sm sm:text-base font-bold text-cyan-accent hover:text-cyan-dark leading-snug block transition-colors">
+                        National Seminar on Cosmology & Quantum Gravity (CQG-2026)
+                      </Link>
+                      <p className="text-slate-600 text-xs sm:text-sm leading-normal line-clamp-2">
+                        Presenting recent simulations and mathematical formulations on gravitational waves and cosmic expansions.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6">
+                <Link
+                  href="/events"
+                  className="inline-flex items-center text-xs sm:text-sm font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors duration-200"
+                >
+                  View More Events &gt;
+                </Link>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* Featured Research Laboratories */}
+      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-white border-y border-slate-100">
+        <div className="max-w-[1536px] mx-auto">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+            
+            {/* Left side: Innovation Description */}
+            <div className="lg:col-span-5 space-y-6 text-left">
+              <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block">
+                Pioneering Research
+              </span>
+              <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold text-oxford leading-tight">
+                Innovation With Purpose
+              </h2>
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-sans font-normal text-justify">
+                The Department of Physics at CUSAT has partnered with nearly 50 funded projects, 25 in-house initiatives, and over 150 student research projects. We have broken barriers in materials science, lasers, and quantum cosmology to attain global recognition.
+              </p>
+              
+              <div className="pt-4">
+                <Link
+                  href="/research-labs"
+                  className="inline-flex items-center text-base font-bold text-cyan-accent hover:text-cyan-dark transition-colors duration-200"
+                >
+                  <span className="font-sans">→ Know More</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Right side: Asymmetric Flippable Grid */}
+            <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-12 gap-6 h-full items-stretch">
+              
+              {/* Stacked Left Column (2 Small Cards) */}
+              <div className="md:col-span-7 flex flex-col gap-6 justify-between">
+                {/* Lab 1 */}
+                <LabCard lab={RESEARCH_LABS[2]} className="h-[220px]" />
+                
+                {/* Lab 2 */}
+                <LabCard lab={RESEARCH_LABS[5]} className="h-[220px]" />
+              </div>
+
+              {/* Tall Right Column (1 Tall Card) */}
+              <div className="md:col-span-5 grid grid-cols-1 items-stretch">
+                <LabCard lab={RESEARCH_LABS[1]} className="h-full min-h-[320px]" />
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* Spotlight Projects Section */}
+      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-slate-50 border-y border-slate-100">
+        <div className="max-w-[1536px] mx-auto space-y-10">
+          
+          {/* Section Title */}
+          <div className="border-b border-slate-200 pb-4">
+            <h2 className="font-serif text-4xl sm:text-5xl font-bold text-oxford">
+              Spotlight Projects
+            </h2>
+          </div>
+
+          {/* Infinite Auto-Scrolling Row */}
+          <div className="overflow-hidden relative -mx-4 px-4 sm:mx-0 sm:px-0">
+            {/* Soft edge gradients */}
+            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-slate-50 via-slate-50/70 to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-slate-50 via-slate-50/70 to-transparent z-10 pointer-events-none" />
+
+            <div className="flex gap-8 animate-marquee-labs hover:[animation-play-state:paused] py-4">
+              {[
+                {
+                  id: 'p1',
+                  title: 'Development of Quantum Cryptography & Key Distribution for Secure Communication',
+                  desc: 'This project focuses on building quantum key distribution links over existing optical fiber channels, achieving absolute information-theoretic security using entangled photons.',
+                  image: 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=600&q=80',
+                },
+                {
+                  id: 'p2',
+                  title: 'Polyaniline-Graphene Hybrid Nanostructures for Next-Generation Supercapacitors',
+                  desc: 'An interdisciplinary project aimed at fabricating lightweight, flexible supercapacitors with high energy density and cycle life for micro-mobility energy storage.',
+                  image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&q=80',
+                },
+                {
+                  id: 'p3',
+                  title: 'Holographic Dark Energy & Gravitational Wave Signature Modeling',
+                  desc: 'Developing large-scale cosmological simulation pipelines to trace the thermodynamic constraints on dark energy and predict signature anomalies in future gravitational wave detectors.',
+                  image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&q=80',
+                },
+              ].map((proj) => (
+                <div key={`orig-${proj.id}`} className="w-[300px] sm:w-[380px] flex-shrink-0 space-y-4">
+                  <div className="aspect-[4/3] w-full relative rounded-2xl overflow-hidden shadow-sm bg-slate-100">
+                    <img
+                      src={proj.image}
+                      alt={proj.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="font-sans text-base sm:text-lg font-bold text-oxford leading-tight">
+                    {proj.title}
+                  </h3>
+                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed text-justify font-sans">
+                    {proj.desc}
+                  </p>
+                </div>
+              ))}
+              {/* Duplicate array for seamless infinite looping */}
+              {[
+                {
+                  id: 'p1',
+                  title: 'Development of Quantum Cryptography & Key Distribution for Secure Communication',
+                  desc: 'This project focuses on building quantum key distribution links over existing optical fiber channels, achieving absolute information-theoretic security using entangled photons.',
+                  image: 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=600&q=80',
+                },
+                {
+                  id: 'p2',
+                  title: 'Polyaniline-Graphene Hybrid Nanostructures for Next-Generation Supercapacitors',
+                  desc: 'An interdisciplinary project aimed at fabricating lightweight, flexible supercapacitors with high energy density and cycle life for micro-mobility energy storage.',
+                  image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&q=80',
+                },
+                {
+                  id: 'p3',
+                  title: 'Holographic Dark Energy & Gravitational Wave Signature Modeling',
+                  desc: 'Developing large-scale cosmological simulation pipelines to trace the thermodynamic constraints on dark energy and predict signature anomalies in future gravitational wave detectors.',
+                  image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&q=80',
+                },
+              ].map((proj) => (
+                <div key={`dup-${proj.id}`} className="w-[300px] sm:w-[380px] flex-shrink-0 space-y-4">
+                  <div className="aspect-[4/3] w-full relative rounded-2xl overflow-hidden shadow-sm bg-slate-100">
+                    <img
+                      src={proj.image}
+                      alt={proj.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <h3 className="font-sans text-base sm:text-lg font-bold text-oxford leading-tight">
+                    {proj.title}
+                  </h3>
+                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed text-justify font-sans">
+                    {proj.desc}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
 
         </div>

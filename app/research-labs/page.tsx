@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
 import LabCard from '@/components/LabCard';
 import { RESEARCH_LABS } from '@/lib/data';
 
@@ -15,20 +17,34 @@ export default function ResearchLabsPage() {
       : RESEARCH_LABS.filter((l) => l.category === selectedCategory);
 
   return (
-    <div className="space-y-12 pb-20">
+    <div className="space-y-12 pb-20 relative">
       
-      {/* Page Header (No Hero image, clean text block) */}
-      <div className="-mt-[116px] sm:-mt-[128px] bg-slate-50 border-b border-slate-200/80 pt-36 sm:pt-44 pb-12 lg:pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4">
-          <span className="inline-block text-xs font-bold uppercase tracking-wider text-cyan-accent">
-            Department Research Labs
-          </span>
-          <h1 className="font-serif text-4xl sm:text-5xl font-extrabold text-oxford">
-            Specialized Research Laboratories & Centers
+      {/* Page Header (Campus image background) */}
+      <div className="-mt-[116px] sm:-mt-[128px] relative bg-slate-900 text-white overflow-hidden">
+        {/* Background Image with Dark Blue Overlay */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/physics.png"
+            alt="Research Laboratories Banner"
+            fill
+            className="object-cover opacity-45"
+            priority
+          />
+          <div className="absolute inset-0 bg-oxford/75 mix-blend-multiply" />
+        </div>
+
+        {/* Content (Centered) */}
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 pt-36 pb-16 sm:pb-20 text-center space-y-3">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white uppercase">
+            Research Laboratories
           </h1>
-          <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed font-sans">
-            Exploring nanostructures, quantum condensed matter, laser spectroscopy, solar energy, and theoretical gravitation.
-          </p>
+          
+          {/* Centered Breadcrumbs */}
+          <div className="flex items-center justify-center space-x-2 text-xs sm:text-sm font-sans font-medium text-slate-300">
+            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
+            <span>&gt;</span>
+            <span className="text-white font-semibold">Research Laboratories</span>
+          </div>
         </div>
       </div>
 
