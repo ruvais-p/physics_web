@@ -12,6 +12,13 @@ export interface FacultyMember {
   citations: number;
   image: string;
   type: 'faculty';
+  cvUrl?: string;
+  socialLinks?: {
+    scholar?: string;
+    linkedin?: string;
+    orcid?: string;
+    researchgate?: string;
+  };
 }
 
 export interface Scholar {
@@ -104,6 +111,13 @@ export const FACULTY_MEMBERS: FacultyMember[] = [
     citations: 7420,
     image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&q=80',
     type: 'faculty',
+    cvUrl: '/cvs/cv_placeholder.pdf',
+    socialLinks: {
+      scholar: 'https://scholar.google.com/citations?user=mra_placeholder',
+      linkedin: 'https://linkedin.com/in/mra_placeholder',
+      orcid: 'https://orcid.org/0000-0002-1234-5678',
+      researchgate: 'https://www.researchgate.net/profile/M_R_Anantharaman'
+    }
   },
   {
     id: 'f2',
@@ -119,6 +133,13 @@ export const FACULTY_MEMBERS: FacultyMember[] = [
     citations: 8900,
     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80',
     type: 'faculty',
+    cvUrl: '/cvs/cv_placeholder.pdf',
+    socialLinks: {
+      scholar: 'https://scholar.google.com/citations?user=nampoori_placeholder',
+      linkedin: 'https://linkedin.com/in/nampoori_placeholder',
+      orcid: 'https://orcid.org/0000-0002-8765-4321',
+      researchgate: 'https://www.researchgate.net/profile/VPN_Nampoori'
+    }
   },
   {
     id: 'f3',
@@ -134,6 +155,13 @@ export const FACULTY_MEMBERS: FacultyMember[] = [
     citations: 3200,
     image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80',
     type: 'faculty',
+    cvUrl: '/cvs/cv_placeholder.pdf',
+    socialLinks: {
+      scholar: 'https://scholar.google.com/citations?user=pradeep_placeholder',
+      linkedin: 'https://linkedin.com/in/pradeep_placeholder',
+      orcid: 'https://orcid.org/0000-0002-3456-7890',
+      researchgate: 'https://www.researchgate.net/profile/B_Pradeep'
+    }
   },
   {
     id: 'f4',
@@ -149,6 +177,13 @@ export const FACULTY_MEMBERS: FacultyMember[] = [
     citations: 4500,
     image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&q=80',
     type: 'faculty',
+    cvUrl: '/cvs/cv_placeholder.pdf',
+    socialLinks: {
+      scholar: 'https://scholar.google.com/citations?user=jayalekshmi_placeholder',
+      linkedin: 'https://linkedin.com/in/jayalekshmi_placeholder',
+      orcid: 'https://orcid.org/0000-0002-4567-8901',
+      researchgate: 'https://www.researchgate.net/profile/S_Jayalekshmi'
+    }
   },
   {
     id: 'f5',
@@ -164,6 +199,13 @@ export const FACULTY_MEMBERS: FacultyMember[] = [
     citations: 1850,
     image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&q=80',
     type: 'faculty',
+    cvUrl: '/cvs/cv_placeholder.pdf',
+    socialLinks: {
+      scholar: 'https://scholar.google.com/citations?user=titus_placeholder',
+      linkedin: 'https://linkedin.com/in/titus_placeholder',
+      orcid: 'https://orcid.org/0000-0002-5678-9012',
+      researchgate: 'https://www.researchgate.net/profile/Titus_Mathew'
+    }
   },
   {
     id: 'f6',
@@ -179,6 +221,13 @@ export const FACULTY_MEMBERS: FacultyMember[] = [
     citations: 1420,
     image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80',
     type: 'faculty',
+    cvUrl: '/cvs/cv_placeholder.pdf',
+    socialLinks: {
+      scholar: 'https://scholar.google.com/citations?user=rameshbabu_placeholder',
+      linkedin: 'https://linkedin.com/in/rameshbabu_placeholder',
+      orcid: 'https://orcid.org/0000-0002-6789-0123',
+      researchgate: 'https://www.researchgate.net/profile/Ramesh_Babu_T'
+    }
   },
   {
     id: 'f7',
@@ -194,6 +243,13 @@ export const FACULTY_MEMBERS: FacultyMember[] = [
     citations: 980,
     image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&q=80',
     type: 'faculty',
+    cvUrl: '/cvs/cv_placeholder.pdf',
+    socialLinks: {
+      scholar: 'https://scholar.google.com/citations?user=ashaas_placeholder',
+      linkedin: 'https://linkedin.com/in/ashaas_placeholder',
+      orcid: 'https://orcid.org/0000-0002-7890-1234',
+      researchgate: 'https://www.researchgate.net/profile/Asha_AS'
+    }
   },
   {
     id: 'f8',
@@ -209,6 +265,13 @@ export const FACULTY_MEMBERS: FacultyMember[] = [
     citations: 3900,
     image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&q=80',
     type: 'faculty',
+    cvUrl: '/cvs/cv_placeholder.pdf',
+    socialLinks: {
+      scholar: 'https://scholar.google.com/citations?user=santhoshkp_placeholder',
+      linkedin: 'https://linkedin.com/in/santhoshkp_placeholder',
+      orcid: 'https://orcid.org/0000-0002-8901-2345',
+      researchgate: 'https://www.researchgate.net/profile/K_P_Santhosh'
+    }
   },
 ];
 

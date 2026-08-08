@@ -136,3 +136,13 @@
   animation: marquee-labs 35s linear infinite;
 }
 
+/* Faculty Card Image Grayscale Hover Effect */
+.faculty-member-card .faculty-card-image {
+  filter: grayscale(100%) !important;
+  transition: filter 0.4s ease-in-out !important;
+}
+
+.faculty-member-card:hover .faculty-card-image {
+  filter: grayscale(0%) !important;
+}
+

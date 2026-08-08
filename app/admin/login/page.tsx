@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 
-export default function AdminLoginPage() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
@@ -43,6 +43,80 @@ export default function AdminLoginPage() {
   };
 
   return (
+    <div className="bg-[#002147]/80 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-8 shadow-2xl space-y-6">
+      {error && (
+        <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl text-sm animate-shake">
+          <AlertCircle className="w-5 h-5 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      <form onSubmit={handleLogin} className="space-y-5">
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+            Admin Email Address
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <Mail className="w-5 h-5" />
+            </div>
+            <input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="admin@physics.cusat.ac.in"
+              className="w-full pl-11 pr-4 py-3 bg-[#00142D]/90 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#00A3C1] focus:border-transparent transition-all text-sm"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
+            Password
+          </label>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <Lock className="w-5 h-5" />
+            </div>
+            <input
+              type="password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••••••"
+              className="w-full pl-11 pr-4 py-3 bg-[#00142D]/90 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#00A3C1] focus:border-transparent transition-all text-sm"
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3.5 px-4 bg-[#00A3C1] hover:bg-[#008ca7] disabled:opacity-50 text-white font-semibold rounded-xl shadow-lg shadow-[#00A3C1]/20 flex items-center justify-center gap-2 transition-all group"
+        >
+          {loading ? (
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <>
+              <span>Sign In to Dashboard</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </>
+          )}
+        </button>
+      </form>
+
+      <div className="pt-4 border-t border-slate-700/50 text-center">
+        <p className="text-xs text-slate-400">
+          Default Seed Email: <code className="text-[#00A3C1] bg-slate-900/60 px-1.5 py-0.5 rounded">admin@physics.cusat.ac.in</code>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+export default function AdminLoginPage() {
+  return (
     <div className="min-h-screen bg-[#00142D] flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 relative overflow-hidden text-white selection:bg-[#00A3C1] selection:text-white">
       {/* Background Ambient Glows */}
       <div className="absolute -top-40 -left-40 w-96 h-96 bg-[#00A3C1]/20 rounded-full blur-3xl pointer-events-none" />
@@ -63,75 +137,13 @@ export default function AdminLoginPage() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-[#002147]/80 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-8 shadow-2xl space-y-6">
-          {error && (
-            <div className="flex items-center gap-3 bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl text-sm animate-shake">
-              <AlertCircle className="w-5 h-5 shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
-                Admin Email Address
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <Mail className="w-5 h-5" />
-                </div>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@physics.cusat.ac.in"
-                  className="w-full pl-11 pr-4 py-3 bg-[#00142D]/90 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#00A3C1] focus:border-transparent transition-all text-sm"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                  <Lock className="w-5 h-5" />
-                </div>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full pl-11 pr-4 py-3 bg-[#00142D]/90 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#00A3C1] focus:border-transparent transition-all text-sm"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3.5 px-4 bg-[#00A3C1] hover:bg-[#008ca7] disabled:opacity-50 text-white font-semibold rounded-xl shadow-lg shadow-[#00A3C1]/20 flex items-center justify-center gap-2 transition-all group"
-            >
-              {loading ? (
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <>
-                  <span>Sign In to Dashboard</span>
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                </>
-              )}
-            </button>
-          </form>
-
-          <div className="pt-4 border-t border-slate-700/50 text-center">
-            <p className="text-xs text-slate-400">
-              Default Seed Email: <code className="text-[#00A3C1] bg-slate-900/60 px-1.5 py-0.5 rounded">admin@physics.cusat.ac.in</code>
-            </p>
+        <Suspense fallback={
+          <div className="bg-[#002147]/80 backdrop-blur-xl border border-slate-700/60 rounded-2xl p-8 shadow-2xl flex items-center justify-center py-20">
+            <div className="w-8 h-8 border-2 border-[#00A3C1] border-t-transparent rounded-full animate-spin" />
           </div>
-        </div>
+        }>
+          <LoginForm />
+        </Suspense>
 
         <div className="text-center text-xs text-slate-500">
           Secure Authentication • Connected to Local PostgreSQL
