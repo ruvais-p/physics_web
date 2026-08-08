@@ -14,7 +14,7 @@ export default function PeoplePage() {
           <h1 className="font-serif text-4xl sm:text-5xl font-extrabold text-oxford tracking-tight">
             Faculty Members
           </h1>
-          
+
           {/* Breadcrumb: Home > Faculty Members */}
           <div className="flex items-center justify-center space-x-2 text-xs sm:text-sm font-sans font-medium text-slate-500">
             <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
@@ -27,9 +27,7 @@ export default function PeoplePage() {
       {/* Faculty Members Section */}
       <section className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 space-y-6">
         <div>
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
-            Faculty Members
-          </h2>
+
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 font-sans">
           {FACULTY_MEMBERS.map((person) => (

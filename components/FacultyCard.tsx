@@ -28,8 +28,8 @@ export default function FacultyCard({ person, onClick }: FacultyCardProps) {
 
       {/* Card Details Body - Left-aligned text below the image */}
       <div className="flex-1 flex flex-col items-start text-left font-sans">
-        {/* Name in Crimson/Maroon red */}
-        <h3 className="text-base sm:text-lg font-bold text-[#a81434] group-hover:text-[#800d21] transition-colors leading-snug">
+        {/* Name in Oxford Blue */}
+        <h3 className="text-base sm:text-lg font-bold text-oxford group-hover:text-cyan-dark transition-colors leading-snug">
           {person.name}
         </h3>
 
