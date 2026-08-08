@@ -34,7 +34,7 @@ export default function CoursesPage() {
   const selectedCourse = COURSES.find(c => c.id === activeCourseId) || COURSES[0];
 
   return (
-    <div className="space-y-12 pb-20 pt-28 sm:pt-36">
+    <div className="space-y-12 pb-20 pt-36 sm:pt-44">
       
       {/* Course Selector Bar - Styled like the glassmorphic navbar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center">

@@ -1,5 +1,4 @@
-'use client';
-
+import Image from 'next/image';
 import Link from 'next/link';
 import FacultyCard from '@/components/FacultyCard';
 import { FACULTY_MEMBERS, SCHOLARS } from '@/lib/data';
@@ -8,18 +7,31 @@ export default function PeoplePage() {
   return (
     <div className="space-y-10 pb-20 relative">
 
-      {/* Page Header (No Hero image, clean text block, centered, reduced space) */}
-      <div className="-mt-[84px] sm:-mt-[96px] bg-slate-50 pt-28 sm:pt-32 pb-4">
-        <div className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-3 pt-4">
-          <h1 className="font-serif text-4xl sm:text-5xl font-extrabold text-oxford tracking-tight">
+      {/* Page Header (Campus image background) */}
+      <div className="-mt-[116px] sm:-mt-[128px] relative bg-slate-900 text-white overflow-hidden">
+        {/* Background Image with Dark Blue Overlay */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/faculty.png"
+            alt="Faculty Banner"
+            fill
+            className="object-cover opacity-45"
+            priority
+          />
+          <div className="absolute inset-0 bg-oxford/75 mix-blend-multiply" />
+        </div>
+
+        {/* Content (Centered) */}
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 pt-36 pb-16 sm:pb-20 text-center space-y-3">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white uppercase">
             Faculty Members
           </h1>
-
-          {/* Breadcrumb: Home > Faculty Members */}
-          <div className="flex items-center justify-center space-x-2 text-xs sm:text-sm font-sans font-medium text-slate-500">
+          
+          {/* Centered Breadcrumbs */}
+          <div className="flex items-center justify-center space-x-2 text-xs sm:text-sm font-sans font-medium text-slate-300">
             <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
-            <span className="text-slate-400">&gt;</span>
-            <span className="text-slate-800">Faculty Members</span>
+            <span>&gt;</span>
+            <span className="text-white font-semibold">Faculty Members</span>
           </div>
         </div>
       </div>

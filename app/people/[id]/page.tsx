@@ -2,6 +2,7 @@
 
 import { use, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { FACULTY_MEMBERS, SCHOLARS, FacultyMember, Scholar } from '@/lib/data';
 import { Mail, Phone, MapPin, BookOpen, ArrowLeft, GraduationCap } from 'lucide-react';
@@ -36,18 +37,31 @@ export default function ProfilePage({ params }: PageProps) {
   return (
     <div className="pb-20 relative">
 
-      {/* Top Banner (Oxford Blue Background theme) */}
-      <div className="-mt-[84px] sm:-mt-[96px] bg-oxford text-white pt-32 pb-12 sm:pb-16 text-center space-y-3 shadow-sm">
-        <div className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-20">
+      {/* Top Banner (Campus Image Background with Oxford Blue Overlay) */}
+      <div className="-mt-[116px] sm:-mt-[128px] relative bg-slate-900 text-white overflow-hidden">
+        {/* Background Image with Dark Blue Overlay */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/faculty.png"
+            alt="Faculty Banner"
+            fill
+            className="object-cover opacity-45"
+            priority
+          />
+          <div className="absolute inset-0 bg-oxford/75 mix-blend-multiply" />
+        </div>
+
+        {/* Content (Centered) */}
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 pt-36 pb-16 sm:pb-20 text-center space-y-3">
           <h2 className="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 font-sans">
             {isFaculty ? 'Our Faculty' : 'Our Research Scholars'}
           </h2>
-          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mt-2 text-white">
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mt-2 text-white uppercase">
             {isFaculty ? 'OUR FACULTY' : 'OUR SCHOLARS'}
           </h1>
           
           {/* Centered Breadcrumbs */}
-          <div className="flex items-center justify-center space-x-2 text-xs sm:text-sm font-sans font-medium text-slate-300 mt-4">
+          <div className="flex items-center justify-center space-x-2 text-xs sm:text-sm font-sans font-medium text-slate-300">
             <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
             <span>&gt;</span>
             <Link href="/people" className="hover:text-cyan-accent transition-colors">Faculty</Link>

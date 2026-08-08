@@ -29,8 +29,8 @@ export default function HomePage() {
               {/* Main Arched Window Frame */}
               <div className="relative w-full aspect-[4/5] rounded-t-[160px] sm:rounded-t-[220px] rounded-b-3xl border-4 border-heritage-red/80 overflow-hidden shadow-2xl bg-oxford-dark group">
                 <img
-                  src="/cusat-building.png"
-                  alt="Department of Physics CUSAT Building"
+                  src="/campus.jpg"
+                  alt="Department of Physics CUSAT Campus"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-oxford-dark/80 via-transparent to-transparent" />
@@ -57,24 +57,6 @@ export default function HomePage() {
             <p className="text-slate-700 text-sm sm:text-base leading-relaxed text-justify">
               Going forward, the Department envisions continuing its mission of providing quality advanced training in Physics through its M.Sc., Integrated M.Sc., and Ph.D. research programs, driving fundamental scientific breakthroughs in materials science, quantum technology, and photonics.
             </p>
-
-            {/* Action CTA Buttons */}
-            <div className="pt-3 flex flex-wrap items-center gap-4">
-              <Link
-                href="/courses"
-                className="inline-flex items-center space-x-2 bg-heritage-red hover:bg-red-800 text-white font-sans font-bold px-6 py-3 rounded-xl shadow-lg transition-all duration-200 text-sm hover:scale-105"
-              >
-                <span>Search Degrees &amp; Programs</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
-              <Link
-                href="/people"
-                className="inline-flex items-center space-x-2 bg-oxford hover:bg-oxford-dark text-white font-sans font-bold px-6 py-3 rounded-xl shadow-lg transition-all duration-200 text-sm hover:scale-105"
-              >
-                <span>Meet the Faculty</span>
-                <ChevronRight className="w-4 h-4 text-cyan-accent" />
-              </Link>
-            </div>
           </div>
         </div>
       </section>
@@ -126,9 +108,7 @@ export default function HomePage() {
               <p className="text-slate-100 text-lg sm:text-xl font-medium leading-relaxed text-justify">
                 The Department of Physics features specialized research facilities driving scientific breakthroughs in materials science, laser spectroscopy, thin-film photovoltaics, and theoretical cosmology.
               </p>
-              <p className="text-sm text-[#00d2ff]/80 font-bold hidden lg:block">
-                ✦ Laboratories scroll automatically
-              </p>
+
             </div>
 
             {/* Right side: Horizontal Scroll of Lab Cards */}

@@ -13,7 +13,7 @@ export default function FacilitiesPage() {
     <div className="space-y-12 pb-20">
       
       {/* Page Header (No Hero image, clean text block) */}
-      <div className="-mt-[84px] sm:-mt-[96px] bg-slate-50 pt-32 sm:pt-40 pb-6 sm:pb-8">
+      <div className="-mt-[116px] sm:-mt-[128px] bg-slate-50 pt-32 sm:pt-40 pb-6 sm:pb-8">
         <div className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 space-y-4 pt-4">
           <span className="inline-block text-xs font-bold uppercase tracking-wider text-cyan-accent">
             OUR FACILITIES

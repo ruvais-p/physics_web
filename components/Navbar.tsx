@@ -85,6 +85,29 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full transition-all duration-300">
+      {/* Top Utility Bar containing Alumni and Library */}
+      <div
+        className="w-full px-6 sm:px-10 py-2 border-b border-white/10 text-xs bg-oxford text-slate-200"
+      >
+        <div className="max-w-[1536px] mx-auto flex justify-end items-center space-x-4">
+          <Link
+            id="nav-link-alumni"
+            href="/alumni"
+            className="hover:text-cyan-accent font-medium tracking-wide transition-colors duration-200"
+          >
+            Alumni
+          </Link>
+          <span className="text-white/20">|</span>
+          <Link
+            id="nav-link-library"
+            href="/library"
+            className="hover:text-cyan-accent font-medium tracking-wide transition-colors duration-200"
+          >
+            Library
+          </Link>
+        </div>
+      </div>
+
       {/* Dynamic Top-Attached Navbar Container */}
       <div
         className={`w-full px-6 sm:px-10 py-4 transition-all duration-300 border-b ${shouldBeBlue
