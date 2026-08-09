@@ -52,6 +52,28 @@ async function main() {
     });
     console.log('[SEED] Created initial sample notifications.');
   }
+
+  // Seed sample faculty member
+  const sampleFacultyEmail = 'faculty@physics.cusat.ac.in';
+  const sampleFacultyPassword = 'facultypassword123';
+  const existingFaculty = await prisma.faculty.findUnique({
+    where: { email: sampleFacultyEmail },
+  });
+
+  if (!existingFaculty) {
+    const hashedFacultyPassword = await bcrypt.hash(sampleFacultyPassword, 10);
+    await prisma.faculty.create({
+      data: {
+        name: 'Dr. Ramesh Kumar',
+        email: sampleFacultyEmail,
+        password: hashedFacultyPassword,
+        designation: 'Professor & Head',
+        department: 'Department of Physics',
+        mustChangePassword: true,
+      },
+    });
+    console.log(`[SEED] Created default sample faculty user: ${sampleFacultyEmail}`);
+  }
 }
 
 main()

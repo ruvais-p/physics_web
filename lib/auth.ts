@@ -30,3 +30,21 @@ export async function verifyAdminToken(token: string) {
     return null;
   }
 }
+
+export async function signFacultyToken(payload: { id: string; email: string; name: string }) {
+  return new SignJWT({ ...payload, role: 'faculty' })
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('24h')
+    .sign(JWT_SECRET);
+}
+
+export async function verifyFacultyToken(token: string) {
+  try {
+    const verified = await jwtVerify(token, JWT_SECRET);
+    return verified.payload as { id: string; email: string; name: string; role: string };
+  } catch (error) {
+    return null;
+  }
+}
+

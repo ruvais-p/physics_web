@@ -7,9 +7,9 @@ import Footer from '@/components/Footer';
 
 export default function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAdminRoute = pathname?.startsWith('/admin');
+  const isPortalRoute = pathname?.startsWith('/admin') || pathname?.startsWith('/faculty');
 
-  if (isAdminRoute) {
+  if (isPortalRoute) {
     return <div className="flex-grow flex flex-col">{children}</div>;
   }
 

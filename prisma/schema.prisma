@@ -48,3 +48,19 @@ model Testimonial {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Faculty {
+  id                 String   @id @default(uuid())
+  name               String
+  email              String   @unique
+  password           String
+  mustChangePassword Boolean  @default(true)
+  designation        String?  @default("Faculty Member")
+  department         String?  @default("Department of Physics")
+  phone              String?
+  bio                String?
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
