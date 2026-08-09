@@ -110,7 +110,7 @@ export default function Navbar() {
 
       {/* Dynamic Top-Attached Navbar Container */}
       <div
-        className={`w-full px-6 sm:px-10 py-4 transition-all duration-300 border-b ${shouldBeBlue
+        className={`w-full px-6 sm:px-10 py-5 sm:py-6 transition-all duration-300 border-b ${shouldBeBlue
           ? 'bg-white/95 backdrop-blur-xl border-cyan-accent/20 shadow-md shadow-oxford-dark/5'
           : 'bg-[#000a1e]/40 backdrop-blur-md border-white/10'
           }`}
@@ -119,7 +119,7 @@ export default function Navbar() {
 
           {/* Brand Title with DOP Logo */}
           <Link id="nav-brand-link" href="/" className="flex items-center space-x-3 group">
-            <div className="h-9 sm:h-11 w-auto text-cyan-accent group-hover:scale-105 transition-transform duration-300 drop-shadow-sm">
+            <div className="h-10 sm:h-13 w-auto text-cyan-accent group-hover:scale-105 transition-transform duration-300 drop-shadow-sm">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 160" className="h-full w-auto fill-current text-cyan-accent">
                 <text x="5" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">D</text>
                 <g transform="translate(110, 80)">
@@ -132,7 +132,7 @@ export default function Navbar() {
               </svg>
             </div>
             <div className="hidden sm:block">
-              <span className={`block font-sans text-sm sm:text-base font-bold uppercase tracking-wider leading-tight transition-colors ${shouldBeBlue ? 'text-oxford' : 'text-cyan-accent'
+              <span className={`block font-sans text-base sm:text-lg font-bold uppercase tracking-wider leading-tight transition-colors ${shouldBeBlue ? 'text-oxford' : 'text-cyan-accent'
                 }`}>
                 DEPARTMENT OF PHYSICS
               </span>
@@ -155,7 +155,7 @@ export default function Navbar() {
                   <Link
                     id={`nav-link-${item.name.toLowerCase()}`}
                     href={item.href}
-                    className={`flex items-center space-x-1 text-base sm:text-lg font-medium transition-colors ${shouldBeBlue
+                    className={`flex items-center space-x-1 text-[17px] sm:text-[19px] font-semibold transition-colors ${shouldBeBlue
                       ? isActive ? 'text-cyan-accent font-bold' : 'text-oxford hover:text-cyan-accent'
                       : isActive ? 'text-white font-bold drop-shadow' : 'text-white/90 hover:text-cyan-accent'
                       }`}

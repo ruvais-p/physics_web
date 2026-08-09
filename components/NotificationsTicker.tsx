@@ -65,29 +65,29 @@ export default function NotificationsTicker() {
     <section className="w-full relative z-20">
       <div className="w-full bg-white border-y border-slate-200/80 shadow-md px-6 sm:px-12 lg:px-16 py-3.5 sm:py-4 flex items-center gap-4 overflow-hidden">
         {/* Badge */}
-        <div className="flex items-center space-x-2 shrink-0 bg-heritage-red/10 border border-heritage-red/20 px-3 py-1.5 rounded-lg text-heritage-red z-10 shadow-sm animate-pulse">
-          <Bell className="w-4 h-4 text-heritage-red" />
-          <span className="text-xs font-bold uppercase tracking-wider whitespace-nowrap font-sans">
+        <div className="flex items-center space-x-2 shrink-0 bg-heritage-red border border-heritage-red px-3.5 py-2 rounded-lg text-white z-10 shadow-md animate-pulse">
+          <Bell className="w-4 h-4 text-white fill-white/20 animate-bounce" />
+          <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider whitespace-nowrap font-sans">
             Announcements
           </span>
         </div>
 
         {/* Running Continuous Marquee Ticker */}
         <div className="overflow-hidden whitespace-nowrap flex-1 py-1 relative">
-          <div className="animate-marquee inline-flex space-x-12 items-center text-slate-800 font-sans text-sm">
+          <div className="animate-marquee inline-flex space-x-16 items-center text-slate-800 font-sans text-base">
             {repeatedList.map((item, idx) => (
               <Link
                 key={`notif-${item.id}-${idx}`}
                 href={item.link || '#'}
                 className="hover:text-cyan-accent transition-colors duration-200 flex items-center space-x-3 group"
               >
-                <span className="bg-sky-50 text-sky-700 text-[10px] font-bold px-2.5 py-0.5 rounded border border-sky-200 font-sans tracking-wide uppercase shrink-0">
+                <span className="bg-sky-50 text-sky-800 text-[11px] sm:text-[12px] font-extrabold px-3 py-1 rounded-md border border-sky-200 font-sans tracking-wide uppercase shrink-0">
                   {item.category}
                 </span>
-                <span className="group-hover:underline text-[13px] sm:text-[14px] font-medium leading-none tracking-wide text-slate-700">
+                <span className="group-hover:underline text-[15px] sm:text-[16px] font-semibold leading-none tracking-wide text-slate-800">
                   {item.title}
                 </span>
-                <span className="text-slate-400 text-[11px] font-mono shrink-0">({item.date})</span>
+                <span className="text-slate-500 text-[12px] sm:text-[13px] font-mono shrink-0">({item.date})</span>
                 <span className="text-slate-300 font-bold ml-6 shrink-0 select-none">✦</span>
               </Link>
             ))}

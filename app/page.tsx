@@ -83,7 +83,7 @@ export default function HomePage() {
       <NotificationsTicker />
 
       {/* Department Legacy & Academics Section */}
-      <section className="w-full px-6 sm:px-12 lg:px-16 py-12 sm:py-16 bg-gradient-to-b from-white via-slate-50/50 to-white">
+      <section className="w-full px-6 sm:px-12 lg:px-16 py-12 sm:py-16 bg-gradient-to-b from-surface-lowest via-surface-low/30 to-surface-lowest">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
 
           {/* Arched Window Image Column */}
@@ -126,7 +126,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>      {/* News & Events Section */}
-      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-slate-50/50 border-b border-slate-100">
+      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-low/20 border-b border-surface-mid/30">
         <div className="max-w-[1536px] mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
             
@@ -252,18 +252,15 @@ export default function HomePage() {
       </section>
 
       {/* Featured Research Laboratories */}
-      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-white border-y border-slate-100">
+      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-lowest border-y border-surface-low/60">
         <div className="max-w-[1536px] mx-auto">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
             {/* Left side: Innovation Description */}
             <div className="lg:col-span-5 space-y-6 text-left">
-              <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block">
-                Pioneering Research
-              </span>
               <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold text-oxford leading-tight">
-                Innovation With Purpose
+                Research Labs & Facilities
               </h2>
               <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-sans font-normal text-justify">
                 The Department of Physics at CUSAT has partnered with nearly 50 funded projects, 25 in-house initiatives, and over 150 student research projects. We have broken barriers in materials science, lasers, and quantum cosmology to attain global recognition.
@@ -304,7 +301,7 @@ export default function HomePage() {
       </section>
 
       {/* Spotlight Projects Section */}
-      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-slate-50 border-y border-slate-100">
+      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-low/40 border-y border-surface-mid/40">
         <div className="max-w-[1536px] mx-auto space-y-10">
           
           {/* Section Title */}
@@ -317,8 +314,8 @@ export default function HomePage() {
           {/* Infinite Auto-Scrolling Row */}
           <div className="overflow-hidden relative -mx-4 px-4 sm:mx-0 sm:px-0">
             {/* Soft edge gradients */}
-            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-slate-50 via-slate-50/70 to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-slate-50 via-slate-50/70 to-transparent z-10 pointer-events-none" />
+            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-surface-low/50 via-surface-low/30 to-transparent z-10 pointer-events-none" />
+            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-surface-low/50 via-surface-low/30 to-transparent z-10 pointer-events-none" />
 
             <div className="flex gap-8 animate-marquee-labs hover:[animation-play-state:paused] py-4">
               {[
