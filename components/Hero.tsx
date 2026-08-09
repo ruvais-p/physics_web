@@ -146,7 +146,7 @@ export default function Hero({
   }, [index, isPlaying, next, total]);
 
   return (
-    <section className="-mt-[84px] sm:-mt-[96px] relative w-full bg-black text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px]">
+    <section className="-mt-[112px] lg:-mt-[132px] relative w-full bg-black text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px]">
 
       {/* Background Image Slides */}
       <div className="absolute inset-0 z-0">
@@ -183,7 +183,7 @@ export default function Hero({
 
 
       {/* Main Slide Content Layer */}
-      <div className="relative z-20 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-36 sm:pt-44 lg:pt-48 pb-32 sm:pb-36 flex flex-col justify-end min-h-[560px] sm:min-h-[660px]">
+      <div className="relative z-20 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-40 sm:pt-48 lg:pt-52 pb-32 sm:pb-36 flex flex-col justify-end min-h-[560px] sm:min-h-[660px]">
         <div className="max-w-3xl space-y-6">
 
           {/* Badge */}

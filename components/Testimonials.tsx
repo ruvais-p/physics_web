@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export interface Testimonial {
   id: string;
@@ -11,18 +12,20 @@ export interface Testimonial {
   quote: string;
   initials: string;
   avatarBg: string;
+  image: string;
 }
 
 export const TESTIMONIALS: Testimonial[] = [
   {
     id: 'nikhil',
     name: 'Nikhil Mohan',
-    role: 'International partner',
+    role: 'International Partner',
     affiliation: 'Neutrino Group ICISE, Vietnam',
     quote:
       'CUSAT helped me build a foundation to which I could add knowledge, skills, and associations necessary to have a career in science.',
     initials: 'NM',
     avatarBg: 'from-blue-600 to-indigo-800',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=600&q=80',
   },
   {
     id: 'ananya',
@@ -33,6 +36,7 @@ export const TESTIMONIALS: Testimonial[] = [
       'The rigorous academic foundations and hands-on access to state-of-the-art central instrumentation at CUSAT Department of Physics gave me the technical edge to lead quantum optics research internationally.',
     initials: 'AN',
     avatarBg: 'from-cyan-500 to-blue-700',
+    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&q=80',
   },
   {
     id: 'rahul',
@@ -43,6 +47,7 @@ export const TESTIMONIALS: Testimonial[] = [
       'Mentorship from distinguished faculty members and advanced optoelectronics labs laid the cornerstone of my career in satellite space payload development. CUSAT Physics is a benchmark of excellence.',
     initials: 'RM',
     avatarBg: 'from-amber-500 to-red-600',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=600&q=80',
   },
   {
     id: 'mathew',
@@ -53,6 +58,7 @@ export const TESTIMONIALS: Testimonial[] = [
       'The Department instills deep conceptual clarity coupled with modern computational physics tools. My training here prepared me seamlessly for academic leadership at top institutes.',
     initials: 'MT',
     avatarBg: 'from-indigo-500 to-purple-700',
+    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=600&q=80',
   },
 ];
 
@@ -74,133 +80,123 @@ export default function Testimonials() {
     if (!isAutoplay) return;
     const interval = setInterval(() => {
       nextSlide();
-    }, 2000);
+    }, 5500); // slightly longer interval for easier reading
     return () => clearInterval(interval);
   }, [isAutoplay, nextSlide]);
 
-  const leftIndex = (currentIndex - 1 + total) % total;
-  const rightIndex = (currentIndex + 1) % total;
-
   const current = TESTIMONIALS[currentIndex];
-  const leftItem = TESTIMONIALS[leftIndex];
-  const rightItem = TESTIMONIALS[rightIndex];
 
   return (
-    <section className="w-full px-4 sm:px-8 lg:px-12 py-12 sm:py-16 bg-[#f8fafc] bg-[radial-gradient(#cbd5e1_1px,transparent_1px)] [background-size:20px_20px] relative overflow-hidden">
-      <div className="w-full max-w-[1536px] mx-auto space-y-12">
+    <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-lowest border-t border-surface-low/60">
+      <div className="max-w-[1536px] mx-auto space-y-16">
         
         {/* Section Heading */}
-        <div className="text-center">
-          <h2 className="font-serif text-4xl sm:text-5xl font-extrabold text-oxford tracking-tight">
+        <div className="space-y-2 text-left">
+          <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block">
+            Alumni & Scholar Stories
+          </span>
+          <h2 className="font-serif text-4xl sm:text-5xl font-bold text-oxford">
             Testimonials
           </h2>
         </div>
 
-        {/* 3D 3-Card Carousel Container (Matching Wireframe Layout) */}
-        <div
-          className="relative flex items-center justify-center gap-4 sm:gap-6 min-h-[320px] sm:min-h-[360px]"
+        {/* Custom Testimonials Grid */}
+        <div 
+          className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start"
           onMouseEnter={() => setIsAutoplay(false)}
           onMouseLeave={() => setIsAutoplay(true)}
         >
           
-          {/* Left Peeked Card */}
-          <div
-            onClick={prevSlide}
-            className="hidden md:flex flex-col justify-between items-center text-center w-64 lg:w-80 h-[260px] rounded-3xl bg-[#001a3a] hover:bg-[#002147] text-white p-6 shadow-lg transition-all duration-500 scale-90 opacity-60 hover:opacity-90 cursor-pointer shrink-0 border border-cyan-accent/20"
-          >
-            <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${leftItem.avatarBg} text-white font-bold flex items-center justify-center shadow-md border border-cyan-accent/30 shrink-0`}>
-              {leftItem.initials}
+          {/* Left Column: Pagination & Author Profile Card */}
+          <div className="lg:col-span-4 space-y-12">
+            {/* Pagination Dots */}
+            <div className="flex items-center space-x-2">
+              {TESTIMONIALS.map((t, idx) => (
+                <button
+                  key={t.id}
+                  onClick={() => setCurrentIndex(idx)}
+                  aria-label={`Go to testimonial ${idx + 1}`}
+                  className={`h-2 transition-all duration-300 rounded-full cursor-pointer ${
+                    currentIndex === idx
+                      ? 'w-6 bg-cyan-accent shadow-sm'
+                      : 'w-2 bg-surface-mid hover:bg-surface-high'
+                  }`}
+                />
+              ))}
             </div>
-            <div className="flex-1 flex items-center justify-center my-2">
-              <p className="font-sans text-xs line-clamp-3 text-slate-200 italic">
-                "{leftItem.quote}"
-              </p>
-            </div>
-            <h4 className="font-sans font-bold text-sm text-cyan-accent shrink-0">
-              {leftItem.name}
-            </h4>
+
+            {/* Author Profile */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentIndex}
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 12 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="space-y-6"
+              >
+                <div className="w-24 h-24 rounded-2xl overflow-hidden border border-surface-mid/50 shadow-sm bg-surface-lowest">
+                  <img
+                    src={current.image}
+                    alt={current.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="font-sans text-sm font-black text-oxford uppercase tracking-wider">
+                    {current.name}
+                  </h4>
+                  <p className="font-sans text-[11px] font-bold text-cyan-accent uppercase tracking-widest leading-relaxed">
+                    {current.role} <br />
+                    <span className="text-slate-400 font-medium normal-case">{current.affiliation}</span>
+                  </p>
+                </div>
+              </motion.div>
+            </AnimatePresence>
           </div>
 
-          {/* Center Main Active Card (Constant Fixed Box Size) */}
-          <div className="w-full max-w-xl sm:max-w-2xl lg:max-w-3xl h-[340px] sm:h-[360px] md:h-[380px] rounded-3xl bg-[#002147] text-white p-6 sm:p-10 shadow-2xl border-2 border-cyan-accent/40 transform transition-all duration-500 scale-100 z-20 flex flex-col justify-between items-center text-center shadow-cyan-900/30 shrink-0">
-            
-            {/* Avatar Circle */}
-            <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br ${current.avatarBg} text-white font-serif text-xl sm:text-2xl font-bold flex items-center justify-center shadow-xl border-4 border-cyan-accent/50 shrink-0`}>
-              {current.initials}
+          {/* Right Column: Navigation Controls & Big Testimonial Quote */}
+          <div className="lg:col-span-8 space-y-10">
+            {/* Navigation Buttons */}
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={prevSlide}
+                aria-label="Previous Testimonial"
+                className="w-10 h-10 rounded-lg bg-surface-low hover:bg-surface-mid text-oxford flex items-center justify-center transition-all cursor-pointer border border-surface-mid/30 shadow-sm"
+              >
+                <ChevronLeft className="w-5 h-5 text-oxford" />
+              </button>
+              <button
+                onClick={nextSlide}
+                aria-label="Next Testimonial"
+                className="w-10 h-10 rounded-lg bg-surface-low hover:bg-surface-mid text-oxford flex items-center justify-center transition-all cursor-pointer border border-surface-mid/30 shadow-sm"
+              >
+                <ChevronRight className="w-5 h-5 text-oxford" />
+              </button>
             </div>
 
-            {/* Quote Body (Flex Centered inside constant box height) */}
-            <div className="flex-1 flex items-center justify-center my-2 px-2 sm:px-6">
-              <p className="font-sans text-base sm:text-lg md:text-xl text-slate-100 font-normal leading-relaxed text-center max-w-2xl drop-shadow-sm line-clamp-4">
-                "{current.quote}"
-              </p>
+            {/* Quote Block */}
+            <div className="relative min-h-[160px]">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={currentIndex}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.3, ease: 'easeInOut' }}
+                  className="flex items-start gap-4"
+                >
+                  <span className="text-cyan-accent font-serif text-6xl md:text-7xl font-bold leading-none select-none -mt-4">
+                    “
+                  </span>
+                  <p className="font-sans text-oxford text-xl sm:text-2xl lg:text-3xl font-extrabold leading-snug tracking-tight text-left">
+                    {current.quote}
+                  </p>
+                </motion.div>
+              </AnimatePresence>
             </div>
-
-            {/* Author Info */}
-            <div className="space-y-0.5 shrink-0">
-              <h3 className="font-sans text-lg sm:text-xl font-bold text-white tracking-wide">
-                {current.name}
-              </h3>
-              <p className="font-sans text-xs sm:text-sm text-cyan-accent font-light italic">
-                {current.role}, {current.affiliation}
-              </p>
-            </div>
-
           </div>
 
-          {/* Right Peeked Card */}
-          <div
-            onClick={nextSlide}
-            className="hidden md:flex flex-col justify-between items-center text-center w-64 lg:w-80 h-[260px] rounded-3xl bg-[#001a3a] hover:bg-[#002147] text-white p-6 shadow-lg transition-all duration-500 scale-90 opacity-60 hover:opacity-90 cursor-pointer shrink-0 border border-cyan-accent/20"
-          >
-            <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${rightItem.avatarBg} text-white font-bold flex items-center justify-center shadow-md border border-cyan-accent/30 shrink-0`}>
-              {rightItem.initials}
-            </div>
-            <div className="flex-1 flex items-center justify-center my-2">
-              <p className="font-sans text-xs line-clamp-3 text-slate-200 italic">
-                "{rightItem.quote}"
-              </p>
-            </div>
-            <h4 className="font-sans font-bold text-sm text-cyan-accent shrink-0">
-              {rightItem.name}
-            </h4>
-          </div>
-
-          {/* Navigation Arrows for Mobile */}
-          <button
-            type="button"
-            onClick={prevSlide}
-            aria-label="Previous Testimonial"
-            className="absolute left-2 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-full bg-[#002147] border border-cyan-accent/30 shadow-lg text-white hover:text-cyan-accent hover:scale-110 transition-all flex md:hidden"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            type="button"
-            onClick={nextSlide}
-            aria-label="Next Testimonial"
-            className="absolute right-2 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-full bg-[#002147] border border-cyan-accent/30 shadow-lg text-white hover:text-cyan-accent hover:scale-110 transition-all flex md:hidden"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-
-        </div>
-
-        {/* Rectangle Indicator Dots */}
-        <div className="flex justify-center items-center space-x-2 pt-4">
-          {TESTIMONIALS.map((t, idx) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => setCurrentIndex(idx)}
-              aria-label={`Go to testimonial ${idx + 1}`}
-              className={`h-2.5 transition-all duration-300 rounded-sm ${
-                currentIndex === idx
-                  ? 'w-7 bg-cyan-accent shadow-sm'
-                  : 'w-2.5 bg-slate-300 hover:bg-slate-400'
-              }`}
-            />
-          ))}
         </div>
 
       </div>
