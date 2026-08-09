@@ -12,6 +12,44 @@ interface NotificationItem {
   date: string;
 }
 
+const DUMMY_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: 'notif-1',
+    title: 'Admissions 2026: Online registration for Integrated M.Sc. and M.Sc. Physics programs is open.',
+    category: 'Admission',
+    link: '/courses',
+    date: 'Aug 10, 2026',
+  },
+  {
+    id: 'notif-2',
+    title: 'National Symposium on Quantum Materials & Device Physics (NSQMDP-2026) scheduled for Oct 12-14.',
+    category: 'Event',
+    link: '#',
+    date: 'Aug 08, 2026',
+  },
+  {
+    id: 'notif-3',
+    title: 'Ph.D. Interview List: Autumn Semester 2026 shortlist and schedule have been published.',
+    category: 'Research',
+    link: '#',
+    date: 'Aug 05, 2026',
+  },
+  {
+    id: 'notif-4',
+    title: 'Special Lecture: Prof. Suresh (IISc) on "Topological Phase Transitions in Modern Insulators" on Aug 18.',
+    category: 'Colloquium',
+    link: '#',
+    date: 'Aug 02, 2026',
+  },
+  {
+    id: 'notif-5',
+    title: 'Instrumentation Update: The newly installed FE-SEM system in the CIF is now open for slot booking.',
+    category: 'Facility',
+    link: '/facilities',
+    date: 'Jul 28, 2026',
+  },
+];
+
 export default function NotificationsTicker() {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,14 +90,12 @@ export default function NotificationsTicker() {
     );
   }
 
-  if (notifications.length === 0) {
-    return null;
-  }
+  const activeList = notifications.length > 0 ? notifications : DUMMY_NOTIFICATIONS;
 
   // Ensure enough items for seamless infinite marquee animation
-  const repeatedList = notifications.length < 5
-    ? [...notifications, ...notifications, ...notifications, ...notifications]
-    : [...notifications, ...notifications];
+  const repeatedList = activeList.length < 5
+    ? [...activeList, ...activeList, ...activeList, ...activeList]
+    : [...activeList, ...activeList];
 
   return (
     <section className="w-full relative z-20">

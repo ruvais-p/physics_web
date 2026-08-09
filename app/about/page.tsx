@@ -25,7 +25,7 @@ export default function AboutPage() {
         </div>
 
         {/* Content (Centered) */}
-        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 pt-36 pb-16 sm:pb-20 text-center space-y-3">
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 pt-52 pb-32 sm:pt-64 sm:pb-44 text-center space-y-3">
           <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white uppercase">
             ABOUT
           </h1>
