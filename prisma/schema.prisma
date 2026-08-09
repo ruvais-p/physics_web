@@ -50,17 +50,67 @@ model Testimonial {
 }
 
 model Faculty {
-  id                 String   @id @default(uuid())
+  id                 String              @id @default(uuid())
   name               String
-  email              String   @unique
+  email              String              @unique
   password           String
-  mustChangePassword Boolean  @default(true)
-  designation        String?  @default("Faculty Member")
-  department         String?  @default("Department of Physics")
+  mustChangePassword Boolean             @default(true)
+  designation        String?             @default("Faculty Member")
+  department         String?             @default("Department of Physics")
   phone              String?
   bio                String?
-  isActive           Boolean  @default(true)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  isActive           Boolean             @default(true)
+  profile            FacultyProfile?
+  documents          FacultyDocument?
+  descriptionRecord  FacultyDescription?
+  students           FacultyStudent[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
 }
+
+model FacultyProfile {
+  uid       String   @id @default(uuid())
+  facultyId String   @unique
+  faculty   Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  phone     String?
+  profiles  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FacultyDocument {
+  uid       String   @id @default(uuid())
+  facultyId String   @unique
+  faculty   Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  image     String?
+  cv        String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FacultyDescription {
+  uid         String   @id @default(uuid())
+  facultyId   String   @unique
+  faculty     Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  description String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model FacultyStudent {
+  uid         String   @id @default(uuid())
+  facultyId   String
+  faculty     Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  name        String
+  description String?  @db.Text
+  image       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([facultyId])
+}
+
+
+
+
 

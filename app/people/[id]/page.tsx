@@ -1,45 +1,250 @@
 'use client';
 
-import { use, useState } from 'react';
+import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { notFound } from 'next/navigation';
 import { FACULTY_MEMBERS, SCHOLARS, FacultyMember, Scholar } from '@/lib/data';
-import { Mail, Phone, MapPin, BookOpen, ArrowLeft, GraduationCap } from 'lucide-react';
+import { Mail, Phone, MapPin, BookOpen, ExternalLink, Download, User } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+// Markdown Parser Helper for Public Profile Biography
+function renderMarkdown(md: string) {
+  if (!md || !md.trim()) {
+    return <p className="text-slate-600 leading-relaxed text-sm">Faculty member in the Department of Physics.</p>;
+  }
+
+  const lines = md.split('\n');
+  const elements: React.ReactNode[] = [];
+  let currentList: { type: 'ul' | 'ol'; items: string[] } | null = null;
+
+  const flushList = () => {
+    if (currentList) {
+      if (currentList.type === 'ul') {
+        elements.push(
+          <ul key={`ul_${elements.length}`} className="list-disc ml-5 space-y-1.5 my-2 text-sm text-slate-700 font-sans">
+            {currentList.items.map((item, idx) => (
+              <li key={idx}>{parseInlineMarkdown(item)}</li>
+            ))}
+          </ul>
+        );
+      } else {
+        elements.push(
+          <ol key={`ol_${elements.length}`} className="list-decimal ml-5 space-y-1.5 my-2 text-sm text-slate-700 font-sans">
+            {currentList.items.map((item, idx) => (
+              <li key={idx}>{parseInlineMarkdown(item)}</li>
+            ))}
+          </ol>
+        );
+      }
+      currentList = null;
+    }
+  };
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      const itemText = trimmed.slice(2);
+      if (!currentList || currentList.type !== 'ul') {
+        flushList();
+        currentList = { type: 'ul', items: [itemText] };
+      } else {
+        currentList.items.push(itemText);
+      }
+      return;
+    }
+
+    if (/^\d+\.\s/.test(trimmed)) {
+      const itemText = trimmed.replace(/^\d+\.\s/, '');
+      if (!currentList || currentList.type !== 'ol') {
+        flushList();
+        currentList = { type: 'ol', items: [itemText] };
+      } else {
+        currentList.items.push(itemText);
+      }
+      return;
+    }
+
+    flushList();
+
+    if (!trimmed) {
+      elements.push(<div key={`br_${index}`} className="h-2" />);
+      return;
+    }
+
+    if (trimmed.startsWith('# ')) {
+      elements.push(
+        <h2 key={index} className="text-xl font-bold font-serif text-oxford mt-4 mb-2 border-b border-slate-200 pb-1">
+          {parseInlineMarkdown(trimmed.slice(2))}
+        </h2>
+      );
+    } else if (trimmed.startsWith('## ')) {
+      elements.push(
+        <h3 key={index} className="text-lg font-bold font-serif text-cyan-dark mt-3 mb-1.5">
+          {parseInlineMarkdown(trimmed.slice(3))}
+        </h3>
+      );
+    } else if (trimmed.startsWith('### ')) {
+      elements.push(
+        <h4 key={index} className="text-sm font-semibold uppercase tracking-wider text-slate-800 mt-2.5 mb-1 font-sans">
+          {parseInlineMarkdown(trimmed.slice(4))}
+        </h4>
+      );
+    } else if (trimmed.startsWith('> ')) {
+      elements.push(
+        <blockquote key={index} className="border-l-3 border-oxford pl-3 py-1.5 text-slate-600 italic text-sm my-2 bg-slate-50 rounded-r">
+          {parseInlineMarkdown(trimmed.slice(2))}
+        </blockquote>
+      );
+    } else {
+      elements.push(
+        <p key={index} className="text-sm text-slate-700 leading-relaxed my-1 font-sans">
+          {parseInlineMarkdown(trimmed)}
+        </p>
+      );
+    }
+  });
+
+  flushList();
+  return <div className="space-y-1">{elements}</div>;
+}
+
+function parseInlineMarkdown(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let keyIdx = 0;
+
+  while (remaining) {
+    const linkMatch = remaining.match(/^([\s\S]*?)\[([^\]]+)\]\(([^)]+)\)([\s\S]*)$/);
+    if (linkMatch) {
+      const [, before, label, url, after] = linkMatch;
+      if (before) parts.push(parseFormatting(before, keyIdx++));
+      parts.push(
+        <a key={keyIdx++} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-dark hover:underline font-medium inline-flex items-center gap-0.5">
+          <span>{label}</span>
+          <ExternalLink className="w-3 h-3 opacity-70" />
+        </a>
+      );
+      remaining = after;
+      continue;
+    }
+
+    parts.push(parseFormatting(remaining, keyIdx++));
+    break;
+  }
+
+  return parts;
+}
+
+function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
+  const elements: React.ReactNode[] = [];
+  const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      elements.push(text.substring(lastIndex, match.index));
+    }
+
+    if (match[1]) {
+      elements.push(<strong key={`${keyPrefix}_b_${match.index}`} className="font-bold text-oxford">{match[2]}</strong>);
+    } else if (match[3]) {
+      elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-800">{match[4]}</em>);
+    } else if (match[5]) {
+      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-100 text-oxford px-1.5 py-0.5 rounded font-mono text-[11px]">{match[6]}</code>);
+    }
+
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    elements.push(text.substring(lastIndex));
+  }
+
+  return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
 }
 
 export default function ProfilePage({ params }: PageProps) {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
 
-  // Search for the person in faculty or scholars
-  const faculty = FACULTY_MEMBERS.find((f) => f.id === id);
-  const scholar = SCHOLARS.find((s) => s.id === id);
-  const person = faculty || scholar;
+  const [person, setPerson] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFoundState, setNotFoundState] = useState(false);
 
-  if (!person) {
-    notFound();
+  // Tab State
+  const [activeTab, setActiveTab] = useState<'bio' | 'scholars'>('bio');
+
+  useEffect(() => {
+    async function loadPersonData() {
+      try {
+        const res = await fetch(`/api/public/faculty/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setPerson(data);
+        } else {
+          // Fallback to static data
+          const fStatic = FACULTY_MEMBERS.find((f) => f.id === id);
+          const sStatic = SCHOLARS.find((s) => s.id === id);
+          const pStatic = fStatic || sStatic;
+
+          if (pStatic) {
+            setPerson(pStatic);
+          } else {
+            setNotFoundState(true);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load profile details:', err);
+        const fStatic = FACULTY_MEMBERS.find((f) => f.id === id);
+        const sStatic = SCHOLARS.find((s) => s.id === id);
+        const pStatic = fStatic || sStatic;
+
+        if (pStatic) {
+          setPerson(pStatic);
+        } else {
+          setNotFoundState(true);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadPersonData();
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-3 font-sans">
+        <div className="w-10 h-10 border-3 border-oxford border-t-transparent rounded-full animate-spin" />
+        <span className="text-sm font-medium text-slate-500">Loading Profile Details...</span>
+      </div>
+    );
+  }
+
+  if (notFoundState || !person) {
+    return (
+      <div className="max-w-4xl mx-auto py-20 px-6 text-center space-y-4 font-sans">
+        <h2 className="text-2xl font-bold text-oxford">Faculty Member Not Found</h2>
+        <p className="text-slate-500 text-sm">The requested faculty profile could not be found.</p>
+        <Link href="/people" className="inline-block px-4 py-2 bg-oxford text-white font-semibold text-xs rounded shadow">
+          Back to Faculty Directory
+        </Link>
+      </div>
+    );
   }
 
   const isFaculty = person.type === 'faculty';
-
-  // Get supervised scholars if faculty
-  const supervisedScholars = isFaculty
-    ? SCHOLARS.filter((s) => s.supervisor === person.name)
-    : [];
-
-  // Tab State
-  const [activeTab, setActiveTab] = useState<'bio' | 'publications' | 'scholars' | 'research'>('bio');
+  const supervisedScholars = isFaculty ? person.students || [] : [];
 
   return (
-    <div className="pb-20 relative">
-
-      {/* Top Banner (Campus Image Background with Oxford Blue Overlay) */}
+    <div className="pb-20 relative font-sans">
+      {/* Top Banner */}
       <div className="-mt-[116px] sm:-mt-[128px] relative bg-slate-900 text-white overflow-hidden">
-        {/* Background Image with Dark Blue Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/faculty.png"
@@ -51,17 +256,15 @@ export default function ProfilePage({ params }: PageProps) {
           <div className="absolute inset-0 bg-oxford/75 mix-blend-multiply" />
         </div>
 
-        {/* Content (Centered) */}
         <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 pt-36 pb-16 sm:pb-20 text-center space-y-3">
-          <h2 className="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300 font-sans">
+          <h2 className="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300">
             {isFaculty ? 'Our Faculty' : 'Our Research Scholars'}
           </h2>
           <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mt-2 text-white uppercase">
             {isFaculty ? 'OUR FACULTY' : 'OUR SCHOLARS'}
           </h1>
-          
-          {/* Centered Breadcrumbs */}
-          <div className="flex items-center justify-center space-x-2 text-xs sm:text-sm font-sans font-medium text-slate-300">
+
+          <div className="flex items-center justify-center space-x-2 text-xs sm:text-sm font-medium text-slate-300">
             <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
             <span>&gt;</span>
             <Link href="/people" className="hover:text-cyan-accent transition-colors">Faculty</Link>
@@ -72,39 +275,37 @@ export default function ProfilePage({ params }: PageProps) {
       </div>
 
       <div className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 py-10 space-y-12">
-        
-        {/* Top Details Block: Left Photo, Right Text (Flat, borderless) */}
+        {/* Top Details Block */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-          
-          {/* Left Column: Photo (large, rectangular, sharp, no border) */}
+          {/* Photo */}
           <div className="shrink-0">
-            <div className="relative w-full aspect-[4/3] bg-slate-50 overflow-hidden border border-slate-100">
+            <div className="relative w-full aspect-[4/3] bg-slate-50 overflow-hidden border border-slate-200 rounded-lg shadow-sm">
               <img
-                src={person.image}
+                src={person.image || '/faculty.png'}
                 alt={person.name}
                 className="w-full h-full object-cover"
               />
             </div>
           </div>
 
-          {/* Right Column: Left-aligned details block */}
-          <div className="flex flex-col justify-center font-sans space-y-4 text-left">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-oxford">
+          {/* Details Column */}
+          <div className="flex flex-col justify-center space-y-4 text-left">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-oxford font-serif">
               {person.name}
             </h1>
             <p className="text-base sm:text-lg text-slate-600 font-semibold tracking-wide">
-              {isFaculty ? (person as FacultyMember).designation : 'Ph.D. Research Scholar'}
+              {isFaculty ? (person.designation || 'Faculty Member') : 'Ph.D. Research Scholar'}
             </p>
 
             <div className="h-px bg-slate-200 w-full my-2" />
 
             <div className="space-y-2.5 text-sm sm:text-base text-slate-700">
-              {isFaculty && (person as FacultyMember).qualification && (
+              {isFaculty && (
                 <p>
-                  <strong className="text-oxford font-bold">Qualification:</strong> {(person as FacultyMember).qualification}
+                  <strong className="text-oxford font-bold">Department:</strong> {person.department || 'Department of Physics, CUSAT'}
                 </p>
               )}
-              
+
               <p>
                 <strong className="text-oxford font-bold">Email:</strong>{' '}
                 <a href={`mailto:${person.email}`} className="text-cyan-dark hover:text-cyan-accent underline font-semibold">
@@ -112,91 +313,113 @@ export default function ProfilePage({ params }: PageProps) {
                 </a>
               </p>
 
-              {isFaculty && (person as FacultyMember).phone && (
+              {isFaculty && person.phone && (
                 <p>
-                  <strong className="text-oxford font-bold">Phone:</strong> {(person as FacultyMember).phone}
+                  <strong className="text-oxford font-bold">Phone:</strong> {person.phone}
                 </p>
               )}
 
-              {isFaculty && (person as FacultyMember).room && (
+              {!isFaculty && person.supervisor && (
                 <p>
-                  <strong className="text-oxford font-bold">Office Room:</strong> {(person as FacultyMember).room}
+                  <strong className="text-oxford font-bold">Supervisor:</strong> {person.supervisor}
                 </p>
               )}
 
-              {!isFaculty && (
-                <p>
-                  <strong className="text-oxford font-bold">Supervisor:</strong> {(person as Scholar).supervisor}
-                </p>
-              )}
-
-              {isFaculty && (person as FacultyMember).cvUrl && (
+              {isFaculty && person.cvUrl && (
                 <p className="pt-2">
-                  <strong className="text-oxford font-bold">CV:</strong>{' '}
+                  <strong className="text-oxford font-bold">Curriculum Vitae:</strong>{' '}
                   <a
-                    href={(person as FacultyMember).cvUrl}
-                    download={`CV_${person.name.replace(/\s+/g, '_')}.pdf`}
-                    className="inline-flex items-center space-x-1.5 text-cyan-dark hover:text-cyan-accent underline font-bold"
+                    href={person.cvUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-cyan-dark hover:text-cyan-accent underline font-bold"
                   >
+                    <Download className="w-4 h-4" />
                     <span>Download CV (PDF)</span>
                   </a>
                 </p>
               )}
             </div>
 
-            {/* Social / Research Profile Badges */}
-            {isFaculty && (person as FacultyMember).socialLinks && (
+            {/* Social & Academic Profile Badges */}
+            {isFaculty && (person.socialLinks || person.customProfiles) && (
               <div className="pt-4 flex flex-wrap gap-2">
-                {(person as FacultyMember).socialLinks?.scholar && (
+                {person.socialLinks?.scholar && (
                   <a
-                    href={(person as FacultyMember).socialLinks?.scholar}
+                    href={person.socialLinks.scholar}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center bg-slate-50 hover:bg-cyan-accent/10 text-slate-600 hover:text-cyan-dark text-xs font-semibold px-3 py-1.5 rounded border border-slate-200 transition-colors"
+                    className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-semibold px-3 py-1.5 rounded border border-blue-200 transition-colors"
                   >
                     <span>Google Scholar</span>
+                    <ExternalLink className="w-3 h-3 opacity-70" />
                   </a>
                 )}
-                {(person as FacultyMember).socialLinks?.researchgate && (
+                {person.socialLinks?.scopus && (
                   <a
-                    href={(person as FacultyMember).socialLinks?.researchgate}
+                    href={person.socialLinks.scopus}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center bg-slate-50 hover:bg-cyan-accent/10 text-slate-600 hover:text-cyan-dark text-xs font-semibold px-3 py-1.5 rounded border border-slate-200 transition-colors"
+                    className="inline-flex items-center gap-1 bg-orange-50 text-orange-700 hover:bg-orange-100 text-xs font-semibold px-3 py-1.5 rounded border border-orange-200 transition-colors"
                   >
-                    <span>ResearchGate</span>
+                    <span>Scopus</span>
+                    <ExternalLink className="w-3 h-3 opacity-70" />
                   </a>
                 )}
-                {(person as FacultyMember).socialLinks?.orcid && (
+                {person.socialLinks?.orcid && (
                   <a
-                    href={(person as FacultyMember).socialLinks?.orcid}
+                    href={person.socialLinks.orcid}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center bg-slate-50 hover:bg-cyan-accent/10 text-slate-600 hover:text-cyan-dark text-xs font-semibold px-3 py-1.5 rounded border border-slate-200 transition-colors"
+                    className="inline-flex items-center gap-1 bg-lime-50 text-lime-700 hover:bg-lime-100 text-xs font-semibold px-3 py-1.5 rounded border border-lime-200 transition-colors"
                   >
                     <span>ORCID iD</span>
+                    <ExternalLink className="w-3 h-3 opacity-70" />
                   </a>
                 )}
-                {(person as FacultyMember).socialLinks?.linkedin && (
+                {person.socialLinks?.linkedin && (
                   <a
-                    href={(person as FacultyMember).socialLinks?.linkedin}
+                    href={person.socialLinks.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center bg-slate-50 hover:bg-cyan-accent/10 text-slate-600 hover:text-cyan-dark text-xs font-semibold px-3 py-1.5 rounded border border-slate-200 transition-colors"
+                    className="inline-flex items-center gap-1 bg-sky-50 text-sky-700 hover:bg-sky-100 text-xs font-semibold px-3 py-1.5 rounded border border-sky-200 transition-colors"
                   >
                     <span>LinkedIn</span>
+                    <ExternalLink className="w-3 h-3 opacity-70" />
                   </a>
                 )}
+                {person.socialLinks?.website && (
+                  <a
+                    href={person.socialLinks.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 bg-cyan-50 text-cyan-800 hover:bg-cyan-100 text-xs font-semibold px-3 py-1.5 rounded border border-cyan-200 transition-colors"
+                  >
+                    <span>Personal Website</span>
+                    <ExternalLink className="w-3 h-3 opacity-70" />
+                  </a>
+                )}
+                {Array.isArray(person.customProfiles) &&
+                  person.customProfiles.map((cp: any, idx: number) => (
+                    <a
+                      key={idx}
+                      href={cp.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-semibold px-3 py-1.5 rounded border border-purple-200 transition-colors"
+                    >
+                      <span>{cp.name}</span>
+                      <ExternalLink className="w-3 h-3 opacity-70" />
+                    </a>
+                  ))}
               </div>
             )}
           </div>
         </div>
 
-        {/* Tabbed Navigation Component (Flat, borderless) */}
-        <div className="font-sans">
-          
-          {/* Tabs Bar Header */}
-          <div className="flex border-b border-slate-200 bg-transparent justify-start">
+        {/* Tabbed Navigation Component */}
+        <div>
+          <div className="flex border-b border-slate-200 justify-start">
             <button
               onClick={() => setActiveTab('bio')}
               className={`px-6 py-4 font-bold text-sm border-b-2 transition-all cursor-pointer ${
@@ -208,189 +431,66 @@ export default function ProfilePage({ params }: PageProps) {
               Biography
             </button>
 
-            {isFaculty ? (
-              <>
-                <button
-                  onClick={() => setActiveTab('publications')}
-                  className={`px-6 py-4 font-bold text-sm border-b-2 transition-all cursor-pointer ${
-                    activeTab === 'publications'
-                      ? 'border-oxford text-oxford'
-                      : 'border-transparent text-slate-500 hover:text-oxford'
-                  }`}
-                >
-                  Publications
-                </button>
-                <button
-                  onClick={() => setActiveTab('scholars')}
-                  className={`px-6 py-4 font-bold text-sm border-b-2 transition-all cursor-pointer ${
-                    activeTab === 'scholars'
-                      ? 'border-oxford text-oxford'
-                      : 'border-transparent text-slate-500 hover:text-oxford'
-                  }`}
-                >
-                  Supervised Scholars ({supervisedScholars.length})
-                </button>
-              </>
-            ) : (
+            {isFaculty && (
               <button
-                onClick={() => setActiveTab('research')}
+                onClick={() => setActiveTab('scholars')}
                 className={`px-6 py-4 font-bold text-sm border-b-2 transition-all cursor-pointer ${
-                  activeTab === 'research'
+                  activeTab === 'scholars'
                     ? 'border-oxford text-oxford'
                     : 'border-transparent text-slate-500 hover:text-oxford'
                 }`}
               >
-                Research Details
+                Guided Scholars ({supervisedScholars.length})
               </button>
             )}
           </div>
 
-          {/* Active Tab Panel Content */}
           <div className="py-8 min-h-[220px]">
-            
             {/* Biography Tab */}
             {activeTab === 'bio' && (
-              <div className="space-y-6 text-left">
-                <div className="space-y-3">
-                  <h3 className="text-lg font-bold text-oxford font-serif">Biography & Academic Background</h3>
-                  <p className="text-slate-600 leading-relaxed text-justify text-sm sm:text-base">
-                    {isFaculty ? (person as FacultyMember).bio : `PhD Research Scholar in the Physics Department. Research focuses on advanced academic discovery.`}
-                  </p>
-                </div>
-                
-                {isFaculty && (
-                  <div className="space-y-3 pt-2">
-                    <h4 className="text-xs font-bold text-oxford uppercase tracking-wider">Key Research Areas</h4>
-                    <div className="flex flex-wrap gap-2.5">
-                      {(person as FacultyMember).researchFocus.map((focus, i) => (
-                        <span
-                          key={i}
-                          className="bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl border border-slate-200"
-                        >
-                          {focus}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Publications Tab (Faculty) */}
-            {activeTab === 'publications' && isFaculty && (
-              <div className="space-y-6 text-left">
-                <h3 className="text-lg font-bold text-oxford font-serif">Publications & Citations</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Stats Block (Flat) */}
-                  <div className="flex items-center justify-between py-6 border-b border-t border-slate-200">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 rounded-full bg-cyan-accent/10 flex items-center justify-center text-cyan-dark shrink-0">
-                        <BookOpen className="w-6 h-6" />
-                      </div>
-                      <div>
-                        <span className="block font-bold text-oxford text-base sm:text-lg">
-                          {(person as FacultyMember).publicationsCount} Publications
-                        </span>
-                        <span className="text-xs text-slate-500 font-medium">
-                          Peer-reviewed international journals
-                        </span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="block font-bold text-cyan-dark text-2xl sm:text-3xl leading-none">
-                        {(person as FacultyMember).citations}
-                      </span>
-                      <span className="text-[10px] text-slate-400 uppercase font-bold tracking-wider font-sans">
-                        Citations
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Context Block (Flat) */}
-                  <div className="flex flex-col justify-center py-2">
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                      Research works are published across reputed high-impact index journals including Physical Review, Nature Physics, Applied Physics Letters, and others.
-                    </p>
-                  </div>
+              <div className="space-y-4 text-left">
+                <h3 className="text-lg font-bold text-oxford font-serif">Biography & Academic Background</h3>
+                <div className="prose max-w-none text-slate-700">
+                  {renderMarkdown(person.bio)}
                 </div>
               </div>
             )}
 
-            {/* Supervised Scholars Tab (Faculty) */}
+            {/* Supervised Scholars Tab */}
             {activeTab === 'scholars' && isFaculty && (
               <div className="space-y-6 text-left">
-                <h3 className="text-lg font-bold text-oxford font-serif">Supervised Ph.D. Research Scholars</h3>
-                
+                <h3 className="text-lg font-bold text-oxford font-serif">Guided Students & Ph.D. Scholars</h3>
+
                 {supervisedScholars.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {supervisedScholars.map((sch) => (
-                      <Link key={sch.id} href={`/people/${sch.id}`} className="block hover:translate-x-1 transition-transform">
-                        <div className="flex items-start space-x-4 py-4 border-b border-slate-200">
-                          <div className="w-12 h-12 rounded overflow-hidden shrink-0 border border-slate-200 bg-slate-100 relative">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {supervisedScholars.map((sch: any) => (
+                      <div key={sch.id} className="flex items-start space-x-4 p-4 border border-slate-200 rounded-xl bg-slate-50">
+                        <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-white relative">
+                          {sch.image ? (
                             <img src={sch.image} alt={sch.name} className="w-full h-full object-cover" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <span className="block text-sm font-bold text-oxford truncate">{sch.name}</span>
-                            <span className="block text-[11px] text-slate-500 italic mt-0.5 line-clamp-2">Topic: {sch.topic}</span>
-                            <div className="flex items-center space-x-4 mt-2 text-[10px] text-slate-400 font-semibold uppercase tracking-wider font-sans">
-                              <span>{sch.fellowship}</span>
-                              <span>•</span>
-                              <span>Joined {sch.joiningYear}</span>
-                            </div>
-                          </div>
+                          ) : (
+                            <User className="w-8 h-8 m-auto text-slate-400 mt-3" />
+                          )}
                         </div>
-                      </Link>
+                        <div className="flex-1 min-w-0">
+                          <span className="block text-sm font-bold text-oxford">{sch.name}</span>
+                          {sch.description && (
+                            <p className="text-xs text-slate-600 mt-1 leading-relaxed line-clamp-3">
+                              {sch.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-400 italic">No Ph.D. scholars currently under supervision.</p>
+                  <p className="text-sm text-slate-400 italic">No guided students or Ph.D. scholars currently listed.</p>
                 )}
               </div>
             )}
-
-            {/* Research Details Tab (Scholars) */}
-            {activeTab === 'research' && !isFaculty && (
-              <div className="space-y-6 text-left">
-                <h3 className="text-lg font-bold text-oxford font-serif">PhD Dissertation Details</h3>
-                
-                <div className="space-y-6">
-                  <div className="py-2 border-b border-slate-200 pb-4">
-                    <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider font-sans mb-1">
-                      Research Topic
-                    </span>
-                    <p className="text-sm sm:text-base text-slate-700 italic leading-relaxed font-semibold">
-                      "{(person as Scholar).topic}"
-                    </p>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 py-2">
-                    <div>
-                      <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider font-sans">
-                        Fellowship Scheme
-                      </span>
-                      <span className="block text-sm sm:text-base font-bold text-oxford mt-1">
-                        {(person as Scholar).fellowship}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider font-sans">
-                        Joining Year
-                      </span>
-                      <span className="block text-sm sm:text-base font-bold text-oxford mt-1">
-                        {(person as Scholar).joiningYear}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-
           </div>
         </div>
-
       </div>
-
     </div>
   );
 }
