@@ -137,30 +137,72 @@ export default function HomePage() {
                   News
                 </h3>
                 
-                {/* News Card */}
-                <div className="bg-white border border-slate-200/85 rounded-2xl shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300">
-                  <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
-                    {/* Date Badge */}
-                    <div className="absolute top-4 left-4 z-10 bg-cyan-accent text-white font-sans font-bold text-xs px-3.5 py-2 rounded-lg flex flex-col items-center justify-center text-center shadow-md">
-                      <span className="text-base leading-none">16</span>
-                      <span className="text-[10px] uppercase tracking-wider leading-none mt-0.5">Jul</span>
-                      <span className="text-[9px] font-medium leading-none mt-0.5">2026</span>
+                {/* News Cards Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* News Card 1 */}
+                  <div className="bg-white border border-slate-200/85 rounded-2xl shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                      <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
+                        {/* Date Badge */}
+                        <div className="absolute top-3 left-3 z-10 bg-cyan-accent text-white font-sans font-bold text-[10px] px-2.5 py-1.5 rounded-lg flex flex-col items-center justify-center text-center shadow-md">
+                          <span className="text-sm leading-none font-bold">16</span>
+                          <span className="text-[9px] uppercase tracking-wider leading-none mt-0.5">Jul</span>
+                        </div>
+                        
+                        <img
+                          src="/cusat-building.png"
+                          alt="CUSAT Department of Physics"
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                        />
+                      </div>
+                      
+                      <div className="p-5 space-y-2">
+                        <h4 className="font-sans text-sm sm:text-base font-bold text-oxford leading-snug group-hover:text-cyan-accent transition-colors line-clamp-2">
+                          Department of Physics to Co-Develop Advanced Astro-payloads with National Space Agencies
+                        </h4>
+                        <p className="text-slate-600 text-xs sm:text-sm leading-relaxed line-clamp-3">
+                          A pioneering agreement has been reached to design and build lightweight cosmic-ray detectors and semiconductor payloads. The project will run out of our thin film and electronics laboratories.
+                        </p>
+                      </div>
                     </div>
-                    
-                    <img
-                      src="/cusat-building.png"
-                      alt="CUSAT Department of Physics"
-                      className="w-full h-full object-cover transition-transform duration-75 group-hover:scale-[1.02]"
-                    />
+                    <div className="px-5 pb-5">
+                      <Link href="/news" className="text-xs font-bold text-cyan-accent group-hover:text-cyan-dark uppercase tracking-wider inline-flex items-center gap-0.5">
+                        Read Article &rarr;
+                      </Link>
+                    </div>
                   </div>
-                  
-                  <div className="p-6 space-y-3">
-                    <h4 className="font-sans text-lg sm:text-xl font-bold text-oxford leading-snug group-hover:text-cyan-accent transition-colors">
-                      Department of Physics to Co-Develop Advanced Astro-payloads with National Space Agencies
-                    </h4>
-                    <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
-                      A pioneering agreement has been reached to design and build lightweight cosmic-ray detectors and semiconductor payloads. The project will run out of our thin film and electronics laboratories, providing doctoral students and M.Sc. researchers with hands-on development experience.
-                    </p>
+
+                  {/* News Card 2 */}
+                  <div className="bg-white border border-slate-200/85 rounded-2xl shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                      <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
+                        {/* Date Badge */}
+                        <div className="absolute top-3 left-3 z-10 bg-cyan-accent text-white font-sans font-bold text-[10px] px-2.5 py-1.5 rounded-lg flex flex-col items-center justify-center text-center shadow-md">
+                          <span className="text-sm leading-none font-bold">12</span>
+                          <span className="text-[9px] uppercase tracking-wider leading-none mt-0.5">Jul</span>
+                        </div>
+                        
+                        <img
+                          src="/eventssss.jpg"
+                          alt="Incoming Batch orientation foyer"
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                        />
+                      </div>
+                      
+                      <div className="p-5 space-y-2">
+                        <h4 className="font-sans text-sm sm:text-base font-bold text-oxford leading-snug group-hover:text-cyan-accent transition-colors line-clamp-2">
+                          Department of Physics Welcomes Incoming 2026 Batch of Postgraduates &amp; Scholars
+                        </h4>
+                        <p className="text-slate-600 text-xs sm:text-sm leading-relaxed line-clamp-3">
+                          An orientation ceremony was held at the department foyer to welcome the incoming batch of M.Sc., Integrated M.Sc., and Ph.D. scholars, showcasing the heritage and advanced lab facilities.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="px-5 pb-5">
+                      <Link href="/news" className="text-xs font-bold text-cyan-accent group-hover:text-cyan-dark uppercase tracking-wider inline-flex items-center gap-0.5">
+                        Read Article &rarr;
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
