@@ -1,3 +1,5 @@
+'use client';
+
 import { Course } from '@/lib/data';
 import { Clock, Users, CreditCard } from 'lucide-react';
 
@@ -5,7 +7,24 @@ interface CourseCardProps {
   course: Course;
 }
 
+const COURSE_SCHEMES: Record<string, { year: string; scheme: string; pdfUrl: string }[]> = {
+  c1: [
+    { year: 'First Year (Semesters 1 & 2)', scheme: '2024 CBCS Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
+    { year: 'Second Year (Semesters 3 & 4)', scheme: '2024 CBCS Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' }
+  ],
+  c2: [
+    { year: 'Year 1 (Coursework)', scheme: '2024 PhD Regulations', pdfUrl: '/cvs/cv_placeholder.pdf' },
+    { year: 'Years 2 - 5 (Research)', scheme: '2024 PhD Regulations', pdfUrl: '/cvs/cv_placeholder.pdf' }
+  ],
+  c3: [
+    { year: 'Years 1 & 2 (Foundational)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
+    { year: 'Year 3 (B.Sc. Honours Exit Option)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
+    { year: 'Years 4 & 5 (M.Sc. Advanced)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' }
+  ]
+};
+
 export default function CourseCard({ course }: CourseCardProps) {
+  const schemes = COURSE_SCHEMES[course.id] || [];
   // Format title (e.g., "MSc in Physics")
   const cleanTitle = course.level === 'MSc' 
     ? 'MSc in Physics' 
@@ -14,7 +33,7 @@ export default function CourseCard({ course }: CourseCardProps) {
       : 'Integrated MSc in Physics';
 
   return (
-    <div id={course.id} className="scroll-mt-36 max-w-5xl mx-auto space-y-10 font-sans py-6">
+    <div id={course.id} className="scroll-mt-36 max-w-5xl mx-auto space-y-8 font-sans py-6">
       
       {/* Course Title & Quick Facts Bar */}
       <div className="space-y-4">
@@ -22,7 +41,7 @@ export default function CourseCard({ course }: CourseCardProps) {
           {cleanTitle}
         </h1>
         
-        {/* Quick Facts Bar (Flat, borderless but grouped) */}
+        {/* Quick Facts Bar */}
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-slate-600">
           <div className="flex items-center space-x-1.5">
             <Clock className="w-4.5 h-4.5 text-cyan-accent" />
@@ -39,74 +58,57 @@ export default function CourseCard({ course }: CourseCardProps) {
         </div>
       </div>
 
-      {/* Section 1: Introduction Description */}
-      <div className="space-y-3">
-        <p className="text-slate-700 text-base sm:text-lg lg:text-xl leading-relaxed text-justify font-sans">
-          {course.description}
-        </p>
-      </div>
-
-      {/* Section 2: Eligibility */}
-      <div className="space-y-3">
-        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-oxford border-b border-slate-100 pb-2">
-          Eligibility Criteria
-        </h2>
-        <p className="text-slate-700 text-base sm:text-lg leading-relaxed text-justify font-sans font-normal font-sans">
-          {course.eligibility}
-        </p>
-      </div>
-
-      {/* Section 3: Highlights */}
+      {/* Prominent & Enlarged Curriculum Scheme Table */}
       <div className="space-y-4">
-        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-oxford border-b border-slate-100 pb-2">
-          Program Highlights
-        </h2>
-        <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-slate-700 text-base">
-          {course.highlights.map((highlight, index) => (
-            <li key={index} className="flex items-start space-x-2.5">
-              <span className="text-cyan-accent text-lg shrink-0 mt-0.5">✦</span>
-              <span>{highlight}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* Section 4: Curriculum / Syllabus Structure */}
-      <div className="space-y-4">
-        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-oxford border-b border-slate-100 pb-2">
-          Curriculum Overview
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {course.syllabus.map((sem, index) => (
-            <div key={index} className="bg-slate-50/60 p-4 rounded-xl border border-slate-100 space-y-2">
-              <span className="font-bold text-oxford text-sm uppercase tracking-wider block border-b border-slate-200 pb-1.5">
-                {sem.semester}
-              </span>
-              <ul className="space-y-1.5 text-slate-600 text-xs sm:text-sm">
-                {sem.subjects.map((sub, subIndex) => (
-                  <li key={subIndex} className="flex items-center space-x-1.5">
-                    <span className="text-slate-450 shrink-0">•</span>
-                    <span>{sub}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        <div className="space-y-1">
+          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-oxford border-b border-slate-100 pb-2">
+            Curriculum Scheme & Regulation
+          </h2>
+          <p className="text-slate-600 text-base leading-relaxed font-sans pt-1">
+            Click on any row or action button to view/download the official syllabus curriculum PDF.
+          </p>
         </div>
-      </div>
-
-      {/* Section 5: Application Procedure */}
-      <div className="space-y-3">
-        <h2 className="font-serif text-2xl sm:text-3xl font-bold text-oxford border-b border-slate-100 pb-2">
-          Application Procedure
-        </h2>
-        <p className="text-slate-700 text-base sm:text-lg leading-relaxed text-justify font-sans font-normal">
-          {course.level === 'PhD' ? (
-            "Applications are to be made in the prescribed application form in response to the notification for Ph.D. admissions. Admission is based on the candidate's performance in GATE / CSIR-UGC NET-JRF or the Departmental Admission Test (DAT) followed by a technical interview before the Departmental Research Committee (DRC)."
-          ) : (
-            "Applications are to be made in the prescribed application form and in response to a notification for Common Admission Test (CAT) issued by the Cochin University of Science and Technology. Selection will be based on the merit of the applicants as determined through an admission test conducted for Physics subject to satisfying other prescribed eligibility criteria."
-          )}
-        </p>
+        
+        <div className="overflow-hidden border border-slate-200/90 rounded-2xl shadow-md bg-white">
+          <table className="min-w-full divide-y divide-slate-200 text-left font-sans text-base">
+            <thead className="bg-slate-50 text-oxford font-bold uppercase tracking-wider text-xs sm:text-sm">
+              <tr>
+                <th scope="col" className="px-8 py-5">Year / Level</th>
+                <th scope="col" className="px-8 py-5">Curriculum Scheme</th>
+                <th scope="col" className="px-8 py-5 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {schemes.map((item, idx) => (
+                <tr 
+                  key={idx} 
+                  onClick={() => window.open(item.pdfUrl, '_blank')}
+                  className="hover:bg-cyan-50/40 cursor-pointer transition-colors duration-150 group"
+                >
+                  <td className="px-8 py-6 text-slate-800 font-bold text-base sm:text-lg">
+                    {item.year}
+                  </td>
+                  <td className="px-8 py-6 text-slate-600">
+                    <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs sm:text-sm font-bold bg-sky-50 text-sky-850 border border-sky-200">
+                      {item.scheme}
+                    </span>
+                  </td>
+                  <td className="px-8 py-6 text-right">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.open(item.pdfUrl, '_blank');
+                      }}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 group-hover:bg-cyan-accent group-hover:text-white text-slate-800 transition-all duration-200 cursor-pointer shadow-sm"
+                    >
+                      Open PDF
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
     </div>

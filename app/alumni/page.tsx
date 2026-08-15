@@ -59,27 +59,27 @@ export default function AlumniPage() {
             
             <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 text-base font-semibold text-slate-100">
               <li className="flex items-center space-x-2">
-                <span className="text-cyan-accent">✦</span>
+                <span className="text-cyan-accent">•</span>
                 <span>Max Planck Institutes, Germany</span>
               </li>
               <li className="flex items-center space-x-2">
-                <span className="text-cyan-accent">✦</span>
+                <span className="text-cyan-accent">•</span>
                 <span>Indian Institute of Science (IISc), Bangalore</span>
               </li>
               <li className="flex items-center space-x-2">
-                <span className="text-cyan-accent">✦</span>
+                <span className="text-cyan-accent">•</span>
                 <span>Indian Institutes of Technology (IITs)</span>
               </li>
               <li className="flex items-center space-x-2">
-                <span className="text-cyan-accent">✦</span>
+                <span className="text-cyan-accent">•</span>
                 <span>CERN, Switzerland</span>
               </li>
               <li className="flex items-center space-x-2">
-                <span className="text-cyan-accent">✦</span>
+                <span className="text-cyan-accent">•</span>
                 <span>Raman Research Institute (RRI), Bangalore</span>
               </li>
               <li className="flex items-center space-x-2">
-                <span className="text-cyan-accent">✦</span>
+                <span className="text-cyan-accent">•</span>
                 <span>TIFR, Mumbai</span>
               </li>
             </ul>

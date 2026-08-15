@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -33,7 +33,7 @@ model ResearchLab {
   name        String
   lead        String
   description String
-  equipment   String[]
+  equipment   String   @default("")
   image       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -73,7 +73,7 @@ model FacultyProfile {
   facultyId String   @unique
   faculty   Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   phone     String?
-  profiles  Json     @default("{}")
+  profiles  Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -92,7 +92,7 @@ model FacultyDescription {
   uid         String   @id @default(uuid())
   facultyId   String   @unique
   faculty     Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
-  description String   @db.Text
+  description String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -102,7 +102,7 @@ model FacultyStudent {
   facultyId   String
   faculty     Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   name        String
-  description String?  @db.Text
+  description String?
   image       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
