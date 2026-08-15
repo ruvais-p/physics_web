@@ -13,7 +13,7 @@ interface PageProps {
 // Markdown Parser Helper for Public Profile Biography
 function renderMarkdown(md: string) {
   if (!md || !md.trim()) {
-    return <p className="text-slate-600 leading-relaxed text-sm">Faculty member in the Department of Physics.</p>;
+    return <p className="text-slate-600 leading-relaxed text-base">Faculty member in the Department of Physics.</p>;
   }
 
   const lines = md.split('\n');
@@ -24,7 +24,7 @@ function renderMarkdown(md: string) {
     if (currentList) {
       if (currentList.type === 'ul') {
         elements.push(
-          <ul key={`ul_${elements.length}`} className="list-disc ml-5 space-y-1.5 my-2 text-sm text-slate-700 font-sans">
+          <ul key={`ul_${elements.length}`} className="list-disc ml-5 space-y-1.5 my-2 text-base text-slate-700 font-sans">
             {currentList.items.map((item, idx) => (
               <li key={idx}>{parseInlineMarkdown(item)}</li>
             ))}
@@ -32,7 +32,7 @@ function renderMarkdown(md: string) {
         );
       } else {
         elements.push(
-          <ol key={`ol_${elements.length}`} className="list-decimal ml-5 space-y-1.5 my-2 text-sm text-slate-700 font-sans">
+          <ol key={`ol_${elements.length}`} className="list-decimal ml-5 space-y-1.5 my-2 text-base text-slate-700 font-sans">
             {currentList.items.map((item, idx) => (
               <li key={idx}>{parseInlineMarkdown(item)}</li>
             ))}
@@ -77,31 +77,31 @@ function renderMarkdown(md: string) {
 
     if (trimmed.startsWith('# ')) {
       elements.push(
-        <h2 key={index} className="text-xl font-bold font-serif text-oxford mt-4 mb-2 border-b border-slate-200 pb-1">
+        <h2 key={index} className="text-2xl font-bold font-serif text-oxford mt-4 mb-2 border-b border-slate-200 pb-1">
           {parseInlineMarkdown(trimmed.slice(2))}
         </h2>
       );
     } else if (trimmed.startsWith('## ')) {
       elements.push(
-        <h3 key={index} className="text-lg font-bold font-serif text-cyan-dark mt-3 mb-1.5">
+        <h3 key={index} className="text-xl font-bold font-serif text-cyan-dark mt-3 mb-1.5">
           {parseInlineMarkdown(trimmed.slice(3))}
         </h3>
       );
     } else if (trimmed.startsWith('### ')) {
       elements.push(
-        <h4 key={index} className="text-sm font-semibold uppercase tracking-wider text-slate-800 mt-2.5 mb-1 font-sans">
+        <h4 key={index} className="text-base font-semibold uppercase tracking-wider text-slate-800 mt-2.5 mb-1 font-sans">
           {parseInlineMarkdown(trimmed.slice(4))}
         </h4>
       );
     } else if (trimmed.startsWith('> ')) {
       elements.push(
-        <blockquote key={index} className="border-l-3 border-oxford pl-3 py-1.5 text-slate-600 italic text-sm my-2 bg-slate-50 rounded-r">
+        <blockquote key={index} className="border-l-3 border-oxford pl-3 py-1.5 text-slate-600 italic text-base my-2 bg-slate-50 rounded-r">
           {parseInlineMarkdown(trimmed.slice(2))}
         </blockquote>
       );
     } else {
       elements.push(
-        <p key={index} className="text-sm text-slate-700 leading-relaxed my-1 font-sans">
+        <p key={index} className="text-base text-slate-700 leading-relaxed my-1 font-sans">
           {parseInlineMarkdown(trimmed)}
         </p>
       );
@@ -123,9 +123,9 @@ function parseInlineMarkdown(text: string): React.ReactNode {
       const [, before, label, url, after] = linkMatch;
       if (before) parts.push(parseFormatting(before, keyIdx++));
       parts.push(
-        <a key={keyIdx++} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-dark hover:underline font-medium inline-flex items-center gap-0.5">
+        <a key={keyIdx++} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-dark hover:underline font-medium inline-flex items-center gap-0.5 text-base">
           <span>{label}</span>
-          <ExternalLink className="w-3 h-3 opacity-70" />
+          <ExternalLink className="w-3.5 h-3.5 opacity-70" />
         </a>
       );
       remaining = after;
@@ -155,7 +155,7 @@ function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
     } else if (match[3]) {
       elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-800">{match[4]}</em>);
     } else if (match[5]) {
-      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-100 text-oxford px-1.5 py-0.5 rounded font-mono text-[11px]">{match[6]}</code>);
+      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-100 text-oxford px-1.5 py-0.5 rounded font-mono text-[13px]">{match[6]}</code>);
     }
 
     lastIndex = regex.lastIndex;
@@ -256,15 +256,17 @@ export default function ProfilePage({ params }: PageProps) {
           <div className="absolute inset-0 bg-oxford/75 mix-blend-multiply" />
         </div>
 
-        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 pt-36 pb-16 sm:pb-20 text-center space-y-3">
-          <h2 className="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-300">
+        {/* Content (Centered) */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 pt-36 pb-16 sm:pb-20 text-center space-y-3">
+          <h2 className="text-sm sm:text-base font-bold uppercase tracking-widest text-slate-300 font-sans">
             {isFaculty ? 'Our Faculty' : 'Our Research Scholars'}
           </h2>
-          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight mt-2 text-white uppercase">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight mt-2 text-white uppercase">
             {isFaculty ? 'OUR FACULTY' : 'OUR SCHOLARS'}
           </h1>
-
-          <div className="flex items-center justify-center space-x-2 text-xs sm:text-sm font-medium text-slate-300">
+          
+          {/* Centered Breadcrumbs */}
+          <div className="flex items-center justify-center space-x-2 text-sm sm:text-base font-sans font-medium text-slate-300">
             <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
             <span>&gt;</span>
             <Link href="/people" className="hover:text-cyan-accent transition-colors">Faculty</Link>
@@ -274,12 +276,14 @@ export default function ProfilePage({ params }: PageProps) {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 py-10 space-y-12">
-        {/* Top Details Block */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
-          {/* Photo */}
-          <div className="shrink-0">
-            <div className="relative w-full aspect-[4/3] bg-slate-50 overflow-hidden border border-slate-200 rounded-lg shadow-sm">
+      <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 py-10 space-y-12">
+        
+        {/* Top Details Block: Left Photo, Right Text (Flat, borderless) */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-center">
+          
+          {/* Left Column: Photo (large, rectangular, sharp, no border) */}
+          <div className="md:col-span-7 shrink-0 md:-ml-8">
+            <div className="relative w-full aspect-[4/3] bg-slate-50 overflow-hidden border border-slate-100">
               <img
                 src={person.image || '/faculty.png'}
                 alt={person.name}
@@ -288,21 +292,27 @@ export default function ProfilePage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Details Column */}
-          <div className="flex flex-col justify-center space-y-4 text-left">
-            <h1 className="text-3xl sm:text-4xl font-extrabold text-oxford font-serif">
+          {/* Right Column: Left-aligned details block */}
+          <div className="md:col-span-5 flex flex-col justify-center font-sans space-y-5 text-left">
+            <h1 className="text-4xl sm:text-5xl font-extrabold text-oxford leading-tight">
               {person.name}
             </h1>
-            <p className="text-base sm:text-lg text-slate-600 font-semibold tracking-wide">
+            <p className="text-lg sm:text-xl text-slate-600 font-semibold tracking-wide">
               {isFaculty ? (person.designation || 'Faculty Member') : 'Ph.D. Research Scholar'}
             </p>
 
             <div className="h-px bg-slate-200 w-full my-2" />
 
-            <div className="space-y-2.5 text-sm sm:text-base text-slate-700">
+            <div className="space-y-3.5 text-base sm:text-lg text-slate-700">
               {isFaculty && (
                 <p>
                   <strong className="text-oxford font-bold">Department:</strong> {person.department || 'Department of Physics, CUSAT'}
+                </p>
+              )}
+
+              {isFaculty && person.qualification && (
+                <p>
+                  <strong className="text-oxford font-bold">Qualification:</strong> {person.qualification}
                 </p>
               )}
 
@@ -316,6 +326,12 @@ export default function ProfilePage({ params }: PageProps) {
               {isFaculty && person.phone && (
                 <p>
                   <strong className="text-oxford font-bold">Phone:</strong> {person.phone}
+                </p>
+              )}
+
+              {isFaculty && person.room && (
+                <p>
+                  <strong className="text-oxford font-bold">Office Room:</strong> {person.room}
                 </p>
               )}
 
@@ -343,16 +359,16 @@ export default function ProfilePage({ params }: PageProps) {
 
             {/* Social & Academic Profile Badges */}
             {isFaculty && (person.socialLinks || person.customProfiles) && (
-              <div className="pt-4 flex flex-wrap gap-2">
+              <div className="pt-4 flex flex-wrap gap-2.5">
                 {person.socialLinks?.scholar && (
                   <a
                     href={person.socialLinks.scholar}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-semibold px-3 py-1.5 rounded border border-blue-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 text-sm font-semibold px-4 py-2 rounded border border-blue-200 transition-colors"
                   >
                     <span>Google Scholar</span>
-                    <ExternalLink className="w-3 h-3 opacity-70" />
+                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                   </a>
                 )}
                 {person.socialLinks?.scopus && (
@@ -360,10 +376,10 @@ export default function ProfilePage({ params }: PageProps) {
                     href={person.socialLinks.scopus}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 bg-orange-50 text-orange-700 hover:bg-orange-100 text-xs font-semibold px-3 py-1.5 rounded border border-orange-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 hover:bg-orange-100 text-sm font-semibold px-4 py-2 rounded border border-orange-200 transition-colors"
                   >
                     <span>Scopus</span>
-                    <ExternalLink className="w-3 h-3 opacity-70" />
+                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                   </a>
                 )}
                 {person.socialLinks?.orcid && (
@@ -371,10 +387,10 @@ export default function ProfilePage({ params }: PageProps) {
                     href={person.socialLinks.orcid}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 bg-lime-50 text-lime-700 hover:bg-lime-100 text-xs font-semibold px-3 py-1.5 rounded border border-lime-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-lime-50 text-lime-700 hover:bg-lime-100 text-sm font-semibold px-4 py-2 rounded border border-lime-200 transition-colors"
                   >
                     <span>ORCID iD</span>
-                    <ExternalLink className="w-3 h-3 opacity-70" />
+                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                   </a>
                 )}
                 {person.socialLinks?.linkedin && (
@@ -382,10 +398,10 @@ export default function ProfilePage({ params }: PageProps) {
                     href={person.socialLinks.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 bg-sky-50 text-sky-700 hover:bg-sky-100 text-xs font-semibold px-3 py-1.5 rounded border border-sky-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-sky-50 text-sky-700 hover:bg-sky-100 text-sm font-semibold px-4 py-2 rounded border border-sky-200 transition-colors"
                   >
                     <span>LinkedIn</span>
-                    <ExternalLink className="w-3 h-3 opacity-70" />
+                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                   </a>
                 )}
                 {person.socialLinks?.website && (
@@ -393,10 +409,10 @@ export default function ProfilePage({ params }: PageProps) {
                     href={person.socialLinks.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 bg-cyan-50 text-cyan-800 hover:bg-cyan-100 text-xs font-semibold px-3 py-1.5 rounded border border-cyan-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-cyan-50 text-cyan-800 hover:bg-cyan-100 text-sm font-semibold px-4 py-2 rounded border border-cyan-200 transition-colors"
                   >
                     <span>Personal Website</span>
-                    <ExternalLink className="w-3 h-3 opacity-70" />
+                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                   </a>
                 )}
                 {Array.isArray(person.customProfiles) &&
@@ -406,10 +422,10 @@ export default function ProfilePage({ params }: PageProps) {
                       href={cp.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-semibold px-3 py-1.5 rounded border border-purple-200 transition-colors"
+                      className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 text-sm font-semibold px-4 py-2 rounded border border-purple-200 transition-colors"
                     >
                       <span>{cp.name}</span>
-                      <ExternalLink className="w-3 h-3 opacity-70" />
+                      <ExternalLink className="w-3.5 h-3.5 opacity-70" />
                     </a>
                   ))}
               </div>
@@ -422,7 +438,7 @@ export default function ProfilePage({ params }: PageProps) {
           <div className="flex border-b border-slate-200 justify-start">
             <button
               onClick={() => setActiveTab('bio')}
-              className={`px-6 py-4 font-bold text-sm border-b-2 transition-all cursor-pointer ${
+              className={`px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer ${
                 activeTab === 'bio'
                   ? 'border-oxford text-oxford'
                   : 'border-transparent text-slate-500 hover:text-oxford'
@@ -434,7 +450,7 @@ export default function ProfilePage({ params }: PageProps) {
             {isFaculty && (
               <button
                 onClick={() => setActiveTab('scholars')}
-                className={`px-6 py-4 font-bold text-sm border-b-2 transition-all cursor-pointer ${
+                className={`px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer ${
                   activeTab === 'scholars'
                     ? 'border-oxford text-oxford'
                     : 'border-transparent text-slate-500 hover:text-oxford'
@@ -449,8 +465,8 @@ export default function ProfilePage({ params }: PageProps) {
             {/* Biography Tab */}
             {activeTab === 'bio' && (
               <div className="space-y-4 text-left">
-                <h3 className="text-lg font-bold text-oxford font-serif">Biography & Academic Background</h3>
-                <div className="prose max-w-none text-slate-700">
+                <h3 className="text-xl sm:text-2xl font-bold text-oxford font-serif">Biography & Academic Background</h3>
+                <div className="prose max-w-none text-slate-700 text-base sm:text-lg">
                   {renderMarkdown(person.bio)}
                 </div>
               </div>
@@ -458,24 +474,24 @@ export default function ProfilePage({ params }: PageProps) {
 
             {/* Supervised Scholars Tab */}
             {activeTab === 'scholars' && isFaculty && (
-              <div className="space-y-6 text-left">
-                <h3 className="text-lg font-bold text-oxford font-serif">Guided Students & Ph.D. Scholars</h3>
+              <div className="space-y-8 text-left">
+                <h3 className="text-xl sm:text-2xl font-bold text-oxford font-serif">Guided Students & Ph.D. Scholars</h3>
 
                 {supervisedScholars.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {supervisedScholars.map((sch: any) => (
                       <div key={sch.id} className="flex items-start space-x-4 p-4 border border-slate-200 rounded-xl bg-slate-50">
-                        <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-white relative">
+                        <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-white relative">
                           {sch.image ? (
                             <img src={sch.image} alt={sch.name} className="w-full h-full object-cover" />
                           ) : (
-                            <User className="w-8 h-8 m-auto text-slate-400 mt-3" />
+                            <User className="w-10 h-10 m-auto text-slate-400 mt-3" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="block text-sm font-bold text-oxford">{sch.name}</span>
+                          <span className="block text-base sm:text-lg font-bold text-oxford">{sch.name}</span>
                           {sch.description && (
-                            <p className="text-xs text-slate-600 mt-1 leading-relaxed line-clamp-3">
+                            <p className="text-sm text-slate-600 mt-1 leading-relaxed line-clamp-3">
                               {sch.description}
                             </p>
                           )}
@@ -484,7 +500,7 @@ export default function ProfilePage({ params }: PageProps) {
                     ))}
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-400 italic">No guided students or Ph.D. scholars currently listed.</p>
+                  <p className="text-base text-slate-400 italic">No guided students or Ph.D. scholars currently listed.</p>
                 )}
               </div>
             )}
