@@ -24,8 +24,10 @@ import {
   KeyRound,
   Mail,
   Lock,
-  AlertCircle
+  AlertCircle,
+  Edit3
 } from 'lucide-react';
+import AdminFacultyFullManageModal from '@/components/AdminFacultyFullManageModal';
 
 interface NotificationItem {
   id: string;
@@ -91,6 +93,7 @@ export default function AdminDashboardPage() {
   });
   const [facultySaving, setFacultySaving] = useState(false);
   const [facultyFormError, setFacultyFormError] = useState<string | null>(null);
+  const [fullManageFacultyId, setFullManageFacultyId] = useState<string | null>(null);
 
   // Fetch Notifications
   const fetchNotifications = async () => {
@@ -133,7 +136,7 @@ export default function AdminDashboardPage() {
     setLoggingOut(true);
     try {
       await fetch('/api/admin/logout', { method: 'POST' });
-      router.push('/admin/login');
+      router.push('/login');
       router.refresh();
     } catch {
       setLoggingOut(false);
@@ -844,6 +847,14 @@ export default function AdminDashboardPage() {
                           {/* Actions */}
                           <td className="py-4 px-6 text-right space-x-2 whitespace-nowrap">
                             <button
+                              onClick={() => setFullManageFacultyId(faculty.id)}
+                              className="px-2.5 py-1.5 text-xs text-indigo-300 hover:text-white bg-indigo-500/20 hover:bg-indigo-600 border border-indigo-500/40 rounded-xl transition-all inline-flex items-center gap-1.5 font-semibold shadow-sm"
+                              title="Manage Full Profile, Documents, Links & Guided Students"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>Manage Full Profile</span>
+                            </button>
+                            <button
                               onClick={() => openFacultyModal(faculty)}
                               className="p-1.5 text-slate-400 hover:text-white bg-slate-800/60 hover:bg-slate-700 rounded-lg transition-all"
                               title="Edit Details / Reset Predefined Password"
@@ -1137,6 +1148,14 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Full Faculty Management Modal */}
+      <AdminFacultyFullManageModal
+        facultyId={fullManageFacultyId}
+        isOpen={Boolean(fullManageFacultyId)}
+        onClose={() => setFullManageFacultyId(null)}
+        onFacultyUpdated={fetchFaculty}
+      />
     </div>
   );
 }

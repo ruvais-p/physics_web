@@ -10,7 +10,7 @@ async function authenticateAdmin() {
   return verifyAdminToken(token);
 }
 
-// GET /api/admin/faculty/[id]
+// GET /api/admin/faculty/[id] - Fetch full faculty details including profile, docs, description, and students
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -25,18 +25,13 @@ export async function GET(
   try {
     const faculty = await prisma.faculty.findUnique({
       where: { id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        designation: true,
-        department: true,
-        phone: true,
-        bio: true,
-        mustChangePassword: true,
-        isActive: true,
-        createdAt: true,
-        updatedAt: true,
+      include: {
+        profile: true,
+        documents: true,
+        descriptionRecord: true,
+        students: {
+          orderBy: { createdAt: 'desc' },
+        },
       },
     });
 
@@ -51,7 +46,7 @@ export async function GET(
   }
 }
 
-// PUT /api/admin/faculty/[id] - Edit details, active status, or reset predefined password
+// PUT /api/admin/faculty/[id] - Edit basic details, profile links, description, or reset password
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -65,7 +60,18 @@ export async function PUT(
 
   try {
     const body = await request.json();
-    const { name, email, designation, department, phone, bio, isActive, newPredefinedPassword } = body;
+    const {
+      name,
+      email,
+      designation,
+      department,
+      phone,
+      bio,
+      isActive,
+      newPredefinedPassword,
+      profiles,
+      description,
+    } = body;
 
     const updateData: any = {};
 
@@ -77,28 +83,62 @@ export async function PUT(
     if (bio !== undefined) updateData.bio = bio.trim();
     if (isActive !== undefined) updateData.isActive = Boolean(isActive);
 
-    // If Admin resets password
+    // Reset password if requested by Admin
     if (newPredefinedPassword && newPredefinedPassword.trim().length >= 6) {
       updateData.password = await hashPassword(newPredefinedPassword.trim());
-      updateData.mustChangePassword = true; // require password change on next login
+      updateData.mustChangePassword = true;
     }
 
+    // Update main faculty record
     const updatedFaculty = await prisma.faculty.update({
       where: { id },
       data: updateData,
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        designation: true,
-        department: true,
-        mustChangePassword: true,
-        isActive: true,
-        updatedAt: true,
+    });
+
+    // Update or create FacultyProfile if profile data provided
+    if (profiles !== undefined || phone !== undefined) {
+      await prisma.facultyProfile.upsert({
+        where: { facultyId: id },
+        update: {
+          ...(phone !== undefined ? { phone: phone.trim() } : {}),
+          ...(profiles !== undefined ? { profiles } : {}),
+        },
+        create: {
+          facultyId: id,
+          phone: phone !== undefined ? phone.trim() : null,
+          profiles: profiles || {},
+        },
+      });
+    }
+
+    // Update or create FacultyDescription if description provided
+    if (description !== undefined) {
+      await prisma.facultyDescription.upsert({
+        where: { facultyId: id },
+        update: {
+          description,
+        },
+        create: {
+          facultyId: id,
+          description,
+        },
+      });
+    }
+
+    // Return updated full record
+    const fullFaculty = await prisma.faculty.findUnique({
+      where: { id },
+      include: {
+        profile: true,
+        documents: true,
+        descriptionRecord: true,
+        students: {
+          orderBy: { createdAt: 'desc' },
+        },
       },
     });
 
-    return NextResponse.json(updatedFaculty);
+    return NextResponse.json(fullFaculty);
   } catch (error) {
     console.error('Error updating faculty record:', error);
     return NextResponse.json({ error: 'Failed to update faculty record' }, { status: 500 });

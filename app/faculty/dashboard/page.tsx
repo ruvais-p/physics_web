@@ -375,7 +375,7 @@ export default function FacultyDashboardPage() {
           setShowPasswordModal(true);
         }
       } else {
-        router.push('/faculty/login');
+        router.push('/login');
         return;
       }
 
@@ -440,7 +440,7 @@ export default function FacultyDashboardPage() {
     setLoggingOut(true);
     try {
       await fetch('/api/faculty/logout', { method: 'POST' });
-      router.push('/faculty/login');
+      router.push('/login');
       router.refresh();
     } catch {
       setLoggingOut(false);

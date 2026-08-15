@@ -109,8 +109,3 @@ model FacultyStudent {
 
   @@index([facultyId])
 }
-
-
-
-
-
