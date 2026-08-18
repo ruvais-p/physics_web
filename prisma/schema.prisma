@@ -109,3 +109,14 @@ model FacultyStudent {
 
   @@index([facultyId])
 }
+
+model Hero {
+  id          Int      @id @default(autoincrement())
+  image       String
+  title       String   @db.VarChar(255)
+  description String   @db.Text
+  is_visible  Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

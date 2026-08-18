@@ -1,9 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Sparkles, Pause, Play } from 'lucide-react';
+import { Pause, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import TextReveal from '@/components/TextReveal';
 
 export type Slide = {
@@ -102,6 +101,33 @@ export default function Hero({
   bgImage,
   slides = DEFAULT_SLIDES,
 }: HeroProps) {
+  const [dynamicSlides, setDynamicSlides] = useState<Slide[] | null>(null);
+
+  useEffect(() => {
+    // Fetch live visible hero records from database
+    fetch('/api/public/hero')
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data: any[]) => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped: Slide[] = data.map((item, idx) => ({
+            id: String(item.id),
+            tab: `Slide ${idx + 1}`,
+            badge: 'DEPARTMENT OF PHYSICS • CUSAT',
+            title: [item.title],
+            subtitle: item.description,
+            image: item.image,
+            overlay: 'rgba(0, 10, 30, 0.65)',
+            titleColor: '#0284c7',
+          }));
+          setDynamicSlides(mapped);
+        }
+      })
+      .catch((err) => console.error('Failed to fetch public hero slides:', err));
+  }, []);
+
+  // Determine active slides array
+  const baseSlides = dynamicSlides && dynamicSlides.length > 0 ? dynamicSlides : slides;
+
   // If custom title is provided without custom slides array, render single header slide mode
   const effectiveSlides: Slide[] = title
     ? [
@@ -118,7 +144,7 @@ export default function Hero({
         ctaLink: primaryCtaLink,
       },
     ]
-    : slides;
+    : baseSlides;
 
   const [index, setIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
@@ -186,13 +212,7 @@ export default function Hero({
       <div className="relative z-20 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-40 sm:pt-48 lg:pt-52 pb-32 sm:pb-36 flex flex-col justify-end min-h-[560px] sm:min-h-[660px]">
         <div className="max-w-3xl space-y-6">
 
-          {/* Badge */}
-          {currentSlide.badge && (
-            <div className="inline-flex items-center space-x-2 bg-cyan-accent/20 backdrop-blur-md px-4 py-1.5 rounded-full border border-cyan-accent/50 text-cyan-accent text-xs font-bold tracking-wider uppercase shadow-xl">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-accent animate-pulse" />
-              <span>{currentSlide.badge}</span>
-            </div>
-          )}
+
 
           {/* Headline */}
           <h1
@@ -218,11 +238,21 @@ export default function Hero({
         </div>
       </div>
 
-      {/* Bottom Right Slide Controls (5 Dots & Animation Play/Pause Toggle) */}
+      {/* Bottom Right Slide Controls (Prev/Next Arrows, Dots, Play/Pause Toggle) */}
       {total > 1 && (
-        <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-12 z-20 flex items-center space-x-4">
+        <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-12 z-20 flex items-center space-x-3 sm:space-x-4">
+          {/* Previous Arrow */}
+          <button
+            type="button"
+            onClick={() => goTo(index - 1)}
+            className="w-8 h-8 rounded-full border border-white/40 hover:border-white bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition-all cursor-pointer"
+            aria-label="Previous slide"
+          >
+            <ChevronLeft className="w-4 h-4 text-white" />
+          </button>
+
           {/* Dots */}
-          <div className="flex items-center space-x-3" role="tablist" aria-label="Slides">
+          <div className="flex items-center space-x-2.5" role="tablist" aria-label="Slides">
             {effectiveSlides.map((s, i) => (
               <button
                 key={s.id}
@@ -239,6 +269,16 @@ export default function Hero({
               />
             ))}
           </div>
+
+          {/* Next Arrow */}
+          <button
+            type="button"
+            onClick={() => goTo(index + 1)}
+            className="w-8 h-8 rounded-full border border-white/40 hover:border-white bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition-all cursor-pointer"
+            aria-label="Next slide"
+          >
+            <ChevronRight className="w-4 h-4 text-white" />
+          </button>
 
           {/* Play/Pause Toggle */}
           <button

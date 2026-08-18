@@ -45,6 +45,9 @@ import {
   Code,
   Link as LinkIcon,
   Edit3,
+  ChevronUp,
+  ChevronDown,
+  Sliders,
 } from 'lucide-react';
 import AdminFacultyFullManageModal from '@/components/AdminFacultyFullManageModal';
 
@@ -367,6 +370,16 @@ function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
   return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
 }
 
+interface HeroSlideItem {
+  id: number;
+  image: string;
+  title: string;
+  description: string;
+  is_visible: boolean;
+  order: number;
+  createdAt: string;
+}
+
 export default function UnifiedDashboardPage() {
   const router = useRouter();
 
@@ -379,10 +392,201 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // ADMIN DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'notifications' | 'faculty'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'hero' | 'notifications' | 'faculty'>('dashboard');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Hero Carousel States
+  const [heroSlides, setHeroSlides] = useState<HeroSlideItem[]>([]);
+  const [loadingHero, setLoadingHero] = useState(false);
+  const [isHeroModalOpen, setIsHeroModalOpen] = useState(false);
+  const [editingHeroSlide, setEditingHeroSlide] = useState<HeroSlideItem | null>(null);
+  const [heroFormData, setHeroFormData] = useState({
+    title: '',
+    description: '',
+    imageFile: null as File | null,
+    imageUrl: '',
+    is_visible: true,
+  });
+  const [heroSaving, setHeroSaving] = useState(false);
+  const [heroFormError, setHeroFormError] = useState<string | null>(null);
+  const [heroImagePreview, setHeroImagePreview] = useState<string | null>(null);
+
+  const fetchHeroSlides = async () => {
+    setLoadingHero(true);
+    try {
+      const res = await fetch('/api/cms/hero');
+      if (res.ok) {
+        const data = await res.json();
+        setHeroSlides(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch hero slides:', err);
+    } finally {
+      setLoadingHero(false);
+    }
+  };
+
+  const openHeroModal = (slide?: HeroSlideItem) => {
+    setHeroFormError(null);
+    if (slide) {
+      setEditingHeroSlide(slide);
+      setHeroFormData({
+        title: slide.title,
+        description: slide.description,
+        imageFile: null,
+        imageUrl: slide.image,
+        is_visible: slide.is_visible,
+      });
+      setHeroImagePreview(slide.image);
+    } else {
+      setEditingHeroSlide(null);
+      setHeroFormData({
+        title: '',
+        description: '',
+        imageFile: null,
+        imageUrl: '',
+        is_visible: true,
+      });
+      setHeroImagePreview(null);
+    }
+    setIsHeroModalOpen(true);
+  };
+
+  const closeHeroModal = () => {
+    setIsHeroModalOpen(false);
+    setEditingHeroSlide(null);
+    setHeroImagePreview(null);
+  };
+
+  const handleHeroSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setHeroFormError(null);
+
+    if (!heroFormData.title.trim()) {
+      setHeroFormError('Title is required');
+      return;
+    }
+
+    if (heroFormData.title.trim().length > 80) {
+      setHeroFormError('Title cannot exceed 80 characters');
+      return;
+    }
+
+    if (heroFormData.description.trim().length > 200) {
+      setHeroFormError('Description cannot exceed 200 characters');
+      return;
+    }
+
+    if (!editingHeroSlide && !heroFormData.imageFile && !heroFormData.imageUrl.trim()) {
+      setHeroFormError('Please provide an image file or image URL');
+      return;
+    }
+
+    setHeroSaving(true);
+
+    try {
+      const url = editingHeroSlide
+        ? `/api/cms/hero/${editingHeroSlide.id}`
+        : '/api/cms/hero';
+      const method = editingHeroSlide ? 'PUT' : 'POST';
+
+      const formData = new FormData();
+      formData.append('title', heroFormData.title.trim());
+      formData.append('description', heroFormData.description.trim());
+      formData.append('is_visible', String(heroFormData.is_visible));
+
+      if (heroFormData.imageFile) {
+        formData.append('image', heroFormData.imageFile);
+      } else if (heroFormData.imageUrl) {
+        formData.append('imageUrl', heroFormData.imageUrl.trim());
+      }
+
+      const res = await fetch(url, {
+        method,
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save hero slide');
+      }
+
+      await fetchHeroSlides();
+      closeHeroModal();
+    } catch (err: any) {
+      setHeroFormError(err.message || 'An error occurred while saving hero slide.');
+    } finally {
+      setHeroSaving(false);
+    }
+  };
+
+  const toggleHeroVisibility = async (slide: HeroSlideItem) => {
+    try {
+      const res = await fetch(`/api/cms/hero/${slide.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          is_visible: !slide.is_visible,
+        }),
+      });
+
+      if (res.ok) {
+        setHeroSlides((prev) =>
+          prev.map((item) =>
+            item.id === slide.id ? { ...item, is_visible: !item.is_visible } : item
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Failed to toggle hero slide visibility:', err);
+    }
+  };
+
+  const handleDeleteHeroSlide = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this Hero slide?')) return;
+
+    try {
+      const res = await fetch(`/api/cms/hero/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setHeroSlides((prev) => prev.filter((item) => item.id !== id));
+      }
+    } catch (err) {
+      console.error('Failed to delete hero slide:', err);
+    }
+  };
+
+  const moveHeroSlide = async (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= heroSlides.length) return;
+
+    const newSlides = [...heroSlides];
+    const temp = newSlides[index];
+    newSlides[index] = newSlides[targetIndex];
+    newSlides[targetIndex] = temp;
+
+    const itemsToUpdate = newSlides.map((item, idx) => ({
+      id: item.id,
+      order: idx + 1,
+    }));
+
+    setHeroSlides(newSlides.map((item, idx) => ({ ...item, order: idx + 1 })));
+
+    try {
+      await fetch('/api/cms/hero/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: itemsToUpdate }),
+      });
+    } catch (err) {
+      console.error('Failed to reorder hero slides:', err);
+      fetchHeroSlides();
+    }
+  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNotif, setEditingNotif] = useState<NotificationItem | null>(null);
@@ -481,8 +685,10 @@ export default function UnifiedDashboardPage() {
         if (data.role === 'admin') {
           fetchNotifications();
           fetchFaculty();
+          fetchHeroSlides();
         } else if (data.role === 'faculty') {
           fetchFacultySelfData(data.user);
+          fetchHeroSlides();
         }
       } catch (err) {
         console.error('Session check failed:', err);
@@ -1321,6 +1527,13 @@ export default function UnifiedDashboardPage() {
                 <span>Overview</span>
               </TabsTrigger>
               <TabsTrigger
+                value="hero"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all cursor-pointer text-sm text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford"
+              >
+                <Sliders className="w-4 h-4" />
+                <span>Hero Carousel ({heroSlides.length}/10)</span>
+              </TabsTrigger>
+              <TabsTrigger
                 value="notifications"
                 className="flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all cursor-pointer text-sm text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford"
               >
@@ -1363,6 +1576,33 @@ export default function UnifiedDashboardPage() {
             </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              {/* Module 1: Hero Carousel */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center">
+                      <Sliders className="w-6 h-6" />
+                    </div>
+                    <span className="text-3xl font-extrabold text-amber-700">
+                      {heroSlides.length}/10
+                    </span>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Home Page Hero Carousel</CardTitle>
+                  <CardDescription className="text-base text-slate-600 leading-normal">
+                    Manage home page background slides with titles (0/80), descriptions (0/200), ON/OFF visibility toggles, and reordering.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('hero')}
+                  className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <Sliders className="w-4 h-4" />
+                  <span>Manage Hero Carousel</span>
+                </Button>
+              </Card>
+
+              {/* Module 2: Notifications */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -1388,6 +1628,7 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
+              {/* Module 3: Faculty Accounts */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -1412,21 +1653,169 @@ export default function UnifiedDashboardPage() {
                   <span>Manage Faculty Accounts</span>
                 </Button>
               </Card>
+            </div>
+          </TabsContent>
 
-              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none opacity-75">
-                <CardContent className="p-0 space-y-3">
-                  <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 border border-purple-200 flex items-center justify-center">
-                    <FlaskConical className="w-6 h-6" />
-                  </div>
-                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Research Labs</CardTitle>
-                  <CardDescription className="text-base text-slate-600 leading-normal">
-                    Update lab equipment inventory, faculty heads, and research focus areas.
-                  </CardDescription>
-                </CardContent>
-                <Button disabled variant="secondary" className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 cursor-not-allowed">
-                  <span>Coming Soon</span>
+          {/* HERO CAROUSEL TAB */}
+          <TabsContent value="hero" className="space-y-10 animate-fadeIn mt-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-transparent py-2 rounded-none shadow-none">
+              <div>
+                <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                  <Sliders className="w-7 h-7 text-oxford" />
+                  <span>Home Page Hero Carousel</span>
+                  <Badge variant="outline" className="ml-2 font-mono text-xs border-oxford text-oxford">
+                    {heroSlides.length}/10 Records
+                  </Badge>
+                </h2>
+                <p className="text-slate-600 text-base mt-1">
+                  Manage home page hero slides (Max 10 records). Dynamic slides with ON status are displayed on the public site.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={fetchHeroSlides}
+                  className="h-11 w-11 text-slate-700 hover:text-slate-950"
+                  title="Refresh Hero List"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingHero ? 'animate-spin' : ''}`} />
                 </Button>
-              </Card>
+                <Button
+                  variant="default"
+                  disabled={heroSlides.length >= 10}
+                  onClick={() => openHeroModal()}
+                  className="flex items-center gap-2 py-3 px-5 font-semibold rounded-xl shadow-xs transition-all text-base cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>{heroSlides.length >= 10 ? 'Max 10 Limit Reached' : 'Add Hero Item'}</span>
+                </Button>
+              </div>
+            </div>
+
+            {heroSlides.length >= 10 && (
+              <div className="p-3.5 text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 font-sans font-semibold">
+                <AlertCircle className="w-5 h-5 shrink-0 text-amber-600" />
+                <span>Maximum limit of 10 Hero records reached. Delete or edit an existing slide to create space for a new item.</span>
+              </div>
+            )}
+
+            <div className="bg-transparent border-none overflow-visible shadow-none">
+              {loadingHero ? (
+                <div className="p-12 text-center text-slate-500 flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-2 border-oxford border-t-transparent rounded-full animate-spin" />
+                  <span>Loading hero slides...</span>
+                </div>
+              ) : heroSlides.length === 0 ? (
+                <div className="p-12 text-center text-slate-500 space-y-3 bg-white rounded-2xl border border-slate-200">
+                  <Sliders className="w-10 h-10 mx-auto text-slate-400" />
+                  <p className="text-base font-semibold text-slate-800">No dynamic hero slides in database</p>
+                  <p className="text-xs text-slate-500">
+                    The public homepage will display default fallback slides until you create a custom hero slide.
+                  </p>
+                  <Button onClick={() => openHeroModal()} className="mt-2 text-xs">
+                    <Plus className="w-4 h-4 mr-1" /> Add First Hero Slide
+                  </Button>
+                </div>
+              ) : (
+                <Table className="text-base">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-base font-bold w-16">Order</TableHead>
+                      <TableHead className="text-base font-bold">Image Preview</TableHead>
+                      <TableHead className="text-base font-bold">Title (Max 80)</TableHead>
+                      <TableHead className="text-base font-bold">Description (Max 200)</TableHead>
+                      <TableHead className="text-base font-bold">Status (Visibility)</TableHead>
+                      <TableHead className="text-base font-bold text-center">Reorder</TableHead>
+                      <TableHead className="text-right text-base font-bold">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {heroSlides.map((slide, idx) => (
+                      <TableRow key={slide.id} className="hover:bg-slate-50/40">
+                        <TableCell className="font-bold text-slate-700 py-4 font-mono">
+                          #{idx + 1}
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="w-20 h-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
+                            <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-bold text-slate-900 max-w-xs text-base py-4">
+                          <div className="line-clamp-2">{slide.title}</div>
+                          <span className="text-[11px] font-mono text-slate-400 font-normal">({slide.title.length}/80 chars)</span>
+                        </TableCell>
+                        <TableCell className="text-slate-600 max-w-sm text-sm py-4 font-sans">
+                          <div className="line-clamp-2">{slide.description || '—'}</div>
+                          <span className="text-[11px] font-mono text-slate-400">({slide.description.length}/200 chars)</span>
+                        </TableCell>
+                        <TableCell className="text-base py-4">
+                          <button
+                            type="button"
+                            className="flex items-center gap-1.5 font-bold text-base hover:underline focus:outline-none cursor-pointer transition-all"
+                            onClick={() => toggleHeroVisibility(slide)}
+                          >
+                            {slide.is_visible ? (
+                              <span className="text-emerald-600 flex items-center gap-1.5">
+                                <Eye className="w-4 h-4" />
+                                <span>ON</span>
+                              </span>
+                            ) : (
+                              <span className="text-slate-500 flex items-center gap-1.5">
+                                <EyeOff className="w-4 h-4" />
+                                <span>OFF</span>
+                              </span>
+                            )}
+                          </button>
+                        </TableCell>
+                        <TableCell className="text-center py-4">
+                          <div className="inline-flex items-center gap-1 bg-slate-100 border border-slate-200 p-1 rounded-xl">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => moveHeroSlide(idx, 'up')}
+                              className="p-1 text-slate-600 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                              title="Move Up"
+                            >
+                              <ChevronUp className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === heroSlides.length - 1}
+                              onClick={() => moveHeroSlide(idx, 'down')}
+                              className="p-1 text-slate-600 hover:text-slate-900 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                              title="Move Down"
+                            >
+                              <ChevronDown className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right space-x-2 whitespace-nowrap py-4">
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={() => openHeroModal(slide)}
+                            className="h-9 w-9 text-slate-600 hover:text-slate-900"
+                            title="Edit Hero Item"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => handleDeleteHeroSlide(slide.id)}
+                            className="h-9 w-9"
+                            title="Delete Hero Item"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
             </div>
           </TabsContent>
 
@@ -1926,6 +2315,119 @@ export default function UnifiedDashboardPage() {
           </DialogContent>
         </Dialog>
 
+        {/* Hero Item Create/Edit Modal */}
+        <Dialog open={isHeroModalOpen} onOpenChange={setIsHeroModalOpen}>
+          <DialogContent className="max-w-lg bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900">
+            <DialogHeader className="border-b border-slate-100 pb-4">
+              <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
+                <Sliders className="w-5 h-5 text-oxford" />
+                <span>{editingHeroSlide ? 'Edit Hero Slide' : 'Add New Hero Slide (Max 10)'}</span>
+              </DialogTitle>
+            </DialogHeader>
+
+            <form onSubmit={handleHeroSave} className="space-y-5 pt-4">
+              {heroFormError && (
+                <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+                  {heroFormError}
+                </div>
+              )}
+
+              {/* Title Input with live char counter */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-bold text-slate-700">Slide Title *</label>
+                  <span className={`text-xs font-mono font-semibold ${heroFormData.title.length > 80 ? 'text-rose-600 font-bold' : 'text-slate-500'}`}>
+                    {heroFormData.title.length}/80 chars
+                  </span>
+                </div>
+                <Input
+                  type="text"
+                  maxLength={80}
+                  placeholder="e.g. Quantum Frontiers & Nanomaterials Research"
+                  value={heroFormData.title}
+                  onChange={(e) => setHeroFormData({ ...heroFormData, title: e.target.value })}
+                  className="w-full text-base font-serif"
+                />
+              </div>
+
+              {/* Description Input with live char counter */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-bold text-slate-700">Slide Subtitle / Description</label>
+                  <span className={`text-xs font-mono font-semibold ${heroFormData.description.length > 200 ? 'text-rose-600 font-bold' : 'text-slate-500'}`}>
+                    {heroFormData.description.length}/200 chars
+                  </span>
+                </div>
+                <textarea
+                  rows={3}
+                  maxLength={200}
+                  placeholder="Pioneering research in magnetic nanocomposites, quantum transport..."
+                  value={heroFormData.description}
+                  onChange={(e) => setHeroFormData({ ...heroFormData, description: e.target.value })}
+                  className="w-full bg-white border border-[#e8e2d5] rounded-xl p-3 text-sm text-slate-900 font-sans focus:outline-none focus:ring-2 focus:ring-oxford"
+                />
+              </div>
+
+              {/* Image Input */}
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">Upload Image File OR Image URL *</label>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setHeroFormData({ ...heroFormData, imageFile: file });
+                        setHeroImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
+                  />
+                  <div className="text-xs text-slate-400 text-center font-bold font-sans">OR</div>
+                  <Input
+                    type="url"
+                    placeholder="https://images.unsplash.com/..."
+                    value={heroFormData.imageUrl}
+                    onChange={(e) => {
+                      setHeroFormData({ ...heroFormData, imageUrl: e.target.value });
+                      setHeroImagePreview(e.target.value);
+                    }}
+                    className="w-full text-xs font-mono"
+                  />
+                </div>
+
+                {heroImagePreview && (
+                  <div className="mt-2 w-full h-24 rounded-xl border border-slate-200 overflow-hidden relative">
+                    <img src={heroImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+
+              {/* Visibility Status Switch */}
+              <div className="flex items-center justify-between bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+                <div>
+                  <span className="text-sm font-bold text-slate-900 block font-serif">Public Visibility</span>
+                  <span className="text-xs text-slate-500 font-sans">Show on public homepage slideshow</span>
+                </div>
+                <Switch
+                  checked={heroFormData.is_visible}
+                  onCheckedChange={(checked) => setHeroFormData({ ...heroFormData, is_visible: checked })}
+                />
+              </div>
+
+              <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
+                <Button variant="outline" type="button" onClick={closeHeroModal} className="px-4">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={heroSaving} className="px-5 font-semibold">
+                  {heroSaving ? 'Saving...' : editingHeroSlide ? 'Update Hero Slide' : 'Create Hero Slide'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
         {/* Full Faculty Profile Management Modal */}
         {fullManageFacultyId && (
           <AdminFacultyFullManageModal
@@ -2205,6 +2707,170 @@ export default function UnifiedDashboardPage() {
                   ))}
                 </div>
               )}
+            </Card>
+
+            {/* Home Page Hero Carousel Management Section */}
+            <Card className="bg-transparent border-none rounded-none p-0 shadow-none space-y-4 pt-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-3">
+                <div className="space-y-0.5">
+                  <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                    <Sliders className="w-5 h-5 text-amber-700" />
+                    <span>Home Page Hero Carousel Management</span>
+                    <Badge variant="outline" className="ml-2 font-mono text-xs border-amber-700 text-amber-800 bg-amber-50">
+                      {heroSlides.length}/10 Records
+                    </Badge>
+                  </h3>
+                  <p className="text-xs text-slate-500 font-sans">
+                    Manage home page hero slides (Max 10 records). Slides with ON status are displayed on the public site.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={fetchHeroSlides}
+                    className="h-9 w-9 p-0 text-slate-700 hover:text-slate-950"
+                    title="Refresh Hero List"
+                  >
+                    <RefreshCw className={`w-4 h-4 ${loadingHero ? 'animate-spin' : ''}`} />
+                  </Button>
+                  <Button
+                    variant="default"
+                    size="sm"
+                    disabled={heroSlides.length >= 10}
+                    onClick={() => openHeroModal()}
+                    className="h-9 px-4 font-semibold text-xs rounded-xl bg-amber-700 hover:bg-amber-800 text-white cursor-pointer disabled:opacity-50"
+                  >
+                    <Plus className="w-4 h-4 mr-1" />
+                    <span>{heroSlides.length >= 10 ? 'Max 10 Limit Reached' : 'Add Hero Item'}</span>
+                  </Button>
+                </div>
+              </div>
+
+              {heroSlides.length >= 10 && (
+                <div className="p-3 text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 font-sans font-semibold">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
+                  <span>Maximum limit of 10 Hero records reached. Delete or edit an existing slide to create space.</span>
+                </div>
+              )}
+
+              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+                {loadingHero ? (
+                  <div className="p-8 text-center text-slate-500 flex flex-col items-center gap-2 text-xs">
+                    <div className="w-6 h-6 border-2 border-oxford border-t-transparent rounded-full animate-spin" />
+                    <span>Loading hero slides...</span>
+                  </div>
+                ) : heroSlides.length === 0 ? (
+                  <div className="p-8 text-center text-slate-500 space-y-2">
+                    <Sliders className="w-8 h-8 mx-auto text-slate-400" />
+                    <p className="text-sm font-semibold text-slate-800">No dynamic hero slides in database</p>
+                    <p className="text-xs text-slate-500">
+                      The public homepage will display default slides until you create a custom hero slide.
+                    </p>
+                    <Button onClick={() => openHeroModal()} size="sm" className="mt-2 text-xs bg-amber-700 hover:bg-amber-800 text-white">
+                      <Plus className="w-4 h-4 mr-1" /> Add First Hero Slide
+                    </Button>
+                  </div>
+                ) : (
+                  <Table className="text-sm font-sans">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="font-bold w-12 text-xs">Order</TableHead>
+                        <TableHead className="font-bold text-xs">Preview</TableHead>
+                        <TableHead className="font-bold text-xs">Title (Max 80)</TableHead>
+                        <TableHead className="font-bold text-xs">Description (Max 200)</TableHead>
+                        <TableHead className="font-bold text-xs">Status</TableHead>
+                        <TableHead className="font-bold text-xs text-center">Reorder</TableHead>
+                        <TableHead className="text-right font-bold text-xs">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {heroSlides.map((slide, idx) => (
+                        <TableRow key={slide.id} className="hover:bg-slate-50/50">
+                          <TableCell className="font-bold text-slate-700 font-mono text-xs py-3">
+                            #{idx + 1}
+                          </TableCell>
+                          <TableCell className="py-3">
+                            <div className="w-16 h-10 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
+                              <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-bold text-slate-900 max-w-[200px] text-xs py-3">
+                            <div className="line-clamp-2">{slide.title}</div>
+                            <span className="text-[10px] font-mono text-slate-400 font-normal">({slide.title.length}/80)</span>
+                          </TableCell>
+                          <TableCell className="text-slate-600 max-w-[240px] text-xs py-3">
+                            <div className="line-clamp-2">{slide.description || '—'}</div>
+                            <span className="text-[10px] font-mono text-slate-400">({slide.description.length}/200)</span>
+                          </TableCell>
+                          <TableCell className="text-xs py-3">
+                            <button
+                              type="button"
+                              className="flex items-center gap-1 font-bold text-xs hover:underline focus:outline-none cursor-pointer"
+                              onClick={() => toggleHeroVisibility(slide)}
+                            >
+                              {slide.is_visible ? (
+                                <span className="text-emerald-600 flex items-center gap-1">
+                                  <Eye className="w-3.5 h-3.5" />
+                                  <span>ON</span>
+                                </span>
+                              ) : (
+                                <span className="text-slate-500 flex items-center gap-1">
+                                  <EyeOff className="w-3.5 h-3.5" />
+                                  <span>OFF</span>
+                                </span>
+                              )}
+                            </button>
+                          </TableCell>
+                          <TableCell className="text-center py-3">
+                            <div className="inline-flex items-center gap-0.5 bg-slate-100 border border-slate-200 p-0.5 rounded-lg">
+                              <button
+                                type="button"
+                                disabled={idx === 0}
+                                onClick={() => moveHeroSlide(idx, 'up')}
+                                className="p-0.5 text-slate-600 hover:text-slate-900 disabled:opacity-30 cursor-pointer"
+                                title="Move Up"
+                              >
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                disabled={idx === heroSlides.length - 1}
+                                onClick={() => moveHeroSlide(idx, 'down')}
+                                className="p-0.5 text-slate-600 hover:text-slate-900 disabled:opacity-30 cursor-pointer"
+                                title="Move Down"
+                              >
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right space-x-1 whitespace-nowrap py-3">
+                            <Button
+                              variant="secondary"
+                              size="icon"
+                              onClick={() => openHeroModal(slide)}
+                              className="h-8 w-8 text-slate-600 hover:text-slate-900"
+                              title="Edit Hero Item"
+                            >
+                              <Edit className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              onClick={() => handleDeleteHeroSlide(slide.id)}
+                              className="h-8 w-8"
+                              title="Delete Hero Item"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </div>
             </Card>
           </div>
         </div>
