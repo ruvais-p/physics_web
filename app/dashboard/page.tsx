@@ -1,0 +1,2557 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  ShieldCheck,
+  LogOut,
+  Bell,
+  FlaskConical,
+  Plus,
+  Trash2,
+  Edit,
+  Eye,
+  EyeOff,
+  ExternalLink,
+  Search,
+  RefreshCw,
+  LayoutDashboard,
+  Users,
+  UserPlus,
+  Atom,
+  UserCheck,
+  KeyRound,
+  Lock,
+  CheckCircle2,
+  AlertCircle,
+  FileText,
+  GraduationCap,
+  Phone,
+  Globe,
+  BookOpen,
+  Share2,
+  Sparkles,
+  Upload,
+  FileCheck,
+  FilePlus,
+  Image as ImageIcon,
+  Download,
+  User,
+  Heading,
+  Bold,
+  Italic,
+  List,
+  Quote as QuoteIcon,
+  Code,
+  Link as LinkIcon,
+  Edit3,
+} from 'lucide-react';
+import AdminFacultyFullManageModal from '@/components/AdminFacultyFullManageModal';
+
+// Import Shadcn UI elements
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Switch } from '@/components/ui/switch';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+
+// Types for Admin View
+interface NotificationItem {
+  id: string;
+  title: string;
+  category: string;
+  link: string | null;
+  content: string | null;
+  isActive: boolean;
+  date: string;
+  createdAt: string;
+}
+
+interface FacultyItem {
+  id: string;
+  name: string;
+  email: string;
+  designation: string | null;
+  department: string | null;
+  mustChangePassword: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Types for Faculty View
+interface FacultyProfile {
+  id: string;
+  name: string;
+  email: string;
+  designation: string | null;
+  department: string | null;
+  mustChangePassword: boolean;
+  isActive: boolean;
+  phone?: string | null;
+}
+
+interface PredefinedPlatform {
+  key: string;
+  label: string;
+  placeholder: string;
+  badgeBg: string;
+  badgeText: string;
+}
+
+const PREDEFINED_PLATFORMS: PredefinedPlatform[] = [
+  {
+    key: 'google_scholar',
+    label: 'Google Scholar',
+    placeholder: 'https://scholar.google.com/citations?user=...',
+    badgeBg: 'bg-blue-500/10 border-blue-500/30',
+    badgeText: 'text-blue-400',
+  },
+  {
+    key: 'scopus',
+    label: 'Scopus',
+    placeholder: 'https://www.scopus.com/authid/detail.uri?authorId=...',
+    badgeBg: 'bg-[#FF6C00]/10 border-[#FF6C00]/30',
+    badgeText: 'text-[#FF8C33]',
+  },
+  {
+    key: 'orcid',
+    label: 'ORCID',
+    placeholder: 'https://orcid.org/0000-0000-0000-0000',
+    badgeBg: 'bg-[#A6CE39]/10 border-[#A6CE39]/30',
+    badgeText: 'text-[#BBE049]',
+  },
+  {
+    key: 'moodle',
+    label: 'Moodle',
+    placeholder: 'https://moodle.cusat.ac.in/...',
+    badgeBg: 'bg-[#F26522]/10 border-[#F26522]/30',
+    badgeText: 'text-[#FF7F42]',
+  },
+  {
+    key: 'iqac_profile',
+    label: 'IQAC Profile',
+    placeholder: 'https://iqac.cusat.ac.in/faculty/...',
+    badgeBg: 'bg-emerald-500/10 border-emerald-500/30',
+    badgeText: 'text-emerald-400',
+  },
+  {
+    key: 'iris',
+    label: 'IRIS',
+    placeholder: 'https://iris.cusat.ac.in/profile/...',
+    badgeBg: 'bg-purple-500/10 border-purple-500/30',
+    badgeText: 'text-purple-300',
+  },
+  {
+    key: 'youtube',
+    label: 'YouTube Channel',
+    placeholder: 'https://youtube.com/@channel',
+    badgeBg: 'bg-red-500/10 border-red-500/30',
+    badgeText: 'text-red-400',
+  },
+  {
+    key: 'personal_website',
+    label: 'Personal Website',
+    placeholder: 'https://www.mywebsite.com',
+    badgeBg: 'bg-cyan-500/10 border-cyan-500/30',
+    badgeText: 'text-cyan-400',
+  },
+  {
+    key: 'linkedin',
+    label: 'LinkedIn',
+    placeholder: 'https://linkedin.com/in/username',
+    badgeBg: 'bg-sky-500/10 border-sky-500/30',
+    badgeText: 'text-sky-400',
+  },
+];
+
+interface CustomProfileEntry {
+  id: string;
+  name: string;
+  url: string;
+}
+
+interface StudentItem {
+  uid: string;
+  facultyId: string;
+  name: string;
+  description: string | null;
+  image: string | null;
+  createdAt: string;
+}
+
+// Markdown Parser Helper Function for Faculty Description
+function renderMarkdown(md: string) {
+  if (!md || !md.trim()) {
+    return <p className="text-xs text-slate-500 italic">No professional description added yet.</p>;
+  }
+
+  const lines = md.split('\n');
+  const elements: React.ReactNode[] = [];
+  let currentList: { type: 'ul' | 'ol'; items: string[] } | null = null;
+
+  const flushList = () => {
+    if (currentList) {
+      if (currentList.type === 'ul') {
+        elements.push(
+          <ul key={`ul_${elements.length}`} className="list-disc ml-5 space-y-1.5 my-2 text-xs text-slate-300">
+            {currentList.items.map((item, idx) => (
+              <li key={idx}>{parseInlineMarkdown(item)}</li>
+            ))}
+          </ul>
+        );
+      } else {
+        elements.push(
+          <ol key={`ol_${elements.length}`} className="list-decimal ml-5 space-y-1.5 my-2 text-xs text-slate-300">
+            {currentList.items.map((item, idx) => (
+              <li key={idx}>{parseInlineMarkdown(item)}</li>
+            ))}
+          </ol>
+        );
+      }
+      currentList = null;
+    }
+  };
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      const itemText = trimmed.slice(2);
+      if (!currentList || currentList.type !== 'ul') {
+        flushList();
+        currentList = { type: 'ul', items: [itemText] };
+      } else {
+        currentList.items.push(itemText);
+      }
+      return;
+    }
+
+    if (/^\d+\.\s/.test(trimmed)) {
+      const itemText = trimmed.replace(/^\d+\.\s/, '');
+      if (!currentList || currentList.type !== 'ol') {
+        flushList();
+        currentList = { type: 'ol', items: [itemText] };
+      } else {
+        currentList.items.push(itemText);
+      }
+      return;
+    }
+
+    flushList();
+
+    if (!trimmed) {
+      elements.push(<div key={`br_${index}`} className="h-2" />);
+      return;
+    }
+
+    if (trimmed.startsWith('# ')) {
+      elements.push(
+        <h2 key={index} className="text-xl font-bold font-serif text-white mt-4 mb-2 border-b border-slate-700/60 pb-1">
+          {parseInlineMarkdown(trimmed.slice(2))}
+        </h2>
+      );
+    } else if (trimmed.startsWith('## ')) {
+      elements.push(
+        <h3 key={index} className="text-lg font-bold font-serif text-indigo-300 mt-3 mb-1.5">
+          {parseInlineMarkdown(trimmed.slice(3))}
+        </h3>
+      );
+    } else if (trimmed.startsWith('### ')) {
+      elements.push(
+        <h4 key={index} className="text-sm font-semibold uppercase tracking-wider text-cyan-400 mt-2.5 mb-1">
+          {parseInlineMarkdown(trimmed.slice(4))}
+        </h4>
+      );
+    } else if (trimmed.startsWith('> ')) {
+      elements.push(
+        <blockquote key={index} className="border-l-2 border-indigo-400 pl-3 py-1.5 text-slate-300 italic text-xs my-2 bg-indigo-500/10 rounded-r-lg">
+          {parseInlineMarkdown(trimmed.slice(2))}
+        </blockquote>
+      );
+    } else {
+      elements.push(
+        <p key={index} className="text-xs text-slate-300 leading-relaxed my-1">
+          {parseInlineMarkdown(trimmed)}
+        </p>
+      );
+    }
+  });
+
+  flushList();
+  return <div className="space-y-1 font-sans">{elements}</div>;
+}
+
+function parseInlineMarkdown(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let keyIdx = 0;
+
+  while (remaining) {
+    const linkMatch = remaining.match(/^([\s\S]*?)\[([^\]]+)\]\(([^)]+)\)([\s\S]*)$/);
+    if (linkMatch) {
+      const [, before, label, url, after] = linkMatch;
+      if (before) parts.push(parseFormatting(before, keyIdx++));
+      parts.push(
+        <a key={keyIdx++} href={url} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline font-medium inline-flex items-center gap-0.5">
+          <span>{label}</span>
+          <ExternalLink className="w-3 h-3 opacity-70" />
+        </a>
+      );
+      remaining = after;
+      continue;
+    }
+
+    parts.push(parseFormatting(remaining, keyIdx++));
+    break;
+  }
+
+  return parts;
+}
+
+function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
+  const elements: React.ReactNode[] = [];
+  const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      elements.push(text.substring(lastIndex, match.index));
+    }
+
+    if (match[1]) {
+      elements.push(<strong key={`${keyPrefix}_b_${match.index}`} className="font-bold text-white">{match[2]}</strong>);
+    } else if (match[3]) {
+      elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-200">{match[4]}</em>);
+    } else if (match[5]) {
+      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-800 text-indigo-300 px-1.5 py-0.5 rounded font-mono text-[11px]">{match[6]}</code>);
+    }
+
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    elements.push(text.substring(lastIndex));
+  }
+
+  return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
+}
+
+export default function UnifiedDashboardPage() {
+  const router = useRouter();
+
+  // Unified Session State
+  const [loadingSession, setLoadingSession] = useState(true);
+  const [role, setRole] = useState<'admin' | 'faculty' | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  // -------------------------------------------------------------
+  // ADMIN DASHBOARD STATES & HANDLERS
+  // -------------------------------------------------------------
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'notifications' | 'faculty'>('dashboard');
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [loadingNotifs, setLoadingNotifs] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingNotif, setEditingNotif] = useState<NotificationItem | null>(null);
+  const [formData, setFormData] = useState({
+    title: '',
+    category: 'General',
+    link: '',
+    isActive: true,
+  });
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const [facultyList, setFacultyList] = useState<FacultyItem[]>([]);
+  const [loadingFaculty, setLoadingFaculty] = useState(false);
+  const [facultySearchTerm, setFacultySearchTerm] = useState('');
+
+  const [isFacultyModalOpen, setIsFacultyModalOpen] = useState(false);
+  const [editingFaculty, setEditingFaculty] = useState<FacultyItem | null>(null);
+  const [facultyFormData, setFacultyFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+    designation: 'Faculty Member',
+    department: 'Department of Physics',
+    isActive: true,
+    newPredefinedPassword: '',
+  });
+  const [facultySaving, setFacultySaving] = useState(false);
+  const [facultyFormError, setFacultyFormError] = useState<string | null>(null);
+  const [fullManageFacultyId, setFullManageFacultyId] = useState<string | null>(null);
+
+  // -------------------------------------------------------------
+  // FACULTY DASHBOARD STATES & HANDLERS
+  // -------------------------------------------------------------
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
+
+  const [phone, setPhone] = useState('');
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Set<string>>(new Set());
+  const [platformUrls, setPlatformUrls] = useState<Record<string, string>>({});
+  const [otherProfiles, setOtherProfiles] = useState<CustomProfileEntry[]>([]);
+  const [isProfilesModalOpen, setIsProfilesModalOpen] = useState(false);
+  const [savingProfiles, setSavingProfiles] = useState(false);
+  const [profilesError, setProfilesError] = useState<string | null>(null);
+  const [profilesSuccess, setProfilesSuccess] = useState<string | null>(null);
+
+  const [imagePath, setImagePath] = useState<string | null>(null);
+  const [cvPath, setCvPath] = useState<string | null>(null);
+  const [isDocModalOpen, setIsDocModalOpen] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [selectedCvFile, setSelectedCvFile] = useState<File | null>(null);
+  const [uploadingDocs, setUploadingDocs] = useState(false);
+  const [docError, setDocError] = useState<string | null>(null);
+  const [docSuccess, setDocSuccess] = useState<string | null>(null);
+
+  const [markdownContent, setMarkdownContent] = useState('');
+  const [isDescModalOpen, setIsDescModalOpen] = useState(false);
+  const [descActiveTab, setDescActiveTab] = useState<'write' | 'preview'>('write');
+  const [savingDesc, setSavingDesc] = useState(false);
+  const [descError, setDescError] = useState<string | null>(null);
+  const [descSuccess, setDescSuccess] = useState<string | null>(null);
+
+  const [studentsList, setStudentsList] = useState<StudentItem[]>([]);
+  const [isStudentModalOpen, setIsStudentModalOpen] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<StudentItem | null>(null);
+  const [studentName, setStudentName] = useState('');
+  const [studentDescription, setStudentDescription] = useState('');
+  const [selectedStudentImageFile, setSelectedStudentImageFile] = useState<File | null>(null);
+  const [studentImagePreviewUrl, setStudentImagePreviewUrl] = useState<string | null>(null);
+  const [deleteStudentImageFlag, setDeleteStudentImageFlag] = useState(false);
+  const [savingStudent, setSavingStudent] = useState(false);
+  const [studentError, setStudentError] = useState<string | null>(null);
+  const [studentSuccess, setStudentSuccess] = useState<string | null>(null);
+
+  // -------------------------------------------------------------
+  // INITIAL SESSION FETCH
+  // -------------------------------------------------------------
+  useEffect(() => {
+    async function checkAuthSession() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (!res.ok) {
+          router.push('/login');
+          return;
+        }
+
+        const data = await res.json();
+        setRole(data.role);
+        setCurrentUser(data.user);
+
+        if (data.role === 'admin') {
+          fetchNotifications();
+          fetchFaculty();
+        } else if (data.role === 'faculty') {
+          fetchFacultySelfData(data.user);
+        }
+      } catch (err) {
+        console.error('Session check failed:', err);
+        router.push('/login');
+      } finally {
+        setLoadingSession(false);
+      }
+    }
+
+    checkAuthSession();
+  }, [router]);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/login');
+      router.refresh();
+    } catch {
+      setLoggingOut(false);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // ADMIN FETCH & HANDLERS
+  // -------------------------------------------------------------
+  const fetchNotifications = async () => {
+    setLoadingNotifs(true);
+    try {
+      const res = await fetch('/api/admin/notifications');
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err);
+    } finally {
+      setLoadingNotifs(false);
+    }
+  };
+
+  const fetchFaculty = async () => {
+    setLoadingFaculty(true);
+    try {
+      const res = await fetch('/api/admin/faculty');
+      if (res.ok) {
+        const data = await res.json();
+        setFacultyList(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch faculty:', err);
+    } finally {
+      setLoadingFaculty(false);
+    }
+  };
+
+  const openModal = (notif?: NotificationItem) => {
+    setFormError(null);
+    if (notif) {
+      setEditingNotif(notif);
+      setFormData({
+        title: notif.title,
+        category: notif.category || 'General',
+        link: notif.link || '',
+        isActive: notif.isActive,
+      });
+    } else {
+      setEditingNotif(null);
+      setFormData({
+        title: '',
+        category: 'General',
+        link: '',
+        isActive: true,
+      });
+    }
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditingNotif(null);
+  };
+
+  const handleSaveNotification = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title.trim()) {
+      setFormError('Title is required');
+      return;
+    }
+
+    setSaving(true);
+    setFormError(null);
+
+    try {
+      const url = editingNotif
+        ? `/api/admin/notifications/${editingNotif.id}`
+        : '/api/admin/notifications';
+      const method = editingNotif ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to save notification');
+      }
+
+      await fetchNotifications();
+      closeModal();
+    } catch (err: any) {
+      setFormError(err.message || 'An error occurred while saving.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const toggleActiveStatus = async (notif: NotificationItem) => {
+    try {
+      const res = await fetch(`/api/admin/notifications/${notif.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...notif,
+          isActive: !notif.isActive,
+        }),
+      });
+
+      if (res.ok) {
+        setNotifications((prev) =>
+          prev.map((item) =>
+            item.id === notif.id ? { ...item, isActive: !item.isActive } : item
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Failed to toggle active status:', err);
+    }
+  };
+
+  const handleDeleteNotification = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this notification?')) return;
+
+    try {
+      const res = await fetch(`/api/admin/notifications/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setNotifications((prev) => prev.filter((item) => item.id !== id));
+      }
+    } catch (err) {
+      console.error('Failed to delete notification:', err);
+    }
+  };
+
+  const openFacultyModal = (faculty?: FacultyItem) => {
+    setFacultyFormError(null);
+    if (faculty) {
+      setEditingFaculty(faculty);
+      setFacultyFormData({
+        name: faculty.name,
+        email: faculty.email,
+        password: '',
+        designation: faculty.designation || 'Faculty Member',
+        department: faculty.department || 'Department of Physics',
+        isActive: faculty.isActive,
+        newPredefinedPassword: '',
+      });
+    } else {
+      setEditingFaculty(null);
+      setFacultyFormData({
+        name: '',
+        email: '',
+        password: '',
+        designation: 'Professor',
+        department: 'Department of Physics',
+        isActive: true,
+        newPredefinedPassword: '',
+      });
+    }
+    setIsFacultyModalOpen(true);
+  };
+
+  const closeFacultyModal = () => {
+    setIsFacultyModalOpen(false);
+    setEditingFaculty(null);
+  };
+
+  const handleFacultySave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFacultyFormError(null);
+
+    if (!facultyFormData.name.trim()) {
+      setFacultyFormError('Faculty Name is required');
+      return;
+    }
+
+    if (!facultyFormData.email.trim()) {
+      setFacultyFormError('Faculty Email is required');
+      return;
+    }
+
+    if (!editingFaculty && (!facultyFormData.password || facultyFormData.password.length < 6)) {
+      setFacultyFormError('Predefined Password must be at least 6 characters long');
+      return;
+    }
+
+    setFacultySaving(true);
+
+    try {
+      const url = editingFaculty
+        ? `/api/admin/faculty/${editingFaculty.id}`
+        : '/api/admin/faculty';
+      const method = editingFaculty ? 'PUT' : 'POST';
+
+      const payload: any = {
+        name: facultyFormData.name,
+        email: facultyFormData.email,
+        designation: facultyFormData.designation,
+        department: facultyFormData.department,
+        isActive: facultyFormData.isActive,
+      };
+
+      if (!editingFaculty) {
+        payload.password = facultyFormData.password;
+      } else if (facultyFormData.newPredefinedPassword) {
+        payload.newPredefinedPassword = facultyFormData.newPredefinedPassword;
+      }
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to save faculty record');
+      }
+
+      await fetchFaculty();
+      closeFacultyModal();
+    } catch (err: any) {
+      setFacultyFormError(err.message || 'An error occurred while saving faculty account.');
+    } finally {
+      setFacultySaving(false);
+    }
+  };
+
+  const toggleFacultyStatus = async (faculty: FacultyItem) => {
+    try {
+      const res = await fetch(`/api/admin/faculty/${faculty.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isActive: !faculty.isActive,
+        }),
+      });
+
+      if (res.ok) {
+        setFacultyList((prev) =>
+          prev.map((item) =>
+            item.id === faculty.id ? { ...item, isActive: !item.isActive } : item
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Failed to toggle faculty active status:', err);
+    }
+  };
+
+  const handleDeleteFaculty = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this faculty account record?')) return;
+
+    try {
+      const res = await fetch(`/api/admin/faculty/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setFacultyList((prev) => prev.filter((item) => item.id !== id));
+      }
+    } catch (err) {
+      console.error('Failed to delete faculty record:', err);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // FACULTY FETCH & HANDLERS
+  // -------------------------------------------------------------
+  const fetchFacultySelfData = async (userData?: any) => {
+    try {
+      const [profileRes, docRes, descRes, studentsRes] = await Promise.all([
+        fetch('/api/faculty/profile'),
+        fetch('/api/faculty/documents'),
+        fetch('/api/faculty/description'),
+        fetch('/api/faculty/students'),
+      ]);
+
+      if (userData?.mustChangePassword) {
+        setShowPasswordModal(true);
+      }
+
+      if (profileRes.ok) {
+        const pData = await profileRes.json();
+        setPhone(pData.phone || userData?.phone || '');
+
+        const profs = pData.profiles || {};
+        const sel = new Set<string>();
+        const urls: Record<string, string> = {};
+
+        PREDEFINED_PLATFORMS.forEach((p) => {
+          if (profs[p.key]) {
+            sel.add(p.key);
+            urls[p.key] = profs[p.key];
+          }
+        });
+
+        setSelectedPlatforms(sel);
+        setPlatformUrls(urls);
+
+        if (Array.isArray(profs.other)) {
+          setOtherProfiles(
+            profs.other.map((item: any, idx: number) => ({
+              id: `custom_${idx}_${Date.now()}`,
+              name: item.name || '',
+              url: item.url || '',
+            }))
+          );
+        } else {
+          setOtherProfiles([]);
+        }
+      }
+
+      if (docRes.ok) {
+        const dData = await docRes.json();
+        setImagePath(dData.image || null);
+        setCvPath(dData.cv || null);
+      }
+
+      if (descRes.ok) {
+        const descData = await descRes.json();
+        setMarkdownContent(descData.description || '');
+      }
+
+      if (studentsRes.ok) {
+        const stData = await studentsRes.json();
+        setStudentsList(stData);
+      }
+    } catch (err) {
+      console.error('Failed to load faculty self data:', err);
+    }
+  };
+
+  const handlePasswordChangeSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordError(null);
+    setPasswordSuccess(null);
+
+    if (newPassword.length < 6) {
+      setPasswordError('New password must be at least 6 characters long.');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('New password and confirm password do not match.');
+      return;
+    }
+
+    setChangingPassword(true);
+
+    try {
+      const res = await fetch('/api/faculty/change-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newPassword, confirmPassword }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update password.');
+      }
+
+      setPasswordSuccess('Password updated successfully! Your account is now secure.');
+      setCurrentUser((prev: any) => (prev ? { ...prev, mustChangePassword: false } : null));
+
+      setTimeout(() => {
+        setShowPasswordModal(false);
+        setPasswordSuccess(null);
+      }, 1500);
+    } catch (err: any) {
+      setPasswordError(err.message || 'An error occurred.');
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const togglePlatform = (key: string) => {
+    const next = new Set(selectedPlatforms);
+    if (next.has(key)) {
+      next.delete(key);
+    } else {
+      next.add(key);
+    }
+    setSelectedPlatforms(next);
+  };
+
+  const handleUrlChange = (key: string, value: string) => {
+    setPlatformUrls((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const addCustomProfile = () => {
+    setOtherProfiles((prev) => [
+      ...prev,
+      { id: `custom_${Date.now()}`, name: '', url: '' },
+    ]);
+  };
+
+  const updateCustomProfile = (id: string, field: 'name' | 'url', value: string) => {
+    setOtherProfiles((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item))
+    );
+  };
+
+  const removeCustomProfile = (id: string) => {
+    setOtherProfiles((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleSaveProfiles = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProfilesError(null);
+    setProfilesSuccess(null);
+    setSavingProfiles(true);
+
+    try {
+      const profilesPayload: Record<string, any> = {};
+
+      selectedPlatforms.forEach((key) => {
+        const urlVal = (platformUrls[key] || '').trim();
+        if (urlVal) {
+          profilesPayload[key] = urlVal;
+        }
+      });
+
+      const validOther = otherProfiles
+        .map((op) => ({ name: op.name.trim(), url: op.url.trim() }))
+        .filter((op) => op.name && op.url);
+
+      if (validOther.length > 0) {
+        profilesPayload.other = validOther;
+      }
+
+      const res = await fetch('/api/faculty/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: phone.trim(),
+          profiles: profilesPayload,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update contact & public profiles.');
+      }
+
+      setProfilesSuccess('Contact details and public profiles updated successfully!');
+      setTimeout(() => {
+        setIsProfilesModalOpen(false);
+        setProfilesSuccess(null);
+      }, 1500);
+    } catch (err: any) {
+      setProfilesError(err.message || 'An error occurred while saving profiles.');
+    } finally {
+      setSavingProfiles(false);
+    }
+  };
+
+  const handleImageFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDocError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      setDocError('Invalid image type. Please select a JPG, PNG, or WebP file.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setDocError('Image file size exceeds the 5MB limit.');
+      return;
+    }
+
+    setSelectedImageFile(file);
+    setImagePreviewUrl(URL.createObjectURL(file));
+  };
+
+  const handleCvFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDocError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
+      setDocError('Invalid CV document format. Only PDF files are allowed.');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      setDocError('CV file size exceeds the 10MB limit.');
+      return;
+    }
+
+    setSelectedCvFile(file);
+  };
+
+  const handleSaveDocuments = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDocError(null);
+    setDocSuccess(null);
+
+    if (!selectedImageFile && !selectedCvFile) {
+      setDocError('Please select a profile image or CV PDF file to upload.');
+      return;
+    }
+
+    setUploadingDocs(true);
+
+    try {
+      const formData = new FormData();
+      if (selectedImageFile) formData.append('image', selectedImageFile);
+      if (selectedCvFile) formData.append('cv', selectedCvFile);
+
+      const res = await fetch('/api/faculty/documents', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to upload documents.');
+      }
+
+      setImagePath(data.image || imagePath);
+      setCvPath(data.cv || cvPath);
+      setSelectedImageFile(null);
+      setImagePreviewUrl(null);
+      setSelectedCvFile(null);
+
+      setDocSuccess('Professional documents uploaded and saved successfully!');
+      setTimeout(() => {
+        setIsDocModalOpen(false);
+        setDocSuccess(null);
+      }, 1500);
+    } catch (err: any) {
+      setDocError(err.message || 'An error occurred during file upload.');
+    } finally {
+      setUploadingDocs(false);
+    }
+  };
+
+  const handleDeleteDocument = async (type: 'image' | 'cv') => {
+    const typeLabel = type === 'image' ? 'profile image' : 'CV document';
+    if (!confirm(`Are you sure you want to delete your current ${typeLabel}?`)) return;
+
+    setDocError(null);
+    setDocSuccess(null);
+
+    try {
+      const res = await fetch(`/api/faculty/documents?type=${type}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || `Failed to delete ${typeLabel}.`);
+      }
+
+      if (type === 'image') {
+        setImagePath(null);
+        setSelectedImageFile(null);
+        setImagePreviewUrl(null);
+      } else {
+        setCvPath(null);
+        setSelectedCvFile(null);
+      }
+
+      setDocSuccess(`Successfully deleted ${typeLabel}.`);
+      setTimeout(() => setDocSuccess(null), 2000);
+    } catch (err: any) {
+      setDocError(err.message || `Failed to delete ${typeLabel}.`);
+    }
+  };
+
+  const insertMarkdownSyntax = (prefix: string, suffix: string = '') => {
+    const textarea = document.getElementById('markdown-editor-textarea') as HTMLTextAreaElement | null;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const currentText = textarea.value;
+    const selectedText = currentText.substring(start, end) || 'text';
+
+    const replacement = `${prefix}${selectedText}${suffix}`;
+    const newText = currentText.substring(0, start) + replacement + currentText.substring(end);
+
+    setMarkdownContent(newText);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + prefix.length, start + prefix.length + selectedText.length);
+    }, 50);
+  };
+
+  const handleSaveDescription = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setDescError(null);
+    setDescSuccess(null);
+    setSavingDesc(true);
+
+    try {
+      const res = await fetch('/api/faculty/description', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: markdownContent }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save professional description.');
+      }
+
+      setDescSuccess('Professional description updated and saved successfully!');
+      setTimeout(() => {
+        setIsDescModalOpen(false);
+        setDescSuccess(null);
+      }, 1500);
+    } catch (err: any) {
+      setDescError(err.message || 'An error occurred while saving description.');
+    } finally {
+      setSavingDesc(false);
+    }
+  };
+
+  const handleStudentImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setStudentError(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      setStudentError('Invalid image type. Please select a JPG, PNG, or WebP file.');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setStudentError('Student image file size exceeds the 5MB limit.');
+      return;
+    }
+
+    setSelectedStudentImageFile(file);
+    setStudentImagePreviewUrl(URL.createObjectURL(file));
+    setDeleteStudentImageFlag(false);
+  };
+
+  const openStudentModal = (student?: StudentItem) => {
+    setStudentError(null);
+    setStudentSuccess(null);
+    if (student) {
+      setEditingStudent(student);
+      setStudentName(student.name);
+      setStudentDescription(student.description || '');
+      setSelectedStudentImageFile(null);
+      setStudentImagePreviewUrl(student.image || null);
+      setDeleteStudentImageFlag(false);
+    } else {
+      setEditingStudent(null);
+      setStudentName('');
+      setStudentDescription('');
+      setSelectedStudentImageFile(null);
+      setStudentImagePreviewUrl(null);
+      setDeleteStudentImageFlag(false);
+    }
+    setIsStudentModalOpen(true);
+  };
+
+  const closeStudentModal = () => {
+    setIsStudentModalOpen(false);
+    setEditingStudent(null);
+    setSelectedStudentImageFile(null);
+    setStudentImagePreviewUrl(null);
+  };
+
+  const handleSaveStudent = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setStudentError(null);
+    setStudentSuccess(null);
+
+    if (!studentName.trim()) {
+      setStudentError('Student name is required.');
+      return;
+    }
+
+    setSavingStudent(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('name', studentName.trim());
+      formData.append('description', studentDescription.trim());
+
+      if (selectedStudentImageFile) {
+        formData.append('image', selectedStudentImageFile);
+      }
+
+      if (deleteStudentImageFlag) {
+        formData.append('deleteImage', 'true');
+      }
+
+      const url = editingStudent
+        ? `/api/faculty/students/${editingStudent.uid}`
+        : '/api/faculty/students';
+      const method = editingStudent ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save student record.');
+      }
+
+      setStudentSuccess(
+        editingStudent
+          ? 'Student research profile updated successfully!'
+          : 'Guided student record created successfully!'
+      );
+
+      const fetchStudentsRes = await fetch('/api/faculty/students');
+      if (fetchStudentsRes.ok) {
+        const stData = await fetchStudentsRes.json();
+        setStudentsList(stData);
+      }
+
+      setTimeout(() => {
+        closeStudentModal();
+        setStudentSuccess(null);
+      }, 1200);
+    } catch (err: any) {
+      setStudentError(err.message || 'An error occurred while saving student profile.');
+    } finally {
+      setSavingStudent(false);
+    }
+  };
+
+  const handleDeleteStudent = async (uid: string) => {
+    if (!confirm('Are you sure you want to remove this guided student from your profile?')) return;
+
+    try {
+      const res = await fetch(`/api/faculty/students/${uid}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        setStudentsList((prev) => prev.filter((s) => s.uid !== uid));
+      }
+    } catch (err) {
+      console.error('Failed to delete student:', err);
+    }
+  };
+
+  // -------------------------------------------------------------
+  // RENDER LOADING STATE
+  // -------------------------------------------------------------
+  if (loadingSession) {
+    return (
+      <div className="min-h-screen bg-[#faf7f2] flex flex-col items-center justify-center space-y-4 font-serif text-slate-800">
+        <div className="w-12 h-12 border-4 border-oxford border-t-transparent rounded-full animate-spin" />
+        <p className="text-lg font-semibold text-oxford">Verifying Session & Loading Dashboard...</p>
+      </div>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // RENDER ADMIN DASHBOARD (IF ROLE IS ADMIN)
+  // -------------------------------------------------------------
+  if (role === 'admin') {
+    const filteredNotifs = notifications.filter(
+      (n) =>
+        n.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        n.category.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const filteredFaculty = facultyList.filter(
+      (f) =>
+        f.name.toLowerCase().includes(facultySearchTerm.toLowerCase()) ||
+        f.email.toLowerCase().includes(facultySearchTerm.toLowerCase()) ||
+        (f.designation && f.designation.toLowerCase().includes(facultySearchTerm.toLowerCase()))
+    );
+
+    return (
+      <Tabs value={adminTab} onValueChange={(val) => setAdminTab(val as any)} className="min-h-screen bg-[#faf7f2] text-slate-900 flex flex-col font-serif selection:bg-oxford selection:text-white">
+        {/* Top Navbar */}
+        <header className="bg-oxford border-b border-[#001833] px-6 py-6 flex items-center justify-between shadow-lg sticky top-0 z-40">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-white font-serif">Department Management Portal</h1>
+                <Badge className="bg-cyan-accent text-oxford font-sans font-bold uppercase tracking-wide text-[10px] px-2 py-0.5 rounded">
+                  Admin Role
+                </Badge>
+              </div>
+              <p className="text-sm text-indigo-200">{currentUser?.email || 'System Admin'}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Navigation Tabs */}
+            <TabsList className="bg-oxford-dark/80 p-1 rounded-xl border border-indigo-950/40 text-sm font-semibold text-slate-300">
+              <TabsTrigger
+                value="dashboard"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all cursor-pointer text-sm text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Overview</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="notifications"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all cursor-pointer text-sm text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford"
+              >
+                <Bell className="w-4 h-4" />
+                <span>Notifications ({notifications.length})</span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="faculty"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all cursor-pointer text-sm text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford"
+              >
+                <Users className="w-4 h-4" />
+                <span>Faculty Accounts ({facultyList.length})</span>
+              </TabsTrigger>
+            </TabsList>
+
+            <Button
+              variant="destructive"
+              size="default"
+              onClick={handleLogout}
+              disabled={loggingOut}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-500 border-none text-white transition-all cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
+            </Button>
+          </div>
+        </header>
+
+        {/* Main Content Area */}
+        <main className="flex-1 max-w-7xl w-full mx-auto px-6 pt-12 pb-8 space-y-12">
+          {/* OVERVIEW TAB */}
+          <TabsContent value="dashboard" className="space-y-12 animate-fadeIn mt-0">
+            <Card className="bg-transparent border-none rounded-none p-0 shadow-none relative overflow-visible">
+              <CardContent className="p-0">
+                <CardTitle className="text-3xl font-bold font-serif text-slate-900 leading-none mb-2">Welcome, Administrator ({currentUser?.name || 'Admin'})</CardTitle>
+                <CardDescription className="text-slate-600 text-base mt-1">
+                  Manage department announcements, faculty member accounts, and research profiles in real time.
+                </CardDescription>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-12 h-12 rounded-xl bg-cyan-accent/10 text-cyan-accent border border-cyan-accent/20 flex items-center justify-center">
+                      <Bell className="w-6 h-6" />
+                    </div>
+                    <span className="text-3xl font-extrabold text-cyan-accent">
+                      {notifications.length}
+                    </span>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Notifications & Notices</CardTitle>
+                  <CardDescription className="text-base text-slate-600 leading-normal">
+                    Post department announcements, seminar dates, and urgent student alerts to the marquee ticker.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('notifications')}
+                  className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Manage Notifications</span>
+                </Button>
+              </Card>
+
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-12 h-12 rounded-xl bg-oxford/10 text-oxford border border-oxford/20 flex items-center justify-center">
+                      <Users className="w-6 h-6" />
+                    </div>
+                    <span className="text-3xl font-extrabold text-oxford">
+                      {facultyList.length}
+                    </span>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Faculty Member Accounts</CardTitle>
+                  <CardDescription className="text-base text-slate-600 leading-normal">
+                    Create faculty logins (Email + Predefined Password), monitor password status, and edit profiles.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('faculty')}
+                  className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>Manage Faculty Accounts</span>
+                </Button>
+              </Card>
+
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none opacity-75">
+                <CardContent className="p-0 space-y-3">
+                  <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 border border-purple-200 flex items-center justify-center">
+                    <FlaskConical className="w-6 h-6" />
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Research Labs</CardTitle>
+                  <CardDescription className="text-base text-slate-600 leading-normal">
+                    Update lab equipment inventory, faculty heads, and research focus areas.
+                  </CardDescription>
+                </CardContent>
+                <Button disabled variant="secondary" className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 cursor-not-allowed">
+                  <span>Coming Soon</span>
+                </Button>
+              </Card>
+            </div>
+          </TabsContent>
+
+          {/* NOTIFICATIONS TAB */}
+          <TabsContent value="notifications" className="space-y-10 animate-fadeIn mt-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-transparent py-2 rounded-none shadow-none">
+              <div>
+                <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                  <Bell className="w-7 h-7 text-cyan-accent" />
+                  <span>Notifications Management</span>
+                </h2>
+                <p className="text-slate-600 text-base mt-1">
+                  Active notifications are broadcasted to the home page marquee ticker.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={fetchNotifications}
+                  className="h-11 w-11 text-slate-700 hover:text-slate-950"
+                  title="Refresh List"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingNotifs ? 'animate-spin' : ''}`} />
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => openModal()}
+                  className="flex items-center gap-2 py-3 px-5 font-semibold rounded-xl shadow-xs transition-all text-base cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Notification</span>
+                </Button>
+              </div>
+            </div>
+
+            <div className="relative">
+              <Search className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
+              <Input
+                type="text"
+                placeholder="Search by title or category..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-11 text-base h-12"
+              />
+            </div>
+
+            <div className="bg-transparent border-none overflow-visible shadow-none">
+              {loadingNotifs ? (
+                <div className="p-12 text-center text-slate-500 flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-2 border-oxford border-t-transparent rounded-full animate-spin" />
+                  <span>Loading notifications...</span>
+                </div>
+              ) : filteredNotifs.length === 0 ? (
+                <div className="p-12 text-center text-slate-500 space-y-3">
+                  <Bell className="w-10 h-10 mx-auto text-slate-400" />
+                  <p className="text-base font-semibold text-slate-800">No notifications found</p>
+                </div>
+              ) : (
+                <Table className="text-base">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-base font-bold">Status</TableHead>
+                      <TableHead className="text-base font-bold">Title</TableHead>
+                      <TableHead className="text-base font-bold">Category</TableHead>
+                      <TableHead className="text-base font-bold">Redirect Link</TableHead>
+                      <TableHead className="text-base font-bold">Date</TableHead>
+                      <TableHead className="text-right text-base font-bold">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredNotifs.map((notif) => (
+                      <TableRow key={notif.id} className="hover:bg-slate-50/40">
+                        <TableCell className="text-base py-4">
+                          <button
+                            type="button"
+                            className="flex items-center gap-1.5 font-bold text-base hover:underline focus:outline-none cursor-pointer transition-all"
+                            onClick={() => toggleActiveStatus(notif)}
+                          >
+                            {notif.isActive ? (
+                              <span className="text-emerald-600 flex items-center gap-1.5">
+                                <Eye className="w-4 h-4" />
+                                <span>Active</span>
+                              </span>
+                            ) : (
+                              <span className="text-slate-500 flex items-center gap-1.5">
+                                <EyeOff className="w-4 h-4" />
+                                <span>Inactive</span>
+                              </span>
+                            )}
+                          </button>
+                        </TableCell>
+                        <TableCell className="font-medium text-slate-900 max-w-md text-base py-4">
+                          <span className="line-clamp-2">{notif.title}</span>
+                        </TableCell>
+                        <TableCell className="text-base py-4">
+                          <span className="font-semibold text-base text-cyan-700">
+                            {notif.category}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-slate-600 text-base py-4">
+                          {notif.link ? (
+                            <a
+                              href={notif.link}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-base text-cyan-accent hover:underline max-w-[150px] truncate font-medium"
+                            >
+                              <span>{notif.link}</span>
+                              <ExternalLink className="w-3.5 h-3.5 shrink-0" />
+                            </a>
+                          ) : (
+                            <span className="text-base text-slate-400">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-base text-slate-600 whitespace-nowrap font-mono py-4">
+                          {new Date(notif.date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </TableCell>
+                        <TableCell className="text-right space-x-2 whitespace-nowrap py-4">
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={() => openModal(notif)}
+                            className="h-9 w-9 text-slate-600 hover:text-slate-900"
+                            title="Edit Notification"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => handleDeleteNotification(notif.id)}
+                            className="h-9 w-9"
+                            title="Delete Notification"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* FACULTY ACCOUNTS TAB */}
+          <TabsContent value="faculty" className="space-y-10 animate-fadeIn mt-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-transparent py-2 rounded-none shadow-none">
+              <div>
+                <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                  <Users className="w-7 h-7 text-oxford" />
+                  <span>Faculty Account Management</span>
+                </h2>
+                <p className="text-slate-600 text-base mt-1">
+                  Create faculty login accounts, specify predefined passwords, and manage profiles.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={fetchFaculty}
+                  className="h-11 w-11 text-slate-700 hover:text-slate-950"
+                  title="Refresh Faculty Records"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingFaculty ? 'animate-spin' : ''}`} />
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => openFacultyModal()}
+                  className="flex items-center gap-2 py-3 px-5 font-semibold rounded-xl shadow-xs transition-all text-base cursor-pointer"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span>Create Faculty Account</span>
+                </Button>
+              </div>
+            </div>
+
+            <div className="relative">
+              <Search className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
+              <Input
+                type="text"
+                placeholder="Search faculty by name, email, or designation..."
+                value={facultySearchTerm}
+                onChange={(e) => setFacultySearchTerm(e.target.value)}
+                className="pl-11 text-base h-12"
+              />
+            </div>
+
+            <div className="bg-transparent border-none overflow-visible shadow-none">
+              {loadingFaculty ? (
+                <div className="p-12 text-center text-slate-500 flex flex-col items-center gap-3">
+                  <div className="w-8 h-8 border-2 border-oxford border-t-transparent rounded-full animate-spin" />
+                  <span>Loading faculty member records...</span>
+                </div>
+              ) : filteredFaculty.length === 0 ? (
+                <div className="p-12 text-center text-slate-500 space-y-3">
+                  <Users className="w-10 h-10 mx-auto text-slate-400" />
+                  <p className="text-base font-semibold text-slate-800">No faculty accounts found</p>
+                </div>
+              ) : (
+                <Table className="text-base">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-base font-bold">Faculty Name & Title</TableHead>
+                      <TableHead className="text-base font-bold">Username / Email</TableHead>
+                      <TableHead className="text-base font-bold">Account Status</TableHead>
+                      <TableHead className="text-base font-bold">First-Time Login Status</TableHead>
+                      <TableHead className="text-base font-bold">Created On</TableHead>
+                      <TableHead className="text-right text-base font-bold">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredFaculty.map((faculty) => (
+                      <TableRow key={faculty.id} className="hover:bg-slate-50/40">
+                        <TableCell className="py-4">
+                          <div className="font-bold text-slate-900">{faculty.name}</div>
+                          <div className="text-sm text-slate-500 font-sans">{faculty.designation || 'Faculty Member'}</div>
+                        </TableCell>
+
+                        <TableCell className="font-mono text-sm text-slate-700 py-4">
+                          {faculty.email}
+                        </TableCell>
+
+                        <TableCell className="py-4">
+                          <button
+                            type="button"
+                            className="flex items-center gap-1.5 font-bold text-base hover:underline focus:outline-none cursor-pointer transition-all"
+                            onClick={() => toggleFacultyStatus(faculty)}
+                          >
+                            {faculty.isActive ? (
+                              <span className="text-emerald-600 flex items-center gap-1.5">
+                                <CheckCircle2 className="w-4 h-4" />
+                                <span>Active</span>
+                              </span>
+                            ) : (
+                              <span className="text-rose-500 flex items-center gap-1.5">
+                                <AlertCircle className="w-4 h-4" />
+                                <span>Disabled</span>
+                              </span>
+                            )}
+                          </button>
+                        </TableCell>
+
+                        <TableCell className="py-4">
+                          {faculty.mustChangePassword ? (
+                            <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-800 font-sans font-medium text-xs">
+                              Pending Password Reset
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-emerald-400 bg-emerald-50 text-emerald-800 font-sans font-medium text-xs">
+                              Password Set & Active
+                            </Badge>
+                          )}
+                        </TableCell>
+
+                        <TableCell className="text-base text-slate-600 whitespace-nowrap font-mono py-4">
+                          {new Date(faculty.createdAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </TableCell>
+
+                        <TableCell className="text-right space-x-2 whitespace-nowrap py-4">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setFullManageFacultyId(faculty.id)}
+                            className="bg-oxford/5 border-oxford/20 text-oxford hover:bg-oxford hover:text-white transition-all text-xs font-semibold px-3 py-1.5"
+                          >
+                            <Edit3 className="w-3.5 h-3.5 mr-1" />
+                            <span>Manage Profile</span>
+                          </Button>
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={() => openFacultyModal(faculty)}
+                            className="h-9 w-9 text-slate-600 hover:text-slate-900"
+                            title="Edit Account Credentials"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => handleDeleteFaculty(faculty.id)}
+                            className="h-9 w-9"
+                            title="Delete Faculty Account"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </TabsContent>
+        </main>
+
+        {/* ADMIN MODALS */}
+        {/* Notification Modal */}
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif">
+            <DialogHeader className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <DialogTitle className="text-xl font-bold text-slate-900 font-serif">
+                {editingNotif ? 'Edit Notification' : 'Create New Notification'}
+              </DialogTitle>
+            </DialogHeader>
+
+            <form onSubmit={handleSaveNotification} className="space-y-5 pt-4">
+              {formError && (
+                <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+                  {formError}
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Notification Title *</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. National Physics Seminar 2026 Registration Open"
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                  className="w-full text-base"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Category Tag</label>
+                <Select
+                  value={formData.category}
+                  onValueChange={(val) => setFormData({ ...formData, category: val })}
+                >
+                  <SelectTrigger className="w-full text-base">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="General">General</SelectItem>
+                    <SelectItem value="Admissions">Admissions</SelectItem>
+                    <SelectItem value="Research">Research & Conferences</SelectItem>
+                    <SelectItem value="Exams">Exams & Timetables</SelectItem>
+                    <SelectItem value="Events">Events & Workshops</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Destination Link (Optional)</label>
+                <Input
+                  type="url"
+                  placeholder="https://..."
+                  value={formData.link}
+                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                  className="w-full text-base font-mono text-sm"
+                />
+              </div>
+
+              <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div>
+                  <span className="text-sm font-bold text-slate-900 block">Display Status</span>
+                  <span className="text-xs text-slate-500">Show immediately in header ticker</span>
+                </div>
+                <Switch
+                  checked={formData.isActive}
+                  onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+                />
+              </div>
+
+              <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
+                <Button variant="outline" type="button" onClick={closeModal} className="px-4">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={saving} className="px-5 font-semibold">
+                  {saving ? 'Saving...' : editingNotif ? 'Update Notification' : 'Create Notification'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Faculty Modal */}
+        <Dialog open={isFacultyModalOpen} onOpenChange={setIsFacultyModalOpen}>
+          <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif">
+            <DialogHeader className="border-b border-slate-100 pb-4">
+              <DialogTitle className="text-xl font-bold text-slate-900 font-serif">
+                {editingFaculty ? 'Edit Faculty Credentials' : 'Register New Faculty Account'}
+              </DialogTitle>
+            </DialogHeader>
+
+            <form onSubmit={handleFacultySave} className="space-y-4 pt-4">
+              {facultyFormError && (
+                <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+                  {facultyFormError}
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Faculty Full Name *</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Dr. Ramesh Kumar"
+                  value={facultyFormData.name}
+                  onChange={(e) => setFacultyFormData({ ...facultyFormData, name: e.target.value })}
+                  className="w-full text-base"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Email Address (Username) *</label>
+                <Input
+                  type="email"
+                  placeholder="e.g. ramesh@cusat.ac.in"
+                  value={facultyFormData.email}
+                  onChange={(e) => setFacultyFormData({ ...facultyFormData, email: e.target.value })}
+                  className="w-full text-base font-mono"
+                />
+              </div>
+
+              {!editingFaculty ? (
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-slate-700">Predefined Initial Password *</label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. facultyPass123"
+                    value={facultyFormData.password}
+                    onChange={(e) => setFacultyFormData({ ...facultyFormData, password: e.target.value })}
+                    className="w-full text-base font-mono"
+                  />
+                  <p className="text-xs text-slate-500">
+                    Faculty will be forced to change this password on their first login.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-slate-700">Reset Predefined Password (Optional)</label>
+                  <Input
+                    type="text"
+                    placeholder="Leave empty to keep existing password"
+                    value={facultyFormData.newPredefinedPassword}
+                    onChange={(e) => setFacultyFormData({ ...facultyFormData, newPredefinedPassword: e.target.value })}
+                    className="w-full text-base font-mono"
+                  />
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-slate-700">Designation</label>
+                  <Input
+                    type="text"
+                    value={facultyFormData.designation}
+                    onChange={(e) => setFacultyFormData({ ...facultyFormData, designation: e.target.value })}
+                    className="w-full text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-slate-700">Department</label>
+                  <Input
+                    type="text"
+                    value={facultyFormData.department}
+                    onChange={(e) => setFacultyFormData({ ...facultyFormData, department: e.target.value })}
+                    className="w-full text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div>
+                  <span className="text-sm font-bold text-slate-900 block">Account Active</span>
+                  <span className="text-xs text-slate-500">Enable or disable login access</span>
+                </div>
+                <Switch
+                  checked={facultyFormData.isActive}
+                  onCheckedChange={(checked) => setFacultyFormData({ ...facultyFormData, isActive: checked })}
+                />
+              </div>
+
+              <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
+                <Button variant="outline" type="button" onClick={closeFacultyModal} className="px-4">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={facultySaving} className="px-5 font-semibold">
+                  {facultySaving ? 'Saving...' : editingFaculty ? 'Update Account' : 'Register Account'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Full Faculty Profile Management Modal */}
+        {fullManageFacultyId && (
+          <AdminFacultyFullManageModal
+            facultyId={fullManageFacultyId}
+            isOpen={!!fullManageFacultyId}
+            onClose={() => setFullManageFacultyId(null)}
+            onFacultyUpdated={fetchFaculty}
+          />
+        )}
+      </Tabs>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // RENDER FACULTY DASHBOARD (IF ROLE IS FACULTY)
+  // -------------------------------------------------------------
+  return (
+    <div className="min-h-screen bg-[#faf7f2] text-slate-900 flex flex-col font-serif selection:bg-oxford selection:text-white">
+      {/* Top Navbar */}
+      <header className="bg-oxford border-b border-[#001833] px-6 py-6 flex items-center justify-between shadow-lg sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent">
+            <Atom className="w-6 h-6 animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-white font-serif">Faculty Member Portal</h1>
+              <Badge className="bg-cyan-accent text-oxford font-sans font-bold uppercase tracking-wide text-[10px] px-2 py-0.5 rounded">
+                Faculty Role
+              </Badge>
+            </div>
+            <p className="text-sm text-indigo-200">{currentUser?.name} ({currentUser?.email})</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="default"
+            onClick={() => setShowPasswordModal(true)}
+            className="bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center gap-2 text-sm font-semibold rounded-xl"
+          >
+            <KeyRound className="w-4 h-4 text-cyan-accent" />
+            <span>Change Password</span>
+          </Button>
+
+          <Button
+            variant="destructive"
+            size="default"
+            onClick={handleLogout}
+            disabled={loggingOut}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-500 border-none text-white transition-all cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
+          </Button>
+        </div>
+      </header>
+
+      {/* Main Content Area */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-6 pt-12 pb-8 space-y-12">
+        {/* Welcome Header */}
+        <Card className="bg-transparent border-none rounded-none p-0 shadow-none relative overflow-visible flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <CardContent className="p-0 space-y-1">
+            <CardTitle className="text-3xl font-bold font-serif text-slate-900 leading-none">
+              Welcome back, {currentUser?.name}
+            </CardTitle>
+            <CardDescription className="text-slate-600 text-base mt-1">
+              {currentUser?.designation || 'Faculty Member'} • {currentUser?.department || 'Department of Physics'}
+            </CardDescription>
+          </CardContent>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="default"
+              size="default"
+              onClick={() => setIsProfilesModalOpen(true)}
+              className="py-3 px-4 rounded-xl text-sm font-semibold flex items-center gap-2 cursor-pointer shadow-xs"
+            >
+              <Globe className="w-4 h-4" />
+              <span>Contact & Profiles</span>
+            </Button>
+            <Button
+              variant="default"
+              size="default"
+              onClick={() => setIsDocModalOpen(true)}
+              className="py-3 px-4 rounded-xl text-sm font-semibold flex items-center gap-2 cursor-pointer shadow-xs"
+            >
+              <Upload className="w-4 h-4" />
+              <span>Upload Photo / CV</span>
+            </Button>
+            <Button
+              variant="default"
+              size="default"
+              onClick={() => setIsDescModalOpen(true)}
+              className="py-3 px-4 rounded-xl text-sm font-semibold flex items-center gap-2 cursor-pointer shadow-xs"
+            >
+              <Edit3 className="w-4 h-4" />
+              <span>Edit Markdown Bio</span>
+            </Button>
+          </div>
+        </Card>
+
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+          {/* Left Column: Personal Profile & Links */}
+          <div className="space-y-8">
+            {/* Profile Photo & Documents Card */}
+            <Card className="bg-transparent border-none rounded-none p-0 shadow-none space-y-4">
+              <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                <FileCheck className="w-5 h-5 text-cyan-700" />
+                <span>Documents & Media</span>
+              </h3>
+
+              <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+                <div className="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-slate-500">
+                  {imagePath ? (
+                    <img src={imagePath} alt={currentUser?.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-8 h-8" />
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <p className="text-sm font-bold text-slate-900">Profile Photo</p>
+                  <p className="text-xs text-slate-500">
+                    {imagePath ? 'Uploaded & Active' : 'No custom photo uploaded'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-oxford" />
+                  <span className="text-sm text-slate-800 font-medium">Curriculum Vitae (PDF)</span>
+                </div>
+                {cvPath ? (
+                  <a
+                    href={cvPath}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm text-cyan-accent hover:underline flex items-center gap-1 font-semibold"
+                  >
+                    <span>View CV</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                ) : (
+                  <span className="text-xs text-slate-400 italic">Not uploaded</span>
+                )}
+              </div>
+            </Card>
+
+            {/* Public Links Card */}
+            <Card className="bg-transparent border-none rounded-none p-0 shadow-none space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-oxford" />
+                  <span>Public Profiles ({selectedPlatforms.size})</span>
+                </h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsProfilesModalOpen(true)}
+                  className="h-8 text-xs font-semibold text-oxford border-oxford/20 hover:bg-oxford hover:text-white"
+                >
+                  Edit Links
+                </Button>
+              </div>
+
+              {selectedPlatforms.size === 0 && otherProfiles.length === 0 ? (
+                <p className="text-sm text-slate-500 italic">No academic links configured yet.</p>
+              ) : (
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {Array.from(selectedPlatforms).map((key) => {
+                    const platform = PREDEFINED_PLATFORMS.find((p) => p.key === key);
+                    if (!platform || !platformUrls[key]) return null;
+                    return (
+                      <a
+                        key={key}
+                        href={platformUrls[key]}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-white font-semibold text-oxford flex items-center gap-1.5 shadow-xs hover:border-oxford transition-all"
+                      >
+                        <span>{platform.label}</span>
+                        <ExternalLink className="w-3 h-3 text-cyan-700" />
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
+            </Card>
+          </div>
+
+          {/* Right Column: Markdown Description & Guided Students */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Markdown Description */}
+            <Card className="bg-transparent border-none rounded-none p-0 shadow-none space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-cyan-accent" />
+                  <span>Professional Overview & Research Interests</span>
+                </h3>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsDescModalOpen(true)}
+                  className="h-8 border-oxford/20 text-oxford hover:bg-oxford hover:text-white text-xs font-semibold"
+                >
+                  <Edit3 className="w-3.5 h-3.5 mr-1" />
+                  <span>Edit Description</span>
+                </Button>
+              </div>
+
+              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs text-sm text-slate-800 leading-relaxed font-sans">
+                {renderMarkdown(markdownContent)}
+              </div>
+            </Card>
+
+            {/* Guided Students */}
+            <Card className="bg-transparent border-none rounded-none p-0 shadow-none space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div className="space-y-0.5">
+                  <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                    <GraduationCap className="w-5 h-5 text-oxford" />
+                    <span>Guided Scholars & Students ({studentsList.length})</span>
+                  </h3>
+                  <p className="text-xs text-slate-500">Ph.D., M.Phil, and Master research scholars</p>
+                </div>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => openStudentModal()}
+                  className="h-9 px-4 font-semibold text-xs rounded-xl"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  <span>Add Scholar</span>
+                </Button>
+              </div>
+
+              {studentsList.length === 0 ? (
+                <div className="p-8 text-center text-slate-500 space-y-2 bg-white rounded-2xl border border-slate-200">
+                  <GraduationCap className="w-8 h-8 mx-auto text-slate-400" />
+                  <p className="text-sm font-semibold text-slate-700">No guided students listed yet.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {studentsList.map((st) => (
+                    <div key={st.uid} className="bg-white border border-slate-200 p-4 rounded-2xl flex items-start gap-3 relative group shadow-xs">
+                      <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
+                        {st.image ? (
+                          <img src={st.image} alt={st.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <User className="w-full h-full p-2 text-slate-400" />
+                        )}
+                      </div>
+                      <div className="space-y-1 flex-1 pr-6 font-serif">
+                        <p className="text-base font-bold text-slate-900">{st.name}</p>
+                        <p className="text-xs text-slate-600 line-clamp-2 font-sans">{st.description || 'Research Scholar'}</p>
+                      </div>
+                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1">
+                        <button
+                          onClick={() => openStudentModal(st)}
+                          className="p-1 text-slate-500 hover:text-slate-900"
+                          title="Edit Student"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteStudent(st.uid)}
+                          className="p-1 text-rose-600 hover:text-rose-700"
+                          title="Delete Student"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
+          </div>
+        </div>
+      </main>
+
+      {/* FACULTY MODALS (LIGHT WARM THEME) */}
+      {/* Change Password Modal */}
+      <Dialog open={showPasswordModal} onOpenChange={setShowPasswordModal}>
+        <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900">
+          <DialogHeader className="border-b border-slate-100 pb-4">
+            <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
+              <Lock className="w-5 h-5 text-oxford" />
+              <span>Change Account Password</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handlePasswordChangeSubmit} className="space-y-4 pt-4">
+            {passwordError && (
+              <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+                <span>{passwordError}</span>
+              </div>
+            )}
+            {passwordSuccess && (
+              <div className="p-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+                <span>{passwordSuccess}</span>
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">New Password *</label>
+              <Input
+                type="password"
+                placeholder="At least 6 characters"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full text-base"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">Confirm New Password *</label>
+              <Input
+                type="password"
+                placeholder="Re-enter new password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full text-base"
+              />
+            </div>
+
+            <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
+              {!currentUser?.mustChangePassword && (
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  className="px-4"
+                >
+                  Cancel
+                </Button>
+              )}
+              <Button type="submit" disabled={changingPassword} className="px-5 font-semibold">
+                {changingPassword ? 'Updating...' : 'Update Password'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Profiles Modal */}
+      <Dialog open={isProfilesModalOpen} onOpenChange={setIsProfilesModalOpen}>
+        <DialogContent className="max-w-xl bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="border-b border-slate-100 pb-4">
+            <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
+              <Globe className="w-5 h-5 text-oxford" />
+              <span>Contact Info & Academic Profiles</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveProfiles} className="space-y-5 pt-4">
+            {profilesError && (
+              <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+                {profilesError}
+              </div>
+            )}
+            {profilesSuccess && (
+              <div className="p-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
+                {profilesSuccess}
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">Office Phone / Contact Number</label>
+              <Input
+                type="text"
+                placeholder="+91 484 2575500"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full text-base font-mono"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <label className="text-sm font-bold text-slate-700 block">Select Academic Platforms</label>
+              <div className="grid grid-cols-2 gap-2">
+                {PREDEFINED_PLATFORMS.map((p) => {
+                  const isSel = selectedPlatforms.has(p.key);
+                  return (
+                    <button
+                      key={p.key}
+                      type="button"
+                      onClick={() => togglePlatform(p.key)}
+                      className={`p-3 rounded-xl border text-left text-xs transition-all font-sans font-medium ${
+                        isSel
+                          ? 'bg-oxford/10 border-oxford text-oxford font-bold'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
+                      }`}
+                    >
+                      {p.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {Array.from(selectedPlatforms).map((key) => {
+                const platform = PREDEFINED_PLATFORMS.find((p) => p.key === key);
+                if (!platform) return null;
+                return (
+                  <div key={key} className="space-y-1 pt-1">
+                    <label className="text-xs font-bold text-slate-700">{platform.label} URL</label>
+                    <Input
+                      type="url"
+                      placeholder={platform.placeholder}
+                      value={platformUrls[key] || ''}
+                      onChange={(e) => handleUrlChange(key, e.target.value)}
+                      className="w-full text-sm font-mono"
+                    />
+                  </div>
+                );
+              })}
+            </div>
+
+            <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
+              <Button variant="outline" type="button" onClick={() => setIsProfilesModalOpen(false)} className="px-4">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={savingProfiles} className="px-5 font-semibold">
+                {savingProfiles ? 'Saving...' : 'Save Profiles'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Document Upload Modal */}
+      <Dialog open={isDocModalOpen} onOpenChange={setIsDocModalOpen}>
+        <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900">
+          <DialogHeader className="border-b border-slate-100 pb-4">
+            <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
+              <Upload className="w-5 h-5 text-oxford" />
+              <span>Upload Photo & Curriculum Vitae</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveDocuments} className="space-y-4 pt-4">
+            {docError && (
+              <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+                {docError}
+              </div>
+            )}
+            {docSuccess && (
+              <div className="p-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
+                {docSuccess}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Profile Photo (JPG, PNG, WebP &lt; 5MB)</label>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleImageFileSelect}
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">CV Document (PDF &lt; 10MB)</label>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={handleCvFileSelect}
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
+              />
+            </div>
+
+            <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
+              <Button variant="outline" type="button" onClick={() => setIsDocModalOpen(false)} className="px-4">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={uploadingDocs} className="px-5 font-semibold">
+                {uploadingDocs ? 'Uploading...' : 'Save Documents'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Description Markdown Modal */}
+      <Dialog open={isDescModalOpen} onOpenChange={setIsDescModalOpen}>
+        <DialogContent className="max-w-3xl bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[85vh] overflow-y-auto">
+          <DialogHeader className="border-b border-slate-100 pb-4 flex items-center justify-between">
+            <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
+              <Edit3 className="w-5 h-5 text-oxford" />
+              <span>Edit Professional Overview (Markdown)</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveDescription} className="space-y-4 pt-3">
+            {descError && (
+              <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+                {descError}
+              </div>
+            )}
+            {descSuccess && (
+              <div className="p-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
+                {descSuccess}
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 border-b border-slate-200 pb-2 font-sans">
+              <button
+                type="button"
+                onClick={() => setDescActiveTab('write')}
+                className={`text-xs px-3 py-1.5 rounded-lg font-semibold cursor-pointer ${
+                  descActiveTab === 'write' ? 'bg-oxford text-white' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Write
+              </button>
+              <button
+                type="button"
+                onClick={() => setDescActiveTab('preview')}
+                className={`text-xs px-3 py-1.5 rounded-lg font-semibold cursor-pointer ${
+                  descActiveTab === 'preview' ? 'bg-oxford text-white' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Preview
+              </button>
+            </div>
+
+            {descActiveTab === 'write' ? (
+              <div className="space-y-2">
+                <textarea
+                  id="markdown-editor-textarea"
+                  rows={12}
+                  value={markdownContent}
+                  onChange={(e) => setMarkdownContent(e.target.value)}
+                  placeholder="Write your research summary, qualifications, awards using Markdown..."
+                  className="w-full bg-white border border-[#e8e2d5] rounded-xl p-4 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-oxford"
+                />
+              </div>
+            ) : (
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 min-h-[250px] text-xs font-sans text-slate-900">
+                {renderMarkdown(markdownContent)}
+              </div>
+            )}
+
+            <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
+              <Button variant="outline" type="button" onClick={() => setIsDescModalOpen(false)} className="px-4">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={savingDesc} className="px-5 font-semibold">
+                {savingDesc ? 'Saving...' : 'Save Description'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Student Modal */}
+      <Dialog open={isStudentModalOpen} onOpenChange={setIsStudentModalOpen}>
+        <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900">
+          <DialogHeader className="border-b border-slate-100 pb-4">
+            <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
+              <GraduationCap className="w-5 h-5 text-oxford" />
+              <span>{editingStudent ? 'Edit Scholar Profile' : 'Add Guided Research Scholar'}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveStudent} className="space-y-4 pt-4">
+            {studentError && (
+              <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+                {studentError}
+              </div>
+            )}
+            {studentSuccess && (
+              <div className="p-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
+                {studentSuccess}
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">Student Name *</label>
+              <Input
+                type="text"
+                placeholder="e.g. Ananya Nair"
+                value={studentName}
+                onChange={(e) => setStudentName(e.target.value)}
+                className="w-full text-base"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">Research Topic / Degree</label>
+              <textarea
+                rows={3}
+                placeholder="e.g. Ph.D. Scholar working on Quantum Photonics"
+                value={studentDescription}
+                onChange={(e) => setStudentDescription(e.target.value)}
+                className="w-full bg-white border border-[#e8e2d5] rounded-xl p-3 text-sm text-slate-900 font-sans focus:outline-none focus:ring-2 focus:ring-oxford"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Scholar Photo (Optional)</label>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleStudentImageSelect}
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
+              />
+            </div>
+
+            <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
+              <Button variant="outline" type="button" onClick={closeStudentModal} className="px-4">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={savingStudent} className="px-5 font-semibold">
+                {savingStudent ? 'Saving...' : editingStudent ? 'Update Scholar' : 'Add Scholar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

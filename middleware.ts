@@ -8,62 +8,43 @@ const JWT_SECRET = new TextEncoder().encode(
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const adminToken = request.cookies.get('admin_token')?.value;
-  const facultyToken = request.cookies.get('faculty_token')?.value;
+  const authToken =
+    request.cookies.get('auth_token')?.value ||
+    request.cookies.get('admin_token')?.value ||
+    request.cookies.get('faculty_token')?.value;
 
-  // 1. If accessing protected admin routes (e.g. /admin/dashboard)
-  if (pathname.startsWith('/admin/dashboard')) {
-    if (!adminToken) {
+  // 1. Redirect legacy dashboard paths (/admin/dashboard, /faculty/dashboard) to /dashboard
+  if (pathname.startsWith('/admin/dashboard') || pathname.startsWith('/faculty/dashboard')) {
+    const dashboardUrl = new URL('/dashboard', request.url);
+    return NextResponse.redirect(dashboardUrl);
+  }
+
+  // 2. Protect unified /dashboard route
+  if (pathname.startsWith('/dashboard')) {
+    if (!authToken) {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('from', pathname);
       return NextResponse.redirect(loginUrl);
     }
 
     try {
-      await jwtVerify(adminToken, JWT_SECRET);
+      await jwtVerify(authToken, JWT_SECRET);
       return NextResponse.next();
-    } catch (err) {
+    } catch {
       const loginUrl = new URL('/login', request.url);
       loginUrl.searchParams.set('from', pathname);
       return NextResponse.redirect(loginUrl);
     }
   }
 
-  // 2. If accessing protected faculty routes (e.g. /faculty/dashboard)
-  if (pathname.startsWith('/faculty/dashboard')) {
-    if (!facultyToken) {
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('from', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    try {
-      await jwtVerify(facultyToken, JWT_SECRET);
-      return NextResponse.next();
-    } catch (err) {
-      const loginUrl = new URL('/login', request.url);
-      loginUrl.searchParams.set('from', pathname);
-      return NextResponse.redirect(loginUrl);
-    }
-  }
-
-  // 3. If accessing login page while already authenticated -> redirect to dashboard
+  // 3. If accessing /login while already authenticated -> redirect to /dashboard
   if (pathname === '/login') {
-    if (adminToken) {
+    if (authToken) {
       try {
-        await jwtVerify(adminToken, JWT_SECRET);
-        return NextResponse.redirect(new URL('/admin/dashboard', request.url));
+        await jwtVerify(authToken, JWT_SECRET);
+        return NextResponse.redirect(new URL('/dashboard', request.url));
       } catch {
-        // Token invalid/expired, allow login page
-      }
-    }
-
-    if (facultyToken) {
-      try {
-        await jwtVerify(facultyToken, JWT_SECRET);
-        return NextResponse.redirect(new URL('/faculty/dashboard', request.url));
-      } catch {
-        // Token invalid/expired, allow login page
+        // Token invalid/expired, proceed to login page
       }
     }
   }
@@ -74,6 +55,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/login',
+    '/dashboard/:path*',
     '/admin/dashboard/:path*',
     '/faculty/dashboard/:path*',
   ],

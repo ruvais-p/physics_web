@@ -33,11 +33,19 @@ export async function POST(request: Request) {
         const response = NextResponse.json({
           success: true,
           role: 'admin',
-          redirectTo: '/admin/dashboard',
+          redirectTo: '/dashboard',
           user: {
             email: admin.email,
             name: admin.name,
           },
+        });
+
+        response.cookies.set('auth_token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24, // 24 hours
+          path: '/',
         });
 
         response.cookies.set('admin_token', token, {
@@ -76,13 +84,21 @@ export async function POST(request: Request) {
         const response = NextResponse.json({
           success: true,
           role: 'faculty',
-          redirectTo: '/faculty/dashboard',
+          redirectTo: '/dashboard',
           user: {
             id: faculty.id,
             name: faculty.name,
             email: faculty.email,
             mustChangePassword: faculty.mustChangePassword,
           },
+        });
+
+        response.cookies.set('auth_token', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 60 * 60 * 24, // 24 hours
+          path: '/',
         });
 
         response.cookies.set('faculty_token', token, {

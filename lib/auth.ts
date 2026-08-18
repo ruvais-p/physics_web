@@ -15,7 +15,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export async function signAdminToken(payload: { id: string; email: string; name: string }) {
-  return new SignJWT(payload)
+  return new SignJWT({ ...payload, role: 'admin' })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('24h')
@@ -25,7 +25,9 @@ export async function signAdminToken(payload: { id: string; email: string; name:
 export async function verifyAdminToken(token: string) {
   try {
     const verified = await jwtVerify(token, JWT_SECRET);
-    return verified.payload as { id: string; email: string; name: string };
+    const payload = verified.payload as { id: string; email: string; name: string; role?: string };
+    if (payload.role && payload.role !== 'admin') return null;
+    return payload;
   } catch (error) {
     return null;
   }
@@ -42,9 +44,29 @@ export async function signFacultyToken(payload: { id: string; email: string; nam
 export async function verifyFacultyToken(token: string) {
   try {
     const verified = await jwtVerify(token, JWT_SECRET);
-    return verified.payload as { id: string; email: string; name: string; role: string };
+    const payload = verified.payload as { id: string; email: string; name: string; role?: string };
+    if (payload.role && payload.role !== 'faculty') return null;
+    return payload;
   } catch (error) {
     return null;
   }
 }
+
+export async function signAuthToken(payload: { id: string; email: string; name: string; role: 'admin' | 'faculty' }) {
+  return new SignJWT(payload)
+    .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('24h')
+    .sign(JWT_SECRET);
+}
+
+export async function verifyAuthToken(token: string) {
+  try {
+    const verified = await jwtVerify(token, JWT_SECRET);
+    return verified.payload as { id: string; email: string; name: string; role: 'admin' | 'faculty' };
+  } catch (error) {
+    return null;
+  }
+}
+
 
