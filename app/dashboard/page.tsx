@@ -392,10 +392,101 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // ADMIN DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'hero' | 'notifications' | 'faculty'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'notifications' | 'faculty'>('dashboard');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // About Us CMS States
+  const [aboutContent, setAboutContent] = useState('');
+  const [aboutImagePath, setAboutImagePath] = useState<string | null>(null);
+  const [aboutActiveTab, setAboutActiveTab] = useState<'write' | 'preview'>('write');
+  const [loadingAbout, setLoadingAbout] = useState(false);
+  const [savingAbout, setSavingAbout] = useState(false);
+  const [aboutError, setAboutError] = useState<string | null>(null);
+  const [aboutSuccess, setAboutSuccess] = useState<string | null>(null);
+  const [selectedAboutImageFile, setSelectedAboutImageFile] = useState<File | null>(null);
+  const [aboutImageUrlInput, setAboutImageUrlInput] = useState('');
+  const [aboutImagePreviewUrl, setAboutImagePreviewUrl] = useState<string | null>(null);
+
+  const fetchCmsAbout = async () => {
+    setLoadingAbout(true);
+    try {
+      const res = await fetch('/api/cms/about');
+      if (res.ok) {
+        const data = await res.json();
+        setAboutContent(data.content || '');
+        setAboutImagePath(data.image || null);
+        setAboutImageUrlInput(data.image || '');
+        setAboutImagePreviewUrl(data.image || null);
+      }
+    } catch (err) {
+      console.error('Failed to fetch CMS about us:', err);
+    } finally {
+      setLoadingAbout(false);
+    }
+  };
+
+  const insertAboutMarkdownSyntax = (prefix: string, suffix: string = '') => {
+    const textarea = document.getElementById('aboutMarkdownTextarea') as HTMLTextAreaElement;
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = aboutContent.substring(start, end) || 'Sample text';
+    const replacement = `${prefix}${selectedText}${suffix}`;
+
+    const newContent = aboutContent.substring(0, start) + replacement + aboutContent.substring(end);
+    setAboutContent(newContent);
+
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + prefix.length, start + prefix.length + selectedText.length);
+    }, 50);
+  };
+
+  const handleSaveAboutUs = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAboutError(null);
+    setAboutSuccess(null);
+
+    if (!aboutContent.trim()) {
+      setAboutError('About Us content cannot be empty.');
+      return;
+    }
+
+    setSavingAbout(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('content', aboutContent.trim());
+      if (selectedAboutImageFile) {
+        formData.append('image', selectedAboutImageFile);
+      } else if (aboutImageUrlInput.trim()) {
+        formData.append('imageUrl', aboutImageUrlInput.trim());
+      }
+
+      const res = await fetch('/api/cms/about', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save About Us content.');
+      }
+
+      setAboutImagePath(data.data.image || aboutImagePath);
+      setSelectedAboutImageFile(null);
+      setAboutSuccess('About Us page content and department hero image updated successfully!');
+      setTimeout(() => setAboutSuccess(null), 4000);
+    } catch (err: any) {
+      setAboutError(err.message || 'An error occurred while saving About Us content.');
+    } finally {
+      setSavingAbout(false);
+    }
+  };
 
   // Hero Carousel States
   const [heroSlides, setHeroSlides] = useState<HeroSlideItem[]>([]);
@@ -621,6 +712,7 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // FACULTY DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
+  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'hero'>('overview');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -686,6 +778,7 @@ export default function UnifiedDashboardPage() {
           fetchNotifications();
           fetchFaculty();
           fetchHeroSlides();
+          fetchCmsAbout();
         } else if (data.role === 'faculty') {
           fetchFacultySelfData(data.user);
           fetchHeroSlides();
@@ -1498,72 +1591,109 @@ export default function UnifiedDashboardPage() {
     );
 
     return (
-      <Tabs value={adminTab} onValueChange={(val) => setAdminTab(val as any)} className="min-h-screen bg-[#faf7f2] text-slate-900 flex flex-col font-serif selection:bg-oxford selection:text-white">
-        {/* Top Navbar */}
-        <header className="bg-oxford border-b border-[#001833] px-6 py-6 flex items-center justify-between shadow-lg sticky top-0 z-40">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent">
-              <ShieldCheck className="w-6 h-6" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold text-white font-serif">Department Management Portal</h1>
-                <Badge className="bg-cyan-accent text-oxford font-sans font-bold uppercase tracking-wide text-[10px] px-2 py-0.5 rounded">
-                  Admin Role
-                </Badge>
+      <Tabs value={adminTab} onValueChange={(val) => setAdminTab(val as any)} className="min-h-screen bg-[#faf7f2] text-slate-900 flex flex-col md:flex-row font-serif selection:bg-oxford selection:text-white">
+        {/* Left Sidebar */}
+        <aside className="w-full md:w-72 bg-oxford border-r border-[#001833] text-white flex flex-col justify-between shrink-0 min-h-screen p-6 shadow-xl sticky top-0 z-40">
+          <div className="space-y-8">
+            {/* Portal Branding Header */}
+            <div className="flex items-center gap-3 border-b border-white/10 pb-6">
+              <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent shrink-0 shadow-inner">
+                <ShieldCheck className="w-6 h-6" />
               </div>
-              <p className="text-sm text-indigo-200">{currentUser?.email || 'System Admin'}</p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-lg font-bold text-white font-serif leading-tight">Admin Portal</h1>
+                  <Badge className="bg-cyan-accent text-oxford font-sans font-bold uppercase tracking-wide text-[9px] px-1.5 py-0.5 rounded">
+                    CMS
+                  </Badge>
+                </div>
+                <p className="text-xs text-indigo-200 truncate max-w-[160px]" title={currentUser?.email}>{currentUser?.email || 'System Admin'}</p>
+              </div>
+            </div>
+
+            {/* Navigation List */}
+            <div className="space-y-2">
+              <p className="text-[10px] font-sans font-bold text-indigo-300 uppercase tracking-widest px-3 mb-2">Main Navigation</p>
+              <TabsList className="flex flex-col h-auto bg-transparent p-0 space-y-1.5 w-full">
+                <TabsTrigger
+                  value="dashboard"
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>Overview</span>
+                  </div>
+                </TabsTrigger>
+
+                <TabsTrigger
+                  value="about"
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <FileText className="w-4 h-4" />
+                    <span>About Us</span>
+                  </div>
+                </TabsTrigger>
+
+                <TabsTrigger
+                  value="hero"
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <Sliders className="w-4 h-4" />
+                    <span>Hero Carousel</span>
+                  </div>
+                  <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
+                    {heroSlides.length}/10
+                  </Badge>
+                </TabsTrigger>
+
+                <TabsTrigger
+                  value="notifications"
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <Bell className="w-4 h-4" />
+                    <span>Notifications</span>
+                  </div>
+                  <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
+                    {notifications.length}
+                  </Badge>
+                </TabsTrigger>
+
+                <TabsTrigger
+                  value="faculty"
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <Users className="w-4 h-4" />
+                    <span>Faculty Accounts</span>
+                  </div>
+                  <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
+                    {facultyList.length}
+                  </Badge>
+                </TabsTrigger>
+              </TabsList>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            {/* Navigation Tabs */}
-            <TabsList className="bg-oxford-dark/80 p-1 rounded-xl border border-indigo-950/40 text-sm font-semibold text-slate-300">
-              <TabsTrigger
-                value="dashboard"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all cursor-pointer text-sm text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford"
-              >
-                <LayoutDashboard className="w-4 h-4" />
-                <span>Overview</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="hero"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all cursor-pointer text-sm text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford"
-              >
-                <Sliders className="w-4 h-4" />
-                <span>Hero Carousel ({heroSlides.length}/10)</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="notifications"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all cursor-pointer text-sm text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford"
-              >
-                <Bell className="w-4 h-4" />
-                <span>Notifications ({notifications.length})</span>
-              </TabsTrigger>
-              <TabsTrigger
-                value="faculty"
-                className="flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all cursor-pointer text-sm text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford"
-              >
-                <Users className="w-4 h-4" />
-                <span>Faculty Accounts ({facultyList.length})</span>
-              </TabsTrigger>
-            </TabsList>
-
+          {/* Sidebar Footer / Logout */}
+          <div className="pt-6 border-t border-white/10 space-y-3">
             <Button
               variant="destructive"
               size="default"
               onClick={handleLogout}
               disabled={loggingOut}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-500 border-none text-white transition-all cursor-pointer"
+              className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-500 border-none text-white transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
             >
               <LogOut className="w-4 h-4" />
-              <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
+              <span>{loggingOut ? 'Logging out...' : 'Logout Session'}</span>
             </Button>
           </div>
-        </header>
+        </aside>
 
         {/* Main Content Area */}
-        <main className="flex-1 max-w-7xl w-full mx-auto px-6 pt-12 pb-8 space-y-12">
+        <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-10 space-y-12">
           {/* OVERVIEW TAB */}
           <TabsContent value="dashboard" className="space-y-12 animate-fadeIn mt-0">
             <Card className="bg-transparent border-none rounded-none p-0 shadow-none relative overflow-visible">
@@ -1575,8 +1705,31 @@ export default function UnifiedDashboardPage() {
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-              {/* Module 1: Hero Carousel */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+              {/* Module 1: About Us */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center">
+                      <FileText className="w-6 h-6" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">About Us Page</CardTitle>
+                  <CardDescription className="text-base text-slate-600 leading-normal">
+                    Manage department history, research text (Markdown), and top hero background banner image.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('about')}
+                  className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Manage About Us</span>
+                </Button>
+              </Card>
+
+              {/* Module 2: Hero Carousel */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -1587,9 +1740,9 @@ export default function UnifiedDashboardPage() {
                       {heroSlides.length}/10
                     </span>
                   </div>
-                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Home Page Hero Carousel</CardTitle>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Hero Carousel</CardTitle>
                   <CardDescription className="text-base text-slate-600 leading-normal">
-                    Manage home page background slides with titles (0/80), descriptions (0/200), ON/OFF visibility toggles, and reordering.
+                    Manage home page background slides with titles, descriptions, visibility toggles, and reordering.
                   </CardDescription>
                 </CardContent>
                 <Button
@@ -1598,11 +1751,11 @@ export default function UnifiedDashboardPage() {
                   className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <Sliders className="w-4 h-4" />
-                  <span>Manage Hero Carousel</span>
+                  <span>Manage Hero</span>
                 </Button>
               </Card>
 
-              {/* Module 2: Notifications */}
+              {/* Module 3: Notifications */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -1613,9 +1766,9 @@ export default function UnifiedDashboardPage() {
                       {notifications.length}
                     </span>
                   </div>
-                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Notifications & Notices</CardTitle>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Notifications</CardTitle>
                   <CardDescription className="text-base text-slate-600 leading-normal">
-                    Post department announcements, seminar dates, and urgent student alerts to the marquee ticker.
+                    Post announcements and urgent student alerts to the marquee ticker.
                   </CardDescription>
                 </CardContent>
                 <Button
@@ -1624,11 +1777,11 @@ export default function UnifiedDashboardPage() {
                   className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <Plus className="w-4 h-4" />
-                  <span>Manage Notifications</span>
+                  <span>Notifications</span>
                 </Button>
               </Card>
 
-              {/* Module 3: Faculty Accounts */}
+              {/* Module 4: Faculty Accounts */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -1639,9 +1792,9 @@ export default function UnifiedDashboardPage() {
                       {facultyList.length}
                     </span>
                   </div>
-                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Faculty Member Accounts</CardTitle>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Faculty Accounts</CardTitle>
                   <CardDescription className="text-base text-slate-600 leading-normal">
-                    Create faculty logins (Email + Predefined Password), monitor password status, and edit profiles.
+                    Create faculty logins and monitor account status.
                   </CardDescription>
                 </CardContent>
                 <Button
@@ -1650,10 +1803,228 @@ export default function UnifiedDashboardPage() {
                   className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <UserPlus className="w-4 h-4" />
-                  <span>Manage Faculty Accounts</span>
+                  <span>Faculty Accounts</span>
                 </Button>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* ABOUT US TAB */}
+          <TabsContent value="about" className="space-y-10 animate-fadeIn mt-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-transparent py-2 rounded-none shadow-none border-b border-slate-200 pb-4">
+              <div>
+                <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                  <FileText className="w-7 h-7 text-oxford" />
+                  <span>About Us Page & Department Hero Banner</span>
+                </h2>
+                <p className="text-slate-600 text-base mt-1 font-sans">
+                  Edit the department overview markdown text and upload the hero background image displayed on the public About page.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={fetchCmsAbout}
+                  className="h-11 w-11 text-slate-700 hover:text-slate-950"
+                  title="Refresh Content"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingAbout ? 'animate-spin' : ''}`} />
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={handleSaveAboutUs}
+                  disabled={savingAbout}
+                  className="flex items-center gap-2 py-3 px-6 font-semibold rounded-xl shadow-xs transition-all text-base cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>{savingAbout ? 'Saving Changes...' : 'Save About Us Page'}</span>
+                </Button>
+              </div>
+            </div>
+
+            {aboutError && (
+              <div className="p-4 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 font-sans font-semibold">
+                <AlertCircle className="w-5 h-5 shrink-0 text-rose-600" />
+                <span>{aboutError}</span>
+              </div>
+            )}
+
+            {aboutSuccess && (
+              <div className="p-4 text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2 font-sans font-semibold">
+                <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-600" />
+                <span>{aboutSuccess}</span>
+              </div>
+            )}
+
+            {/* Department Hero Image Uploader */}
+            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="space-y-1">
+                <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                  <ImageIcon className="w-5 h-5 text-oxford" />
+                  <span>Department Banner Image (About Hero Section)</span>
+                </h3>
+                <p className="text-xs text-slate-500 font-sans">
+                  This image will be displayed as the main background banner in the hero section of the public About Us page.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                <div className="space-y-3 font-sans">
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 block">Upload Image File</label>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setSelectedAboutImageFile(file);
+                          setAboutImagePreviewUrl(URL.createObjectURL(file));
+                        }
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
+                    />
+                  </div>
+
+                  <div className="text-xs text-slate-400 text-center font-bold">OR</div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 block">Image URL</label>
+                    <Input
+                      type="url"
+                      placeholder="https://images.unsplash.com/..."
+                      value={aboutImageUrlInput}
+                      onChange={(e) => {
+                        setAboutImageUrlInput(e.target.value);
+                        setAboutImagePreviewUrl(e.target.value);
+                      }}
+                      className="w-full text-xs font-mono"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-700 block font-sans">Current Hero Banner Preview</label>
+                  <div className="w-full h-40 rounded-2xl border border-slate-200 bg-slate-900 overflow-hidden relative shadow-inner">
+                    <img
+                      src={aboutImagePreviewUrl || '/campus.jpg'}
+                      alt="Department Banner Preview"
+                      className="w-full h-full object-cover opacity-60"
+                    />
+                    <div className="absolute inset-0 bg-oxford/75 mix-blend-multiply flex items-center justify-center">
+                      <span className="text-white font-serif font-bold text-2xl tracking-widest uppercase">ABOUT</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Markdown Text Editor & Live Preview */}
+            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                <div>
+                  <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-oxford" />
+                    <span>About Us Content (Markdown Editor)</span>
+                  </h3>
+                  <p className="text-xs text-slate-500 font-sans">
+                    Use full markdown formatting for paragraphs, headings, bullet lists, bold emphasis, and links.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-xl font-sans">
+                  <button
+                    type="button"
+                    onClick={() => setAboutActiveTab('write')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      aboutActiveTab === 'write' ? 'bg-white text-oxford shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Write (Markdown)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAboutActiveTab('preview')}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      aboutActiveTab === 'preview' ? 'bg-white text-oxford shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Live Preview
+                  </button>
+                </div>
+              </div>
+
+              {aboutActiveTab === 'write' ? (
+                <div className="space-y-3 font-sans">
+                  {/* Markdown Format Insert Toolbar */}
+                  <div className="flex flex-wrap items-center gap-1.5 bg-slate-50 p-2 rounded-xl border border-slate-200 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => insertAboutMarkdownSyntax('# ')}
+                      className="px-2.5 py-1 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-800 font-bold"
+                      title="Heading 1"
+                    >
+                      H1
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertAboutMarkdownSyntax('## ')}
+                      className="px-2.5 py-1 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-800 font-bold"
+                      title="Heading 2"
+                    >
+                      H2
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertAboutMarkdownSyntax('**', '**')}
+                      className="px-2.5 py-1 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-800 font-bold"
+                      title="Bold text"
+                    >
+                      B
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertAboutMarkdownSyntax('*', '*')}
+                      className="px-2.5 py-1 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-800 italic"
+                      title="Italic text"
+                    >
+                      I
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertAboutMarkdownSyntax('- ')}
+                      className="px-2.5 py-1 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-800"
+                      title="Bullet list"
+                    >
+                      Bullet List
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertAboutMarkdownSyntax('[', '](https://example.com)')}
+                      className="px-2.5 py-1 rounded bg-white border border-slate-200 hover:bg-slate-100 text-slate-800"
+                      title="Add link"
+                    >
+                      Link
+                    </button>
+                  </div>
+
+                  <textarea
+                    id="aboutMarkdownTextarea"
+                    rows={16}
+                    placeholder="Enter About Us description using Markdown..."
+                    value={aboutContent}
+                    onChange={(e) => setAboutContent(e.target.value)}
+                    className="w-full bg-white border border-[#e8e2d5] rounded-xl p-4 text-sm text-slate-900 font-sans focus:outline-none focus:ring-2 focus:ring-oxford leading-relaxed"
+                  />
+                </div>
+              ) : (
+                <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 min-h-[360px] text-sm text-slate-800 leading-relaxed font-sans">
+                  {renderMarkdown(aboutContent)}
+                </div>
+              )}
+            </Card>
           </TabsContent>
 
           {/* HERO CAROUSEL TAB */}
@@ -2445,32 +2816,92 @@ export default function UnifiedDashboardPage() {
   // RENDER FACULTY DASHBOARD (IF ROLE IS FACULTY)
   // -------------------------------------------------------------
   return (
-    <div className="min-h-screen bg-[#faf7f2] text-slate-900 flex flex-col font-serif selection:bg-oxford selection:text-white">
-      {/* Top Navbar */}
-      <header className="bg-oxford border-b border-[#001833] px-6 py-6 flex items-center justify-between shadow-lg sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent">
-            <Atom className="w-6 h-6 animate-pulse" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-white font-serif">Faculty Member Portal</h1>
-              <Badge className="bg-cyan-accent text-oxford font-sans font-bold uppercase tracking-wide text-[10px] px-2 py-0.5 rounded">
-                Faculty Role
-              </Badge>
+    <Tabs value={facultyTab} onValueChange={(val) => setFacultyTab(val as any)} className="min-h-screen bg-[#faf7f2] text-slate-900 flex flex-col md:flex-row font-serif selection:bg-oxford selection:text-white">
+      {/* Left Sidebar */}
+      <aside className="w-full md:w-72 bg-oxford border-r border-[#001833] text-white flex flex-col justify-between shrink-0 min-h-screen p-6 shadow-xl sticky top-0 z-40 font-serif">
+        <div className="space-y-8">
+          {/* Portal Branding Header */}
+          <div className="flex items-center gap-3 border-b border-white/10 pb-6">
+            <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent shrink-0 shadow-inner">
+              <Atom className="w-6 h-6 animate-pulse" />
             </div>
-            <p className="text-sm text-indigo-200">{currentUser?.name} ({currentUser?.email})</p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold text-white font-serif leading-tight">Faculty Portal</h1>
+                <Badge className="bg-cyan-accent text-oxford font-sans font-bold uppercase tracking-wide text-[9px] px-1.5 py-0.5 rounded">
+                  Faculty
+                </Badge>
+              </div>
+              <p className="text-xs text-indigo-200 truncate max-w-[160px]" title={currentUser?.name}>{currentUser?.name || 'Faculty Member'}</p>
+            </div>
+          </div>
+
+          {/* Navigation List (4 Options) */}
+          <div className="space-y-2">
+            <p className="text-[10px] font-sans font-bold text-indigo-300 uppercase tracking-widest px-3 mb-2">Faculty Menu</p>
+            <TabsList className="flex flex-col h-auto bg-transparent p-0 space-y-1.5 w-full">
+              {/* Option 1: Overview */}
+              <TabsTrigger
+                value="overview"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Overview</span>
+                </div>
+              </TabsTrigger>
+
+              {/* Option 2: Profile (contact, cv, photo, bio) */}
+              <TabsTrigger
+                value="profile"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <User className="w-4 h-4" />
+                  <span>Profile & Details</span>
+                </div>
+              </TabsTrigger>
+
+              {/* Option 3: Research Scholars Page */}
+              <TabsTrigger
+                value="scholars"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <GraduationCap className="w-4 h-4" />
+                  <span>Research Scholars</span>
+                </div>
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
+                  {studentsList.length}
+                </Badge>
+              </TabsTrigger>
+
+              {/* Option 4: Hero Section Page */}
+              <TabsTrigger
+                value="hero"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <Sliders className="w-4 h-4" />
+                  <span>Hero Section</span>
+                </div>
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
+                  {heroSlides.length}/10
+                </Badge>
+              </TabsTrigger>
+            </TabsList>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Sidebar Footer / Account Actions */}
+        <div className="pt-6 border-t border-white/10 space-y-2.5">
           <Button
             variant="outline"
             size="default"
             onClick={() => setShowPasswordModal(true)}
-            className="bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center gap-2 text-sm font-semibold rounded-xl"
+            className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center gap-2 text-xs font-semibold rounded-xl py-2.5"
           >
-            <KeyRound className="w-4 h-4 text-cyan-accent" />
+            <KeyRound className="w-3.5 h-3.5 text-cyan-accent" />
             <span>Change Password</span>
           </Button>
 
@@ -2479,401 +2910,369 @@ export default function UnifiedDashboardPage() {
             size="default"
             onClick={handleLogout}
             disabled={loggingOut}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-500 border-none text-white transition-all cursor-pointer"
+            className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-500 border-none text-white transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
           >
-            <LogOut className="w-4 h-4" />
-            <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
+            <LogOut className="w-3.5 h-3.5" />
+            <span>{loggingOut ? 'Logging out...' : 'Logout Session'}</span>
           </Button>
         </div>
-      </header>
+      </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-6 pt-12 pb-8 space-y-12">
-        {/* Welcome Header */}
-        <Card className="bg-transparent border-none rounded-none p-0 shadow-none relative overflow-visible flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <CardContent className="p-0 space-y-1">
-            <CardTitle className="text-3xl font-bold font-serif text-slate-900 leading-none">
-              Welcome back, {currentUser?.name}
-            </CardTitle>
-            <CardDescription className="text-slate-600 text-base mt-1">
-              {currentUser?.designation || 'Faculty Member'} • {currentUser?.department || 'Department of Physics'}
-            </CardDescription>
-          </CardContent>
+      <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-10 space-y-12">
+        {/* OPTION 1: OVERVIEW TAB */}
+        <TabsContent value="overview" className="space-y-8 animate-fadeIn mt-0">
+          <Card className="bg-transparent border-none rounded-none p-0 shadow-none relative overflow-visible flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-slate-200 pb-6">
+            <CardContent className="p-0 space-y-1">
+              <CardTitle className="text-3xl font-bold font-serif text-slate-900 leading-none">
+                Welcome back, {currentUser?.name}
+              </CardTitle>
+              <CardDescription className="text-slate-600 text-base mt-1">
+                {currentUser?.designation || 'Faculty Member'} • {currentUser?.department || 'Department of Physics'}
+              </CardDescription>
+            </CardContent>
+          </Card>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              variant="default"
-              size="default"
-              onClick={() => setIsProfilesModalOpen(true)}
-              className="py-3 px-4 rounded-xl text-sm font-semibold flex items-center gap-2 cursor-pointer shadow-xs"
-            >
-              <Globe className="w-4 h-4" />
-              <span>Contact & Profiles</span>
-            </Button>
-            <Button
-              variant="default"
-              size="default"
-              onClick={() => setIsDocModalOpen(true)}
-              className="py-3 px-4 rounded-xl text-sm font-semibold flex items-center gap-2 cursor-pointer shadow-xs"
-            >
-              <Upload className="w-4 h-4" />
-              <span>Upload Photo / CV</span>
-            </Button>
-            <Button
-              variant="default"
-              size="default"
-              onClick={() => setIsDescModalOpen(true)}
-              className="py-3 px-4 rounded-xl text-sm font-semibold flex items-center gap-2 cursor-pointer shadow-xs"
-            >
-              <Edit3 className="w-4 h-4" />
-              <span>Edit Markdown Bio</span>
-            </Button>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {/* Profile Overview Card */}
+            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-700 border border-cyan-200 flex items-center justify-center">
+                  <User className="w-6 h-6" />
+                </div>
+                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Profile & Details</CardTitle>
+                <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
+                  Update contact numbers, social/academic links, upload profile photo & CV, and format your research bio.
+                </CardDescription>
+              </div>
+              <Button onClick={() => setFacultyTab('profile')} className="w-full font-semibold">
+                <span>Manage Profile</span>
+              </Button>
+            </Card>
+
+            {/* Research Scholars Card */}
+            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-xl bg-oxford/10 text-oxford border border-oxford/20 flex items-center justify-center">
+                    <GraduationCap className="w-6 h-6" />
+                  </div>
+                  <span className="text-3xl font-extrabold text-oxford">{studentsList.length}</span>
+                </div>
+                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Research Scholars</CardTitle>
+                <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
+                  Add, edit, or remove Ph.D., M.Phil, and Master research scholars under your guidance.
+                </CardDescription>
+              </div>
+              <Button onClick={() => setFacultyTab('scholars')} className="w-full font-semibold">
+                <span>Manage Scholars</span>
+              </Button>
+            </Card>
+
+            {/* Hero Section Card */}
+            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center">
+                    <Sliders className="w-6 h-6" />
+                  </div>
+                  <span className="text-3xl font-extrabold text-amber-700">{heroSlides.length}/10</span>
+                </div>
+                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Hero Section</CardTitle>
+                <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
+                  Upload home page hero slides, reorder slides, and toggle visibility on the public site.
+                </CardDescription>
+              </div>
+              <Button onClick={() => setFacultyTab('hero')} className="w-full font-semibold">
+                <span>Manage Hero Carousel</span>
+              </Button>
+            </Card>
           </div>
-        </Card>
+        </TabsContent>
 
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          {/* Left Column: Personal Profile & Links */}
-          <div className="space-y-8">
-            {/* Profile Photo & Documents Card */}
-            <Card className="bg-transparent border-none rounded-none p-0 shadow-none space-y-4">
-              <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
-                <FileCheck className="w-5 h-5 text-cyan-700" />
-                <span>Documents & Media</span>
-              </h3>
+        {/* OPTION 2: PROFILE TAB (Contact, Photo, CV, Bio) */}
+        <TabsContent value="profile" className="space-y-8 animate-fadeIn mt-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+            <div>
+              <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                <User className="w-7 h-7 text-oxford" />
+                <span>Profile & Details Management</span>
+              </h2>
+              <p className="text-slate-600 text-sm mt-1 font-sans">
+                Manage contact info, academic profiles, profile photo, CV document, and Markdown biography.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={() => setIsProfilesModalOpen(true)} className="flex items-center gap-2">
+                <Globe className="w-4 h-4" />
+                <span>Contact & Links</span>
+              </Button>
+              <Button variant="outline" onClick={() => setIsDocModalOpen(true)} className="flex items-center gap-2">
+                <Upload className="w-4 h-4" />
+                <span>Photo & CV</span>
+              </Button>
+              <Button variant="default" onClick={() => setIsDescModalOpen(true)} className="flex items-center gap-2">
+                <Edit3 className="w-4 h-4" />
+                <span>Edit Bio</span>
+              </Button>
+            </div>
+          </div>
 
-              <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
-                <div className="w-16 h-16 rounded-2xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-slate-500">
-                  {imagePath ? (
-                    <img src={imagePath} alt={currentUser?.name} className="w-full h-full object-cover" />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="space-y-8">
+              {/* Photo & CV Documents */}
+              <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                <h3 className="text-lg font-bold font-serif text-slate-900 flex items-center gap-2">
+                  <FileCheck className="w-5 h-5 text-cyan-700" />
+                  <span>Documents & Media</span>
+                </h3>
+
+                <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                  <div className="w-16 h-16 rounded-xl bg-white border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-slate-500">
+                    {imagePath ? (
+                      <img src={imagePath} alt={currentUser?.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-8 h-8" />
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-bold text-slate-900">Profile Photo</p>
+                    <p className="text-xs text-slate-500 font-sans">
+                      {imagePath ? 'Uploaded & Active' : 'No photo uploaded'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-oxford" />
+                    <span className="text-sm text-slate-800 font-medium font-sans">Curriculum Vitae (PDF)</span>
+                  </div>
+                  {cvPath ? (
+                    <a
+                      href={cvPath}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-xs text-cyan-accent hover:underline flex items-center gap-1 font-semibold font-sans"
+                    >
+                      <span>View CV</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
                   ) : (
-                    <User className="w-8 h-8" />
+                    <span className="text-xs text-slate-400 italic font-sans">Not uploaded</span>
                   )}
                 </div>
-                <div className="space-y-1">
-                  <p className="text-sm font-bold text-slate-900">Profile Photo</p>
-                  <p className="text-xs text-slate-500">
-                    {imagePath ? 'Uploaded & Active' : 'No custom photo uploaded'}
-                  </p>
-                </div>
-              </div>
 
-              <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-oxford" />
-                  <span className="text-sm text-slate-800 font-medium">Curriculum Vitae (PDF)</span>
-                </div>
-                {cvPath ? (
-                  <a
-                    href={cvPath}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-sm text-cyan-accent hover:underline flex items-center gap-1 font-semibold"
-                  >
-                    <span>View CV</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                ) : (
-                  <span className="text-xs text-slate-400 italic">Not uploaded</span>
-                )}
-              </div>
-            </Card>
-
-            {/* Public Links Card */}
-            <Card className="bg-transparent border-none rounded-none p-0 shadow-none space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-oxford" />
-                  <span>Public Profiles ({selectedPlatforms.size})</span>
-                </h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsProfilesModalOpen(true)}
-                  className="h-8 text-xs font-semibold text-oxford border-oxford/20 hover:bg-oxford hover:text-white"
-                >
-                  Edit Links
+                <Button onClick={() => setIsDocModalOpen(true)} variant="outline" className="w-full text-xs font-semibold">
+                  <Upload className="w-3.5 h-3.5 mr-1" />
+                  <span>Upload / Replace Photo & CV</span>
                 </Button>
-              </div>
+              </Card>
 
-              {selectedPlatforms.size === 0 && otherProfiles.length === 0 ? (
-                <p className="text-sm text-slate-500 italic">No academic links configured yet.</p>
-              ) : (
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {Array.from(selectedPlatforms).map((key) => {
-                    const platform = PREDEFINED_PLATFORMS.find((p) => p.key === key);
-                    if (!platform || !platformUrls[key]) return null;
-                    return (
-                      <a
-                        key={key}
-                        href={platformUrls[key]}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-white font-semibold text-oxford flex items-center gap-1.5 shadow-xs hover:border-oxford transition-all"
-                      >
-                        <span>{platform.label}</span>
-                        <ExternalLink className="w-3 h-3 text-cyan-700" />
-                      </a>
-                    );
-                  })}
+              {/* Public Profiles Card */}
+              <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold font-serif text-slate-900 flex items-center gap-2">
+                    <Globe className="w-5 h-5 text-oxford" />
+                    <span>Public Profiles ({selectedPlatforms.size})</span>
+                  </h3>
+                  <Button variant="outline" size="sm" onClick={() => setIsProfilesModalOpen(true)} className="h-8 text-xs font-semibold">
+                    Edit
+                  </Button>
                 </div>
-              )}
-            </Card>
-          </div>
 
-          {/* Right Column: Markdown Description & Guided Students */}
-          <div className="lg:col-span-2 space-y-8">
+                {selectedPlatforms.size === 0 && otherProfiles.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic font-sans">No academic links configured yet.</p>
+                ) : (
+                  <div className="flex flex-wrap gap-2 pt-1 font-sans">
+                    {Array.from(selectedPlatforms).map((key) => {
+                      const platform = PREDEFINED_PLATFORMS.find((p) => p.key === key);
+                      if (!platform || !platformUrls[key]) return null;
+                      return (
+                        <a
+                          key={key}
+                          href={platformUrls[key]}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold text-oxford flex items-center gap-1.5 shadow-xs hover:border-oxford transition-all"
+                        >
+                          <span>{platform.label}</span>
+                          <ExternalLink className="w-3 h-3 text-cyan-700" />
+                        </a>
+                      );
+                    })}
+                  </div>
+                )}
+              </Card>
+            </div>
+
             {/* Markdown Description */}
-            <Card className="bg-transparent border-none rounded-none p-0 shadow-none space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-cyan-accent" />
-                  <span>Professional Overview & Research Interests</span>
-                </h3>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsDescModalOpen(true)}
-                  className="h-8 border-oxford/20 text-oxford hover:bg-oxford hover:text-white text-xs font-semibold"
-                >
-                  <Edit3 className="w-3.5 h-3.5 mr-1" />
-                  <span>Edit Description</span>
-                </Button>
-              </div>
-
-              <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs text-sm text-slate-800 leading-relaxed font-sans">
-                {renderMarkdown(markdownContent)}
-              </div>
-            </Card>
-
-            {/* Guided Students */}
-            <Card className="bg-transparent border-none rounded-none p-0 shadow-none space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-                <div className="space-y-0.5">
+            <div className="lg:col-span-2 space-y-4">
+              <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
-                    <GraduationCap className="w-5 h-5 text-oxford" />
-                    <span>Guided Scholars & Students ({studentsList.length})</span>
+                    <Sparkles className="w-5 h-5 text-cyan-accent" />
+                    <span>Professional Overview & Research Biography</span>
                   </h3>
-                  <p className="text-xs text-slate-500">Ph.D., M.Phil, and Master research scholars</p>
-                </div>
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => openStudentModal()}
-                  className="h-9 px-4 font-semibold text-xs rounded-xl"
-                >
-                  <Plus className="w-4 h-4 mr-1" />
-                  <span>Add Scholar</span>
-                </Button>
-              </div>
-
-              {studentsList.length === 0 ? (
-                <div className="p-8 text-center text-slate-500 space-y-2 bg-white rounded-2xl border border-slate-200">
-                  <GraduationCap className="w-8 h-8 mx-auto text-slate-400" />
-                  <p className="text-sm font-semibold text-slate-700">No guided students listed yet.</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {studentsList.map((st) => (
-                    <div key={st.uid} className="bg-white border border-slate-200 p-4 rounded-2xl flex items-start gap-3 relative group shadow-xs">
-                      <div className="w-12 h-12 rounded-xl bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
-                        {st.image ? (
-                          <img src={st.image} alt={st.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <User className="w-full h-full p-2 text-slate-400" />
-                        )}
-                      </div>
-                      <div className="space-y-1 flex-1 pr-6 font-serif">
-                        <p className="text-base font-bold text-slate-900">{st.name}</p>
-                        <p className="text-xs text-slate-600 line-clamp-2 font-sans">{st.description || 'Research Scholar'}</p>
-                      </div>
-                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1">
-                        <button
-                          onClick={() => openStudentModal(st)}
-                          className="p-1 text-slate-500 hover:text-slate-900"
-                          title="Edit Student"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteStudent(st.uid)}
-                          className="p-1 text-rose-600 hover:text-rose-700"
-                          title="Delete Student"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-
-            {/* Home Page Hero Carousel Management Section */}
-            <Card className="bg-transparent border-none rounded-none p-0 shadow-none space-y-4 pt-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-3">
-                <div className="space-y-0.5">
-                  <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
-                    <Sliders className="w-5 h-5 text-amber-700" />
-                    <span>Home Page Hero Carousel Management</span>
-                    <Badge variant="outline" className="ml-2 font-mono text-xs border-amber-700 text-amber-800 bg-amber-50">
-                      {heroSlides.length}/10 Records
-                    </Badge>
-                  </h3>
-                  <p className="text-xs text-slate-500 font-sans">
-                    Manage home page hero slides (Max 10 records). Slides with ON status are displayed on the public site.
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={fetchHeroSlides}
-                    className="h-9 w-9 p-0 text-slate-700 hover:text-slate-950"
-                    title="Refresh Hero List"
-                  >
-                    <RefreshCw className={`w-4 h-4 ${loadingHero ? 'animate-spin' : ''}`} />
-                  </Button>
-                  <Button
-                    variant="default"
-                    size="sm"
-                    disabled={heroSlides.length >= 10}
-                    onClick={() => openHeroModal()}
-                    className="h-9 px-4 font-semibold text-xs rounded-xl bg-amber-700 hover:bg-amber-800 text-white cursor-pointer disabled:opacity-50"
-                  >
-                    <Plus className="w-4 h-4 mr-1" />
-                    <span>{heroSlides.length >= 10 ? 'Max 10 Limit Reached' : 'Add Hero Item'}</span>
+                  <Button variant="outline" size="sm" onClick={() => setIsDescModalOpen(true)} className="h-8 text-xs font-semibold">
+                    <Edit3 className="w-3.5 h-3.5 mr-1" />
+                    <span>Edit Bio</span>
                   </Button>
                 </div>
-              </div>
 
-              {heroSlides.length >= 10 && (
-                <div className="p-3 text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 font-sans font-semibold">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-amber-600" />
-                  <span>Maximum limit of 10 Hero records reached. Delete or edit an existing slide to create space.</span>
+                <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 text-sm text-slate-800 leading-relaxed font-sans min-h-[300px]">
+                  {renderMarkdown(markdownContent)}
                 </div>
-              )}
-
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
-                {loadingHero ? (
-                  <div className="p-8 text-center text-slate-500 flex flex-col items-center gap-2 text-xs">
-                    <div className="w-6 h-6 border-2 border-oxford border-t-transparent rounded-full animate-spin" />
-                    <span>Loading hero slides...</span>
-                  </div>
-                ) : heroSlides.length === 0 ? (
-                  <div className="p-8 text-center text-slate-500 space-y-2">
-                    <Sliders className="w-8 h-8 mx-auto text-slate-400" />
-                    <p className="text-sm font-semibold text-slate-800">No dynamic hero slides in database</p>
-                    <p className="text-xs text-slate-500">
-                      The public homepage will display default slides until you create a custom hero slide.
-                    </p>
-                    <Button onClick={() => openHeroModal()} size="sm" className="mt-2 text-xs bg-amber-700 hover:bg-amber-800 text-white">
-                      <Plus className="w-4 h-4 mr-1" /> Add First Hero Slide
-                    </Button>
-                  </div>
-                ) : (
-                  <Table className="text-sm font-sans">
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="font-bold w-12 text-xs">Order</TableHead>
-                        <TableHead className="font-bold text-xs">Preview</TableHead>
-                        <TableHead className="font-bold text-xs">Title (Max 80)</TableHead>
-                        <TableHead className="font-bold text-xs">Description (Max 200)</TableHead>
-                        <TableHead className="font-bold text-xs">Status</TableHead>
-                        <TableHead className="font-bold text-xs text-center">Reorder</TableHead>
-                        <TableHead className="text-right font-bold text-xs">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {heroSlides.map((slide, idx) => (
-                        <TableRow key={slide.id} className="hover:bg-slate-50/50">
-                          <TableCell className="font-bold text-slate-700 font-mono text-xs py-3">
-                            #{idx + 1}
-                          </TableCell>
-                          <TableCell className="py-3">
-                            <div className="w-16 h-10 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
-                              <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-bold text-slate-900 max-w-[200px] text-xs py-3">
-                            <div className="line-clamp-2">{slide.title}</div>
-                            <span className="text-[10px] font-mono text-slate-400 font-normal">({slide.title.length}/80)</span>
-                          </TableCell>
-                          <TableCell className="text-slate-600 max-w-[240px] text-xs py-3">
-                            <div className="line-clamp-2">{slide.description || '—'}</div>
-                            <span className="text-[10px] font-mono text-slate-400">({slide.description.length}/200)</span>
-                          </TableCell>
-                          <TableCell className="text-xs py-3">
-                            <button
-                              type="button"
-                              className="flex items-center gap-1 font-bold text-xs hover:underline focus:outline-none cursor-pointer"
-                              onClick={() => toggleHeroVisibility(slide)}
-                            >
-                              {slide.is_visible ? (
-                                <span className="text-emerald-600 flex items-center gap-1">
-                                  <Eye className="w-3.5 h-3.5" />
-                                  <span>ON</span>
-                                </span>
-                              ) : (
-                                <span className="text-slate-500 flex items-center gap-1">
-                                  <EyeOff className="w-3.5 h-3.5" />
-                                  <span>OFF</span>
-                                </span>
-                              )}
-                            </button>
-                          </TableCell>
-                          <TableCell className="text-center py-3">
-                            <div className="inline-flex items-center gap-0.5 bg-slate-100 border border-slate-200 p-0.5 rounded-lg">
-                              <button
-                                type="button"
-                                disabled={idx === 0}
-                                onClick={() => moveHeroSlide(idx, 'up')}
-                                className="p-0.5 text-slate-600 hover:text-slate-900 disabled:opacity-30 cursor-pointer"
-                                title="Move Up"
-                              >
-                                <ChevronUp className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                disabled={idx === heroSlides.length - 1}
-                                onClick={() => moveHeroSlide(idx, 'down')}
-                                className="p-0.5 text-slate-600 hover:text-slate-900 disabled:opacity-30 cursor-pointer"
-                                title="Move Down"
-                              >
-                                <ChevronDown className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right space-x-1 whitespace-nowrap py-3">
-                            <Button
-                              variant="secondary"
-                              size="icon"
-                              onClick={() => openHeroModal(slide)}
-                              className="h-8 w-8 text-slate-600 hover:text-slate-900"
-                              title="Edit Hero Item"
-                            >
-                              <Edit className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="icon"
-                              onClick={() => handleDeleteHeroSlide(slide.id)}
-                              className="h-8 w-8"
-                              title="Delete Hero Item"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </div>
-            </Card>
+              </Card>
+            </div>
           </div>
-        </div>
+        </TabsContent>
+
+        {/* OPTION 3: RESEARCH SCHOLARS TAB */}
+        <TabsContent value="scholars" className="space-y-8 animate-fadeIn mt-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+            <div>
+              <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                <GraduationCap className="w-7 h-7 text-oxford" />
+                <span>Guided Scholars & Research Students ({studentsList.length})</span>
+              </h2>
+              <p className="text-slate-600 text-sm mt-1 font-sans">
+                Manage research scholars, Ph.D. candidates, and project students under your supervision.
+              </p>
+            </div>
+            <Button onClick={() => openStudentModal()} className="flex items-center gap-2 py-3 px-5 font-semibold">
+              <Plus className="w-4 h-4" />
+              <span>Add Research Scholar</span>
+            </Button>
+          </div>
+
+          <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+            {studentsList.length === 0 ? (
+              <div className="p-12 text-center text-slate-500 space-y-3">
+                <GraduationCap className="w-10 h-10 mx-auto text-slate-400" />
+                <p className="text-base font-semibold text-slate-800">No guided scholars listed yet.</p>
+                <p className="text-xs text-slate-500 font-sans">Click "Add Research Scholar" to register student research profiles.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                {studentsList.map((st) => (
+                  <div key={st.uid} className="bg-slate-50 border border-slate-200 p-4 rounded-2xl flex items-start gap-3 relative group shadow-xs hover:bg-white hover:border-slate-300 transition-all">
+                    <div className="w-14 h-14 rounded-xl bg-white border border-slate-200 overflow-hidden shrink-0">
+                      {st.image ? (
+                        <img src={st.image} alt={st.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <User className="w-full h-full p-2 text-slate-400" />
+                      )}
+                    </div>
+                    <div className="space-y-1 flex-1 pr-6 font-serif">
+                      <p className="text-base font-bold text-slate-900">{st.name}</p>
+                      <p className="text-xs text-slate-600 line-clamp-2 font-sans">{st.description || 'Research Scholar'}</p>
+                    </div>
+                    <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1">
+                      <button onClick={() => openStudentModal(st)} className="p-1 text-slate-500 hover:text-slate-900" title="Edit Scholar">
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDeleteStudent(st.uid)} className="p-1 text-rose-600 hover:text-rose-700" title="Delete Scholar">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </TabsContent>
+
+        {/* OPTION 4: HERO SECTION TAB */}
+        <TabsContent value="hero" className="space-y-8 animate-fadeIn mt-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+            <div>
+              <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                <Sliders className="w-7 h-7 text-amber-700" />
+                <span>Home Page Hero Carousel Section</span>
+                <Badge variant="outline" className="ml-2 font-mono text-xs border-amber-700 text-amber-800 bg-amber-50">
+                  {heroSlides.length}/10 Records
+                </Badge>
+              </h2>
+              <p className="text-slate-600 text-sm mt-1 font-sans">
+                Add, edit, reorder, and toggle visibility of home page hero slides.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="icon" onClick={fetchHeroSlides} className="h-10 w-10">
+                <RefreshCw className={`w-4 h-4 ${loadingHero ? 'animate-spin' : ''}`} />
+              </Button>
+              <Button onClick={() => openHeroModal()} disabled={heroSlides.length >= 10} className="flex items-center gap-2 font-semibold">
+                <Plus className="w-4 h-4" />
+                <span>Add Hero Item ({heroSlides.length}/10)</span>
+              </Button>
+            </div>
+          </div>
+
+          <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+            {heroSlides.length === 0 ? (
+              <div className="p-12 text-center text-slate-500 space-y-3">
+                <Sliders className="w-10 h-10 mx-auto text-slate-400" />
+                <p className="text-base font-semibold text-slate-800">No hero items available.</p>
+              </div>
+            ) : (
+              <Table className="text-sm font-sans">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-bold w-12 text-xs">Order</TableHead>
+                    <TableHead className="font-bold text-xs">Preview</TableHead>
+                    <TableHead className="font-bold text-xs">Title (Max 80)</TableHead>
+                    <TableHead className="font-bold text-xs">Description (Max 200)</TableHead>
+                    <TableHead className="font-bold text-xs">Status</TableHead>
+                    <TableHead className="font-bold text-xs text-center">Reorder</TableHead>
+                    <TableHead className="text-right font-bold text-xs">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {heroSlides.map((slide, idx) => (
+                    <TableRow key={slide.id} className="hover:bg-slate-50/50">
+                      <TableCell className="font-bold text-slate-700 font-mono text-xs py-3">#{idx + 1}</TableCell>
+                      <TableCell className="py-3">
+                        <div className="w-16 h-10 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0">
+                          <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-bold text-slate-900 max-w-[200px] text-xs py-3">
+                        <div className="line-clamp-2">{slide.title}</div>
+                        <span className="text-[10px] font-mono text-slate-400 font-normal">({slide.title.length}/80)</span>
+                      </TableCell>
+                      <TableCell className="text-slate-600 max-w-[240px] text-xs py-3">
+                        <div className="line-clamp-2">{slide.description || '—'}</div>
+                        <span className="text-[10px] font-mono text-slate-400">({slide.description.length}/200)</span>
+                      </TableCell>
+                      <TableCell className="text-xs py-3">
+                        <button type="button" className="flex items-center gap-1 font-bold text-xs hover:underline cursor-pointer" onClick={() => toggleHeroVisibility(slide)}>
+                          {slide.is_visible ? (
+                            <span className="text-emerald-600 flex items-center gap-1"><Eye className="w-3.5 h-3.5" /><span>ON</span></span>
+                          ) : (
+                            <span className="text-slate-500 flex items-center gap-1"><EyeOff className="w-3.5 h-3.5" /><span>OFF</span></span>
+                          )}
+                        </button>
+                      </TableCell>
+                      <TableCell className="text-center py-3">
+                        <div className="inline-flex items-center gap-0.5 bg-slate-100 border border-slate-200 p-0.5 rounded-lg">
+                          <button type="button" disabled={idx === 0} onClick={() => moveHeroSlide(idx, 'up')} className="p-1 text-slate-600 hover:text-slate-950 disabled:opacity-30"><ChevronUp className="w-3.5 h-3.5" /></button>
+                          <button type="button" disabled={idx === heroSlides.length - 1} onClick={() => moveHeroSlide(idx, 'down')} className="p-1 text-slate-600 hover:text-slate-950 disabled:opacity-30"><ChevronDown className="w-3.5 h-3.5" /></button>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => openHeroModal(slide)} className="h-8 w-8"><Edit className="w-3.5 h-3.5" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => handleDeleteHeroSlide(slide.id)} className="h-8 w-8 text-rose-600 hover:bg-rose-50"><Trash2 className="w-3.5 h-3.5" /></Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </Card>
+        </TabsContent>
       </main>
 
       {/* FACULTY MODALS (LIGHT WARM THEME) */}
@@ -3218,6 +3617,6 @@ export default function UnifiedDashboardPage() {
           </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </Tabs>
   );
 }

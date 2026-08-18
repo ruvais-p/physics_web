@@ -57,7 +57,7 @@ export default function NotificationsTicker() {
   useEffect(() => {
     async function fetchNotifications() {
       try {
-        const res = await fetch('/api/notifications');
+        const res = await fetch('/api/public/notifications');
         if (res.ok) {
           const data = await res.json();
           setNotifications(data);
