@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import Hero from '@/components/Hero';
-import Testimonials from '@/components/Testimonials';
 import NotificationsTicker from '@/components/NotificationsTicker';
 import { RESEARCH_LABS } from '@/lib/data';
 import { ChevronRight } from 'lucide-react';
@@ -438,9 +437,6 @@ export default function HomePage() {
 
         </div>
       </section>
-
-      {/* Alumni & Scholar Testimonials Section */}
-      <Testimonials />
 
     </div>
   );
