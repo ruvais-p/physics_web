@@ -3,6 +3,9 @@
 import React, { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Lock, Mail, ArrowRight, ShieldAlert } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 function UnifiedLoginForm() {
   const router = useRouter();
@@ -44,100 +47,102 @@ function UnifiedLoginForm() {
   };
 
   return (
-    <div className="w-full max-w-md bg-[#002147]/90 border border-slate-700/80 rounded-2xl p-8 shadow-2xl backdrop-blur-xl space-y-6 relative z-10">
-      <div className="text-center space-y-2">
-        <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 mx-auto flex items-center justify-center shadow-inner">
+    <Card className="w-full max-w-md bg-white border border-[#e8e2d5] rounded-2xl p-4 shadow-xl relative z-10">
+      <CardHeader className="text-center space-y-2 pb-6">
+        <div className="w-12 h-12 rounded-2xl bg-oxford/5 border border-oxford/10 text-oxford mx-auto flex items-center justify-center shadow-xs">
           <Lock className="w-6 h-6" />
         </div>
-        <h1 className="text-2xl font-bold font-serif text-white tracking-tight">
+        <CardTitle className="text-2xl font-bold font-serif text-slate-900 tracking-tight">
           Department Portal Sign In
-        </h1>
-        <p className="text-xs text-slate-400">
+        </CardTitle>
+        <CardDescription className="text-sm text-slate-500">
           Sign in with your registered email address and password.
-        </p>
-      </div>
+        </CardDescription>
+      </CardHeader>
 
-      {/* Error Alert Box */}
-      {error && (
-        <div className="p-3.5 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl flex items-start gap-2.5 animate-fadeIn">
-          <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
-          <span>{error}</span>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Email Input */}
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-            Email Address (Username)
-          </label>
-          <div className="relative">
-            <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="e.g. faculty@physics.cusat.ac.in"
-              className="w-full pl-10 pr-4 py-3 bg-[#00142D] border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-            />
+      <CardContent className="space-y-4">
+        {/* Error Alert Box */}
+        {error && (
+          <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl flex items-start gap-2.5 animate-fadeIn">
+            <ShieldAlert className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{error}</span>
           </div>
-        </div>
+        )}
 
-        {/* Password Input */}
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1.5">
-            Password
-          </label>
-          <div className="relative">
-            <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter your password"
-              className="w-full pl-10 pr-4 py-3 bg-[#00142D] border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-            />
-          </div>
-        </div>
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white font-semibold text-sm rounded-xl shadow-lg shadow-indigo-600/25 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
-        >
-          {loading ? (
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              <span>Authenticating...</span>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Email Input */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+              Email Address (Username)
+            </label>
+            <div className="relative">
+              <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+              <Input
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="faculty@physics.cusat.ac.in"
+                className="pl-10 text-base h-12 bg-white text-slate-900 border-[#e8e2d5] focus:ring-2 focus:ring-oxford"
+              />
             </div>
-          ) : (
-            <>
-              <span>Sign In to Portal</span>
-              <ArrowRight className="w-4 h-4" />
-            </>
-          )}
-        </button>
-      </form>
-    </div>
+          </div>
+
+          {/* Password Input */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700">
+              Password
+            </label>
+            <div className="relative">
+              <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+              <Input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="pl-10 text-base h-12 bg-white text-slate-900 border-[#e8e2d5] focus:ring-2 focus:ring-oxford"
+              />
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full py-6 bg-oxford hover:bg-oxford/90 active:bg-oxford-dark text-white font-semibold text-base rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 disabled:opacity-50 cursor-pointer"
+          >
+            {loading ? (
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Authenticating...</span>
+              </div>
+            ) : (
+              <>
+                <span>Sign In to Portal</span>
+                <ArrowRight className="w-4.5 h-4.5" />
+              </>
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
 
 export default function UnifiedLoginPage() {
   return (
-    <div className="min-h-screen bg-[#00142D] text-slate-100 flex items-center justify-center font-sans selection:bg-indigo-500 selection:text-white relative overflow-hidden p-6">
+    <div className="min-h-screen bg-[#faf7f2] text-slate-900 flex items-center justify-center font-serif selection:bg-oxford selection:text-white relative overflow-hidden p-6">
       {/* Background Decorative Glow Effects */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-indigo-600/15 blur-[120px] rounded-full pointer-events-none" />
-      <div className="absolute bottom-10 right-10 w-[350px] h-[350px] bg-[#00A3C1]/10 blur-[100px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-amber-600/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-[350px] h-[350px] bg-amber-900/5 blur-[100px] rounded-full pointer-events-none" />
 
       {/* Main Container */}
       <Suspense
-        fallback={
-          <div className="w-full max-w-md bg-[#002147]/90 border border-slate-700/80 rounded-2xl p-12 text-center flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin" />
-          </div>
+        fallback = {
+          <Card className="w-full max-w-md bg-white border border-[#e8e2d5] rounded-2xl p-12 text-center flex items-center justify-center shadow-xl">
+            <div className="w-8 h-8 border-2 border-oxford border-t-transparent rounded-full animate-spin" />
+          </Card>
         }
       >
         <UnifiedLoginForm />

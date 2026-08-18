@@ -147,25 +147,25 @@ function renderMarkdown(md: string) {
     }
     if (trimmed.startsWith('# ')) {
       elements.push(
-        <h2 key={index} className="text-lg font-bold text-white mt-3 mb-1 border-b border-slate-700 pb-1">
+        <h2 key={index} className="text-lg font-bold text-slate-900 mt-3 mb-1 border-b border-slate-200 pb-1">
           {trimmed.slice(2)}
         </h2>
       );
     } else if (trimmed.startsWith('## ')) {
       elements.push(
-        <h3 key={index} className="text-base font-bold text-indigo-300 mt-2 mb-1">
+        <h3 key={index} className="text-base font-bold text-indigo-600 mt-2 mb-1">
           {trimmed.slice(3)}
         </h3>
       );
     } else if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
       elements.push(
-        <li key={index} className="ml-4 list-disc text-xs text-slate-300 my-0.5">
+        <li key={index} className="ml-4 list-disc text-xs text-slate-700 my-0.5">
           {trimmed.slice(2)}
         </li>
       );
     } else {
       elements.push(
-        <p key={index} className="text-xs text-slate-300 leading-relaxed my-1">
+        <p key={index} className="text-xs text-slate-700 leading-relaxed my-1">
           {trimmed}
         </p>
       );
@@ -554,7 +554,7 @@ export default function AdminFacultyFullManageModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-      <div className="bg-white border border-slate-200 rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-slate-900">
+      <div className="bg-[#faf7f2] border border-[#e8e2d5] rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-slate-900">
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -663,7 +663,7 @@ export default function AdminFacultyFullManageModal({
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
                         Full Name
                       </label>
                       <input
@@ -671,12 +671,12 @@ export default function AdminFacultyFullManageModal({
                         required
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full p-2.5 bg-[#00142D] border border-slate-700 rounded-xl text-white text-sm"
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
                         Email Address (Username)
                       </label>
                       <input
@@ -684,14 +684,14 @@ export default function AdminFacultyFullManageModal({
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full p-2.5 bg-[#00142D] border border-slate-700 rounded-xl text-white text-sm font-mono"
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
                         Designation / Title
                       </label>
                       <input
@@ -699,12 +699,12 @@ export default function AdminFacultyFullManageModal({
                         value={designation}
                         onChange={(e) => setDesignation(e.target.value)}
                         placeholder="e.g. Professor & Head"
-                        className="w-full p-2.5 bg-[#00142D] border border-slate-700 rounded-xl text-white text-sm"
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
                         Phone Number
                       </label>
                       <input
@@ -712,26 +712,26 @@ export default function AdminFacultyFullManageModal({
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="+91 98765 43210"
-                        className="w-full p-2.5 bg-[#00142D] border border-slate-700 rounded-xl text-white text-sm font-mono"
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
                         Department
                       </label>
                       <input
                         type="text"
                         value={department}
                         onChange={(e) => setDepartment(e.target.value)}
-                        className="w-full p-2.5 bg-[#00142D] border border-slate-700 rounded-xl text-white text-sm"
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-1">
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
                         Account Access Status
                       </label>
                       <div className="flex items-center h-10">
@@ -742,8 +742,8 @@ export default function AdminFacultyFullManageModal({
                             onChange={(e) => setIsActive(e.target.checked)}
                             className="sr-only peer"
                           />
-                          <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                          <span className="ml-3 text-xs font-medium text-slate-300">
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                          <span className="ml-3 text-xs font-medium text-slate-700">
                             {isActive ? 'Active Login Access' : 'Account Deactivated'}
                           </span>
                         </label>
@@ -751,8 +751,8 @@ export default function AdminFacultyFullManageModal({
                     </div>
                   </div>
 
-                  <div className="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-xl space-y-2">
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-300">
+                  <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl space-y-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-700">
                       Reset Password (Admin Override)
                     </label>
                     <input
@@ -761,7 +761,7 @@ export default function AdminFacultyFullManageModal({
                       value={newPredefinedPassword}
                       onChange={(e) => setNewPredefinedPassword(e.target.value)}
                       placeholder="Enter new password (leave blank to keep current)"
-                      className="w-full p-2.5 bg-[#00142D] border border-slate-700 rounded-xl text-white text-sm font-mono"
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   </div>
 
@@ -781,13 +781,13 @@ export default function AdminFacultyFullManageModal({
               {activeTab === 'profiles' && (
                 <form onSubmit={handleSaveProfiles} className="space-y-4">
                   {profilesError && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl flex items-center gap-2">
+                    <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 shrink-0" />
                       <span>{profilesError}</span>
                     </div>
                   )}
                   {profilesSuccess && (
-                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-xl flex items-center gap-2">
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-xl flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 shrink-0" />
                       <span>{profilesSuccess}</span>
                     </div>
@@ -801,8 +801,8 @@ export default function AdminFacultyFullManageModal({
                           key={platform.key}
                           className={`p-3 rounded-xl border transition-all ${
                             isSelected
-                              ? 'bg-slate-800/80 border-indigo-500/60'
-                              : 'bg-slate-900/40 border-slate-800'
+                              ? 'bg-indigo-50/50 border-indigo-200'
+                              : 'bg-slate-50 border-slate-200'
                           }`}
                         >
                           <label className="flex items-center gap-2 cursor-pointer mb-2">
@@ -810,7 +810,7 @@ export default function AdminFacultyFullManageModal({
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => togglePlatform(platform.key)}
-                              className="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500"
+                              className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
                             />
                             <span className={`text-xs font-semibold px-2 py-0.5 rounded ${platform.badgeBg} ${platform.badgeText}`}>
                               {platform.label}
@@ -824,7 +824,7 @@ export default function AdminFacultyFullManageModal({
                                 setPlatformUrls({ ...platformUrls, [platform.key]: e.target.value })
                               }
                               placeholder={platform.placeholder}
-                              className="w-full p-2 bg-[#00142D] border border-slate-700 rounded-lg text-xs text-white placeholder-slate-500 font-mono"
+                              className="w-full p-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             />
                           )}
                         </div>
@@ -833,9 +833,9 @@ export default function AdminFacultyFullManageModal({
                   </div>
 
                   {/* Custom Profiles */}
-                  <div className="pt-4 border-t border-slate-700/60 space-y-3">
+                  <div className="pt-4 border-t border-slate-200 space-y-3">
                     <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-semibold uppercase text-slate-300">Custom Profile Links</h4>
+                      <h4 className="text-xs font-semibold uppercase text-slate-700">Custom Profile Links</h4>
                       <button
                         type="button"
                         onClick={() =>
@@ -844,7 +844,7 @@ export default function AdminFacultyFullManageModal({
                             { id: `custom_${Date.now()}`, name: '', url: '' },
                           ])
                         }
-                        className="text-xs text-indigo-400 hover:underline flex items-center gap-1 font-semibold"
+                        className="text-xs text-indigo-600 hover:underline flex items-center gap-1 font-semibold"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Add Custom Link</span>
@@ -858,31 +858,31 @@ export default function AdminFacultyFullManageModal({
                           placeholder="Platform / Link Title"
                           value={op.name}
                           onChange={(e) =>
-                            setOtherProfiles(
-                              otherProfiles.map((item) =>
-                                item.id === op.id ? { ...item, name: e.target.value } : item
-                              )
-                            )
+                             setOtherProfiles(
+                               otherProfiles.map((item) =>
+                                 item.id === op.id ? { ...item, name: e.target.value } : item
+                               )
+                             )
                           }
-                          className="w-1/3 p-2 bg-[#00142D] border border-slate-700 rounded-lg text-xs text-white"
+                          className="w-1/3 p-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                         <input
                           type="url"
                           placeholder="https://..."
                           value={op.url}
                           onChange={(e) =>
-                            setOtherProfiles(
-                              otherProfiles.map((item) =>
-                                item.id === op.id ? { ...item, url: e.target.value } : item
-                              )
-                            )
+                             setOtherProfiles(
+                               otherProfiles.map((item) =>
+                                 item.id === op.id ? { ...item, url: e.target.value } : item
+                               )
+                             )
                           }
-                          className="flex-1 p-2 bg-[#00142D] border border-slate-700 rounded-lg text-xs text-white font-mono"
+                          className="flex-1 p-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
                         />
                         <button
                           type="button"
                           onClick={() => setOtherProfiles(otherProfiles.filter((item) => item.id !== op.id))}
-                          className="p-1.5 text-red-400 hover:text-red-300 bg-red-500/10 rounded-lg"
+                          className="p-1.5 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -906,13 +906,13 @@ export default function AdminFacultyFullManageModal({
               {activeTab === 'documents' && (
                 <form onSubmit={handleSaveDocuments} className="space-y-6">
                   {docError && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl flex items-center gap-2">
+                    <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 shrink-0" />
                       <span>{docError}</span>
                     </div>
                   )}
                   {docSuccess && (
-                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-xl flex items-center gap-2">
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-xl flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 shrink-0" />
                       <span>{docSuccess}</span>
                     </div>
@@ -920,8 +920,8 @@ export default function AdminFacultyFullManageModal({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Profile Photo */}
-                    <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-4">
-                      <h4 className="text-xs font-semibold uppercase text-slate-300">Profile Photo</h4>
+                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+                      <h4 className="text-xs font-semibold uppercase text-slate-700">Profile Photo</h4>
 
                       {imagePreviewUrl || imagePath ? (
                         <div className="relative w-32 h-32 mx-auto rounded-2xl overflow-hidden border border-indigo-500/40 shadow-lg">
@@ -933,14 +933,14 @@ export default function AdminFacultyFullManageModal({
                           <button
                             type="button"
                             onClick={() => handleDeleteDocument('image')}
-                            className="absolute top-2 right-2 p-1.5 bg-red-600/90 text-white rounded-lg hover:bg-red-500 transition-all shadow"
+                            className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-all shadow cursor-pointer"
                             title="Delete Photo"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       ) : (
-                        <div className="w-32 h-32 mx-auto rounded-2xl border-2 border-dashed border-slate-700 flex flex-col items-center justify-center text-slate-500">
+                        <div className="w-32 h-32 mx-auto rounded-2xl border-2 border-dashed border-slate-300 flex flex-col items-center justify-center text-slate-400">
                           <User className="w-8 h-8 mb-1" />
                           <span className="text-[10px]">No Photo</span>
                         </div>
@@ -956,26 +956,26 @@ export default function AdminFacultyFullManageModal({
                             setImagePreviewUrl(URL.createObjectURL(file));
                           }
                         }}
-                        className="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/20 file:text-indigo-300 hover:file:bg-indigo-500/30 cursor-pointer"
+                        className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 cursor-pointer"
                       />
                     </div>
 
                     {/* CV PDF */}
-                    <div className="p-4 bg-slate-900/60 border border-slate-800 rounded-2xl space-y-4">
-                      <h4 className="text-xs font-semibold uppercase text-slate-300">Curriculum Vitae (CV) PDF</h4>
+                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-4">
+                      <h4 className="text-xs font-semibold uppercase text-slate-700">Curriculum Vitae (CV) PDF</h4>
 
                       {cvPath ? (
-                        <div className="p-4 bg-indigo-500/10 border border-indigo-500/30 rounded-xl flex items-center justify-between">
+                        <div className="p-4 bg-indigo-50 border border-indigo-100 rounded-xl flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-indigo-400" />
-                            <span className="text-xs text-indigo-200 font-medium">CV Document Uploaded</span>
+                            <FileText className="w-5 h-5 text-indigo-600" />
+                            <span className="text-xs text-indigo-950 font-medium">CV Document Uploaded</span>
                           </div>
                           <div className="flex items-center gap-2">
                             <a
                               href={cvPath}
                               target="_blank"
                               rel="noreferrer"
-                              className="p-1.5 text-indigo-300 hover:text-white bg-indigo-500/20 rounded-lg text-xs flex items-center gap-1"
+                              className="p-1.5 text-indigo-600 hover:text-indigo-700 bg-indigo-50 rounded-lg text-xs flex items-center gap-1 font-semibold"
                             >
                               <Eye className="w-3.5 h-3.5" />
                               <span>View</span>
@@ -983,14 +983,14 @@ export default function AdminFacultyFullManageModal({
                             <button
                               type="button"
                               onClick={() => handleDeleteDocument('cv')}
-                              className="p-1.5 text-red-400 hover:text-red-300 bg-red-500/10 rounded-lg"
+                              className="p-1.5 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </div>
                       ) : (
-                        <div className="p-6 border-2 border-dashed border-slate-700 rounded-xl text-center text-slate-500">
+                        <div className="p-6 border-2 border-dashed border-slate-300 rounded-xl text-center text-slate-400">
                           <FileText className="w-8 h-8 mx-auto mb-1 opacity-50" />
                           <span className="text-xs">No CV PDF Uploaded</span>
                         </div>
@@ -1003,7 +1003,7 @@ export default function AdminFacultyFullManageModal({
                           const file = e.target.files?.[0];
                           if (file) setSelectedCvFile(file);
                         }}
-                        className="w-full text-xs text-slate-400 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-500/20 file:text-indigo-300 hover:file:bg-indigo-500/30 cursor-pointer"
+                        className="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 cursor-pointer"
                       />
                     </div>
                   </div>
@@ -1024,25 +1024,25 @@ export default function AdminFacultyFullManageModal({
               {activeTab === 'description' && (
                 <form onSubmit={handleSaveDescription} className="space-y-4">
                   {descError && (
-                    <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl flex items-center gap-2">
+                    <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 shrink-0" />
                       <span>{descError}</span>
                     </div>
                   )}
                   {descSuccess && (
-                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-xl flex items-center gap-2">
+                    <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs rounded-xl flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 shrink-0" />
                       <span>{descSuccess}</span>
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between border-b border-slate-700/60 pb-2">
-                    <div className="flex items-center bg-slate-900 p-1 rounded-xl text-xs font-semibold">
+                  <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                    <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-semibold">
                       <button
                         type="button"
                         onClick={() => setDescActiveTab('write')}
-                        className={`px-3 py-1 rounded-lg ${
-                          descActiveTab === 'write' ? 'bg-indigo-600 text-white' : 'text-slate-400'
+                        className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                          descActiveTab === 'write' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
                         Write Markdown
@@ -1050,8 +1050,8 @@ export default function AdminFacultyFullManageModal({
                       <button
                         type="button"
                         onClick={() => setDescActiveTab('preview')}
-                        className={`px-3 py-1 rounded-lg ${
-                          descActiveTab === 'preview' ? 'bg-indigo-600 text-white' : 'text-slate-400'
+                        className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                          descActiveTab === 'preview' ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-800'
                         }`}
                       >
                         Preview Output
@@ -1065,10 +1065,10 @@ export default function AdminFacultyFullManageModal({
                       value={markdownContent}
                       onChange={(e) => setMarkdownContent(e.target.value)}
                       placeholder="# About Me&#10;Write detailed faculty description using markdown..."
-                      className="w-full p-4 bg-[#00142D] border border-slate-700 rounded-xl text-white text-xs font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      className="w-full p-4 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500"
                     />
                   ) : (
-                    <div className="p-4 bg-[#00142D] border border-slate-700 rounded-xl min-h-[250px]">
+                    <div className="p-4 bg-white border border-slate-200 rounded-xl min-h-[250px]">
                       {renderMarkdown(markdownContent)}
                     </div>
                   )}
@@ -1089,11 +1089,11 @@ export default function AdminFacultyFullManageModal({
               {activeTab === 'students' && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-semibold uppercase text-slate-300">Guided Scholars & Students</h4>
+                    <h4 className="text-xs font-semibold uppercase text-slate-700">Guided Scholars & Students</h4>
                     <button
                       type="button"
                       onClick={() => openStudentModal()}
-                      className="py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 shadow"
+                      className="py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 shadow cursor-pointer"
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>Add Student Record</span>
@@ -1101,7 +1101,7 @@ export default function AdminFacultyFullManageModal({
                   </div>
 
                   {studentsList.length === 0 ? (
-                    <div className="p-8 border border-slate-800 rounded-2xl text-center text-slate-500 space-y-2">
+                    <div className="p-8 border border-slate-200 rounded-2xl text-center text-slate-400 space-y-2">
                       <GraduationCap className="w-8 h-8 mx-auto opacity-50" />
                       <p className="text-xs font-medium">No guided students recorded for this faculty member.</p>
                     </div>
@@ -1110,20 +1110,20 @@ export default function AdminFacultyFullManageModal({
                       {studentsList.map((st) => (
                         <div
                           key={st.uid}
-                          className="p-3 bg-slate-900/80 border border-slate-800 rounded-xl flex items-center justify-between"
+                          className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between"
                         >
                           <div className="flex items-center gap-3">
                             {st.image ? (
                               <img src={st.image} alt={st.name} className="w-10 h-10 rounded-full object-cover border border-indigo-500/40" />
                             ) : (
-                              <div className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-500">
+                              <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
                                 <User className="w-5 h-5" />
                               </div>
                             )}
                             <div>
-                              <div className="text-xs font-bold text-white">{st.name}</div>
+                              <div className="text-xs font-bold text-slate-900">{st.name}</div>
                               {st.description && (
-                                <div className="text-[11px] text-slate-400 line-clamp-1">{st.description}</div>
+                                <div className="text-[11px] text-slate-500 line-clamp-1">{st.description}</div>
                               )}
                             </div>
                           </div>
@@ -1131,13 +1131,13 @@ export default function AdminFacultyFullManageModal({
                           <div className="flex items-center gap-1">
                             <button
                               onClick={() => openStudentModal(st)}
-                              className="p-1.5 text-slate-400 hover:text-white bg-slate-800 rounded-lg"
+                              className="p-1.5 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg cursor-pointer"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleDeleteStudent(st.uid)}
-                              className="p-1.5 text-red-400 hover:text-red-300 bg-red-500/10 rounded-lg"
+                              className="p-1.5 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -1155,49 +1155,49 @@ export default function AdminFacultyFullManageModal({
 
       {/* Nested Add/Edit Student Popup Modal */}
       {isStudentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-          <div className="bg-[#002147] border border-slate-700/80 rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-700/60 pb-3">
-              <h3 className="text-sm font-bold text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-[#faf7f2] border border-[#e8e2d5] rounded-2xl w-full max-w-md p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="text-sm font-bold text-slate-900">
                 {editingStudent ? 'Edit Student Record' : 'Add Guided Student'}
               </h3>
-              <button onClick={() => setIsStudentModalOpen(false)} className="text-slate-400 hover:text-white">
+              <button onClick={() => setIsStudentModalOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {studentError && (
-              <div className="p-3 bg-red-500/10 border border-red-500/30 text-red-400 text-xs rounded-xl">
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
                 {studentError}
               </div>
             )}
 
             <form onSubmit={handleSaveStudent} className="space-y-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Student Name</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Student Name</label>
                 <input
                   type="text"
                   required
                   value={studentName}
                   onChange={(e) => setStudentName(e.target.value)}
                   placeholder="e.g. Ananya Nair"
-                  className="w-full p-2.5 bg-[#00142D] border border-slate-700 rounded-xl text-white text-xs"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Research Description / Thesis</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Research Description / Thesis</label>
                 <textarea
                   rows={3}
                   value={studentDescription}
                   onChange={(e) => setStudentDescription(e.target.value)}
                   placeholder="e.g. Ph.D. Scholar working on Quantum Photonics..."
-                  className="w-full p-2.5 bg-[#00142D] border border-slate-700 rounded-xl text-white text-xs"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">Student Photo</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Student Photo</label>
                 <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
@@ -1208,22 +1208,22 @@ export default function AdminFacultyFullManageModal({
                       setStudentImagePreviewUrl(URL.createObjectURL(file));
                     }
                   }}
-                  className="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:bg-indigo-500/20 file:text-indigo-300 cursor-pointer"
+                  className="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 cursor-pointer"
                 />
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-slate-700/60">
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={() => setIsStudentModalOpen(false)}
-                  className="py-2 px-3 bg-slate-800 text-slate-300 rounded-xl text-xs"
+                  className="py-2 px-3 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl text-xs cursor-pointer font-semibold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingStudent}
-                  className="py-2 px-4 bg-indigo-600 text-white rounded-xl text-xs font-semibold shadow"
+                  className="py-2 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow cursor-pointer"
                 >
                   {savingStudent ? 'Saving...' : 'Save Student'}
                 </button>

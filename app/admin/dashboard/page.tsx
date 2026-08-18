@@ -430,90 +430,94 @@ export default function AdminDashboardPage() {
   );
 
   return (
-    <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as any)} className="min-h-screen bg-slate-50 text-slate-900 flex flex-col font-sans selection:bg-slate-900 selection:text-white">
+    <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as any)} className="min-h-screen bg-[#faf7f2] text-slate-900 flex flex-col font-serif selection:bg-oxford selection:text-white">
       {/* Top Navbar */}
-      <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shadow-xs sticky top-0 z-40">
+      <header className="bg-oxford border-b border-[#001833] px-6 py-6 flex items-center justify-between shadow-lg sticky top-0 z-40">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-cyan-accent/10 border border-cyan-accent/20 flex items-center justify-center text-cyan-accent">
+          <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent">
             <ShieldCheck className="w-6 h-6" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-oxford font-serif">Department Management Portal</h1>
-            <p className="text-xs text-slate-500">Database Active • Admin Authenticated</p>
+            <h1 className="text-xl font-bold text-white font-serif">Department Management Portal</h1>
+            <p className="text-sm text-indigo-200">Database Active • Admin Authenticated</p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           {/* Navigation Tabs */}
-          <TabsList className="bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs font-semibold">
-            <TabsTrigger value="dashboard" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer">
-              <LayoutDashboard className="w-3.5 h-3.5" />
+          <TabsList className="bg-oxford-dark/80 p-1 rounded-xl border border-indigo-950/40 text-sm font-semibold text-slate-300">
+            <TabsTrigger
+              value="dashboard"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all cursor-pointer text-sm text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford"
+            >
+              <LayoutDashboard className="w-4 h-4" />
               <span>Overview</span>
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer">
-              <Bell className="w-3.5 h-3.5" />
+            <TabsTrigger
+              value="notifications"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all cursor-pointer text-sm text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford"
+            >
+              <Bell className="w-4 h-4" />
               <span>Notifications ({notifications.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="faculty" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all cursor-pointer">
-              <Users className="w-3.5 h-3.5" />
+            <TabsTrigger
+              value="faculty"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg transition-all cursor-pointer text-sm text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford"
+            >
+              <Users className="w-4 h-4" />
               <span>Faculty Accounts ({facultyList.length})</span>
             </TabsTrigger>
           </TabsList>
 
           <Button
             variant="destructive"
-            size="sm"
+            size="default"
             onClick={handleLogout}
             disabled={loggingOut}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-500 border-none text-white transition-all cursor-pointer"
           >
-            <LogOut className="w-3.5 h-3.5" />
+            <LogOut className="w-4 h-4" />
             <span>{loggingOut ? 'Logging out...' : 'Logout'}</span>
           </Button>
         </div>
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-6 space-y-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-6 pt-12 pb-8 space-y-12">
         {/* OVERVIEW TAB */}
-        <TabsContent value="dashboard" className="space-y-8 animate-fadeIn mt-0">
+        <TabsContent value="dashboard" className="space-y-12 animate-fadeIn mt-0">
           {/* Welcome Banner */}
-          <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs relative overflow-hidden">
-            <CardHeader className="p-0 mb-3">
-              <Badge variant="success" className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold w-fit">
-                <CheckCircle2 className="w-3.5 h-3.5" /> Database Connection Active
-              </Badge>
-            </CardHeader>
+          <Card className="bg-transparent border-none rounded-none p-0 shadow-none relative overflow-visible">
             <CardContent className="p-0">
-              <CardTitle className="text-2xl font-bold font-serif text-slate-900 leading-none mb-1">Welcome, Administrator</CardTitle>
-              <CardDescription className="text-slate-600 text-sm mt-1">
+              <CardTitle className="text-3xl font-bold font-serif text-slate-900 leading-none mb-2">Welcome, Administrator</CardTitle>
+              <CardDescription className="text-slate-600 text-base mt-1">
                 Manage department announcements, faculty member accounts, and research profiles in real time.
               </CardDescription>
             </CardContent>
           </Card>
 
           {/* Dashboard Modules Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
             {/* Module 1: Notifications */}
-            <Card className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between space-y-4 shadow-xs hover:border-slate-300 hover:shadow-md transition-all group">
+            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
               <CardContent className="p-0 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="w-12 h-12 rounded-xl bg-cyan-accent/10 text-cyan-accent border border-cyan-accent/20 flex items-center justify-center">
                     <Bell className="w-6 h-6" />
                   </div>
-                  <span className="text-2xl font-extrabold text-cyan-accent">
+                  <span className="text-3xl font-extrabold text-cyan-accent">
                     {notifications.length}
                   </span>
                 </div>
-                <CardTitle className="text-lg font-semibold text-slate-900 font-serif leading-none">Notifications & Notices</CardTitle>
-                <CardDescription className="text-sm text-slate-600 leading-normal">
+                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Notifications & Notices</CardTitle>
+                <CardDescription className="text-base text-slate-600 leading-normal">
                   Post department announcements, seminar dates, and urgent student alerts to the marquee ticker.
                 </CardDescription>
               </CardContent>
               <Button
                 variant="default"
                 onClick={() => setActiveTab('notifications')}
-                className="w-full py-2.5 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
               >
                 <Plus className="w-4 h-4" />
                 <span>Manage Notifications</span>
@@ -521,25 +525,25 @@ export default function AdminDashboardPage() {
             </Card>
 
             {/* Module 2: Faculty Accounts */}
-            <Card className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between space-y-4 shadow-xs hover:border-slate-300 hover:shadow-md transition-all group">
+            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
               <CardContent className="p-0 space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="w-12 h-12 rounded-xl bg-oxford/10 text-oxford border border-oxford/20 flex items-center justify-center">
                     <Users className="w-6 h-6" />
                   </div>
-                  <span className="text-2xl font-extrabold text-oxford">
+                  <span className="text-3xl font-extrabold text-oxford">
                     {facultyList.length}
                   </span>
                 </div>
-                <CardTitle className="text-lg font-semibold text-slate-900 font-serif leading-none">Faculty Member Accounts</CardTitle>
-                <CardDescription className="text-sm text-slate-600 leading-normal">
+                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Faculty Member Accounts</CardTitle>
+                <CardDescription className="text-base text-slate-600 leading-normal">
                   Create faculty logins (Email + Predefined Password), monitor password change status, and update records.
                 </CardDescription>
               </CardContent>
               <Button
                 variant="default"
                 onClick={() => setActiveTab('faculty')}
-                className="w-full py-2.5 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>Manage Faculty Accounts</span>
@@ -547,17 +551,17 @@ export default function AdminDashboardPage() {
             </Card>
 
             {/* Module 3: Research Labs */}
-            <Card className="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col justify-between space-y-4 shadow-xs opacity-75">
+            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none opacity-75">
               <CardContent className="p-0 space-y-3">
                 <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 border border-purple-200 flex items-center justify-center">
                   <FlaskConical className="w-6 h-6" />
                 </div>
-                <CardTitle className="text-lg font-semibold text-slate-900 font-serif leading-none">Research Labs</CardTitle>
-                <CardDescription className="text-sm text-slate-600 leading-normal">
+                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Research Labs</CardTitle>
+                <CardDescription className="text-base text-slate-600 leading-normal">
                   Update lab equipment inventory, faculty heads, and research focus areas.
                 </CardDescription>
               </CardContent>
-              <Button disabled variant="secondary" className="w-full py-2.5 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 cursor-not-allowed">
+              <Button disabled variant="secondary" className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 cursor-not-allowed">
                 <span>Coming Soon</span>
               </Button>
             </Card>
@@ -565,15 +569,15 @@ export default function AdminDashboardPage() {
         </TabsContent>
 
         {/* NOTIFICATIONS TAB */}
-        <TabsContent value="notifications" className="space-y-6 animate-fadeIn mt-0">
+        <TabsContent value="notifications" className="space-y-10 animate-fadeIn mt-0">
           {/* Header Action Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-transparent py-2 rounded-none shadow-none">
             <div>
-              <h2 className="text-2xl font-bold font-serif text-slate-900 flex items-center gap-2">
-                <Bell className="w-6 h-6 text-cyan-accent" />
+              <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                <Bell className="w-7 h-7 text-cyan-accent" />
                 <span>Notifications Management</span>
               </h2>
-              <p className="text-slate-600 text-sm mt-1">
+              <p className="text-slate-600 text-base mt-1">
                 Active notifications are immediately broadcasted to the home page running marquee ticker.
               </p>
             </div>
@@ -583,7 +587,7 @@ export default function AdminDashboardPage() {
                 variant="outline"
                 size="icon"
                 onClick={fetchNotifications}
-                className="h-10 w-10 text-slate-700 hover:text-slate-950"
+                className="h-11 w-11 text-slate-700 hover:text-slate-950"
                 title="Refresh List"
               >
                 <RefreshCw className={`w-4 h-4 ${loadingNotifs ? 'animate-spin' : ''}`} />
@@ -591,7 +595,7 @@ export default function AdminDashboardPage() {
               <Button
                 variant="default"
                 onClick={() => openModal()}
-                className="flex items-center gap-2 py-2.5 px-4 font-semibold rounded-xl shadow-xs transition-all text-sm cursor-pointer"
+                className="flex items-center gap-2 py-3 px-5 font-semibold rounded-xl shadow-xs transition-all text-base cursor-pointer"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Notification</span>
@@ -601,18 +605,18 @@ export default function AdminDashboardPage() {
 
           {/* Search Bar */}
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
+            <Search className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
             <Input
               type="text"
               placeholder="Search by title or category..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-11 text-base h-12"
             />
           </div>
 
           {/* Notifications Data Table */}
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+          <div className="bg-transparent border-none overflow-visible shadow-none">
             {loadingNotifs ? (
               <div className="p-12 text-center text-slate-500 flex flex-col items-center gap-3">
                 <div className="w-8 h-8 border-2 border-oxford border-t-transparent rounded-full animate-spin" />
@@ -624,67 +628,67 @@ export default function AdminDashboardPage() {
                 <p className="text-base font-semibold text-slate-800">No notifications found</p>
               </div>
             ) : (
-              <Table>
+              <Table className="text-base">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Redirect Link</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-base font-bold">Status</TableHead>
+                    <TableHead className="text-base font-bold">Title</TableHead>
+                    <TableHead className="text-base font-bold">Category</TableHead>
+                    <TableHead className="text-base font-bold">Redirect Link</TableHead>
+                    <TableHead className="text-base font-bold">Date</TableHead>
+                    <TableHead className="text-right text-base font-bold">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredNotifs.map((notif) => (
-                    <TableRow key={notif.id}>
-                      <TableCell>
-                        <Badge
-                          variant={notif.isActive ? 'success' : 'inactive'}
-                          className="cursor-pointer hover:opacity-85 transition-all py-1 px-2.5 font-bold"
+                    <TableRow key={notif.id} className="hover:bg-slate-50/40">
+                      <TableCell className="text-base py-4">
+                        <button
+                          type="button"
+                          className="flex items-center gap-1.5 font-bold text-base hover:underline focus:outline-none cursor-pointer transition-all"
                           onClick={() => toggleActiveStatus(notif)}
                         >
                           {notif.isActive ? (
-                            <>
-                              <Eye className="w-3 h-3 mr-1.5" />
+                            <span className="text-emerald-600 flex items-center gap-1.5">
+                              <Eye className="w-4 h-4" />
                               <span>Active</span>
-                            </>
+                            </span>
                           ) : (
-                            <>
-                              <EyeOff className="w-3 h-3 mr-1.5" />
+                            <span className="text-slate-500 flex items-center gap-1.5">
+                              <EyeOff className="w-4 h-4" />
                               <span>Inactive</span>
-                            </>
+                            </span>
                           )}
-                        </Badge>
+                        </button>
                       </TableCell>
 
-                      <TableCell className="font-medium text-slate-900 max-w-md">
+                      <TableCell className="font-medium text-slate-900 max-w-md text-base py-4">
                         <span className="line-clamp-2">{notif.title}</span>
                       </TableCell>
 
-                      <TableCell>
-                        <Badge variant="cyan">
+                      <TableCell className="text-base py-4">
+                        <span className="font-semibold text-base text-cyan-700">
                           {notif.category}
-                        </Badge>
+                        </span>
                       </TableCell>
 
-                      <TableCell className="text-slate-600">
+                      <TableCell className="text-slate-600 text-base py-4">
                         {notif.link ? (
                           <a
                             href={notif.link}
                             target="_blank"
                             rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-cyan-accent hover:underline max-w-[150px] truncate font-medium"
+                            className="inline-flex items-center gap-1 text-base text-cyan-accent hover:underline max-w-[150px] truncate font-medium"
                           >
                             <span>{notif.link}</span>
-                            <ExternalLink className="w-3 h-3 shrink-0" />
+                            <ExternalLink className="w-3.5 h-3.5 shrink-0" />
                           </a>
                         ) : (
-                          <span className="text-xs text-slate-400">—</span>
+                          <span className="text-base text-slate-400">—</span>
                         )}
                       </TableCell>
 
-                      <TableCell className="text-xs text-slate-500 whitespace-nowrap">
+                      <TableCell className="text-base text-slate-600 whitespace-nowrap font-mono py-4">
                         {new Date(notif.date).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -692,12 +696,12 @@ export default function AdminDashboardPage() {
                         })}
                       </TableCell>
 
-                      <TableCell className="text-right space-x-2 whitespace-nowrap">
+                      <TableCell className="text-right space-x-2 whitespace-nowrap py-4">
                         <Button
                           variant="secondary"
                           size="icon"
                           onClick={() => openModal(notif)}
-                          className="h-8 w-8 text-slate-600 hover:text-slate-900"
+                          className="h-9 w-9 text-slate-600 hover:text-slate-900"
                           title="Edit Notification"
                         >
                           <Edit className="w-4 h-4" />
@@ -706,7 +710,7 @@ export default function AdminDashboardPage() {
                           variant="destructive"
                           size="icon"
                           onClick={() => handleDelete(notif.id)}
-                          className="h-8 w-8"
+                          className="h-9 w-9"
                           title="Delete Notification"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -721,15 +725,15 @@ export default function AdminDashboardPage() {
         </TabsContent>
 
         {/* FACULTY ACCOUNTS TAB */}
-        <TabsContent value="faculty" className="space-y-6 animate-fadeIn mt-0">
+        <TabsContent value="faculty" className="space-y-10 animate-fadeIn mt-0">
           {/* Header Action Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-transparent py-2 rounded-none shadow-none">
             <div>
-              <h2 className="text-2xl font-bold font-serif text-slate-900 flex items-center gap-2">
-                <Users className="w-6 h-6 text-oxford" />
+              <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                <Users className="w-7 h-7 text-oxford" />
                 <span>Faculty Account Management</span>
               </h2>
-              <p className="text-slate-600 text-sm mt-1">
+              <p className="text-slate-600 text-base mt-1">
                 Create faculty login accounts, specify predefined passwords, and manage permissions. Faculty emails are used as usernames.
               </p>
             </div>
@@ -739,7 +743,7 @@ export default function AdminDashboardPage() {
                 variant="outline"
                 size="icon"
                 onClick={fetchFaculty}
-                className="h-10 w-10 text-slate-700 hover:text-slate-950"
+                className="h-11 w-11 text-slate-700 hover:text-slate-950"
                 title="Refresh Faculty Records"
               >
                 <RefreshCw className={`w-4 h-4 ${loadingFaculty ? 'animate-spin' : ''}`} />
@@ -747,7 +751,7 @@ export default function AdminDashboardPage() {
               <Button
                 variant="default"
                 onClick={() => openFacultyModal()}
-                className="flex items-center gap-2 py-2.5 px-4 font-semibold rounded-xl shadow-xs transition-all text-sm cursor-pointer"
+                className="flex items-center gap-2 py-3 px-5 font-semibold rounded-xl shadow-xs transition-all text-base cursor-pointer"
               >
                 <UserPlus className="w-4 h-4" />
                 <span>Create Faculty Account</span>
@@ -757,18 +761,18 @@ export default function AdminDashboardPage() {
 
           {/* Search Bar */}
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3.5 top-3.5 text-slate-400" />
+            <Search className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
             <Input
               type="text"
               placeholder="Search faculty by name, email (username), or designation..."
               value={facultySearchTerm}
               onChange={(e) => setFacultySearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-11 text-base h-12"
             />
           </div>
 
           {/* Faculty Data Table */}
-          <div className="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs">
+          <div className="bg-transparent border-none overflow-visible shadow-none">
             {loadingFaculty ? (
               <div className="p-12 text-center text-slate-500 flex flex-col items-center gap-3">
                 <div className="w-8 h-8 border-2 border-oxford border-t-transparent rounded-full animate-spin" />
@@ -778,79 +782,79 @@ export default function AdminDashboardPage() {
               <div className="p-12 text-center text-slate-500 space-y-3">
                 <Users className="w-10 h-10 mx-auto text-slate-400" />
                 <p className="text-base font-semibold text-slate-800">No faculty accounts found</p>
-                <p className="text-xs text-slate-500">
+                <p className="text-sm text-slate-500">
                   Click "Create Faculty Account" to register a faculty member with email as username.
                 </p>
               </div>
             ) : (
-              <Table>
+              <Table className="text-base">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Faculty Name & Title</TableHead>
-                    <TableHead>Username / Email</TableHead>
-                    <TableHead>Account Status</TableHead>
-                    <TableHead>First-Time Login Status</TableHead>
-                    <TableHead>Created On</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead className="text-base font-bold">Faculty Name & Title</TableHead>
+                    <TableHead className="text-base font-bold">Username / Email</TableHead>
+                    <TableHead className="text-base font-bold">Account Status</TableHead>
+                    <TableHead className="text-base font-bold">First-Time Login Status</TableHead>
+                    <TableHead className="text-base font-bold">Created On</TableHead>
+                    <TableHead className="text-right text-base font-bold">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredFaculty.map((faculty) => (
-                    <TableRow key={faculty.id}>
+                    <TableRow key={faculty.id} className="hover:bg-slate-50/40">
                       {/* Name & Title */}
-                      <TableCell>
-                        <div className="font-semibold text-slate-900">{faculty.name}</div>
-                        <div className="text-xs text-oxford mt-0.5 font-medium">
+                      <TableCell className="py-4">
+                        <div className="font-bold text-slate-900 text-base">{faculty.name}</div>
+                        <div className="text-base text-oxford mt-0.5 font-medium">
                           {faculty.designation || 'Faculty Member'}
                         </div>
                       </TableCell>
 
                       {/* Email / Username */}
-                      <TableCell className="font-mono text-xs text-slate-600">
+                      <TableCell className="font-mono text-base text-slate-600 py-4">
                         <div className="flex items-center gap-1.5">
-                          <Mail className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <Mail className="w-4 h-4 text-slate-400 shrink-0" />
                           <span>{faculty.email}</span>
                         </div>
                       </TableCell>
 
-                      {/* Account Status Badge */}
-                      <TableCell>
-                        <Badge
-                          variant={faculty.isActive ? 'success' : 'destructive'}
-                          className="cursor-pointer hover:opacity-85 transition-all py-1 px-2.5 font-bold"
+                      {/* Account Status */}
+                      <TableCell className="py-4">
+                        <button
+                          type="button"
+                          className="flex items-center gap-1.5 font-bold text-base hover:underline focus:outline-none cursor-pointer transition-all"
                           onClick={() => toggleFacultyStatus(faculty)}
                         >
                           {faculty.isActive ? (
-                            <>
-                              <CheckCircle2 className="w-3 h-3 mr-1.5" />
+                            <span className="text-emerald-600 flex items-center gap-1.5">
+                              <CheckCircle2 className="w-4 h-4" />
                               <span>Active</span>
-                            </>
+                            </span>
                           ) : (
-                            <>
-                              <X className="w-3 h-3 mr-1.5" />
+                            <span className="text-rose-600 flex items-center gap-1.5">
+                              <X className="w-4 h-4" />
                               <span>Disabled</span>
-                            </>
+                            </span>
                           )}
-                        </Badge>
+                        </button>
                       </TableCell>
 
                       {/* Must Change Password Status */}
-                      <TableCell>
+                      <TableCell className="py-4">
                         {faculty.mustChangePassword ? (
-                          <Badge variant="amber" className="py-1 px-2.5 font-medium">
-                            <KeyRound className="w-3 h-3 mr-1.5" />
+                          <span className="text-amber-600 flex items-center gap-1.5 font-semibold text-base">
+                            <KeyRound className="w-4 h-4" />
                             <span>Predefined (Pending Change)</span>
-                          </Badge>
+                          </span>
                         ) : (
-                          <Badge variant="cyan" className="py-1 px-2.5 font-medium">
-                            <Lock className="w-3 h-3 mr-1.5" />
+                          <span className="text-cyan-600 flex items-center gap-1.5 font-semibold text-base">
+                            <Lock className="w-4 h-4" />
                             <span>Password Changed</span>
-                          </Badge>
+                          </span>
                         )}
                       </TableCell>
 
                       {/* Created Date */}
-                      <TableCell className="text-xs text-slate-500 whitespace-nowrap">
+                      <TableCell className="text-base text-slate-600 whitespace-nowrap font-mono py-4">
                         {new Date(faculty.createdAt).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -859,12 +863,12 @@ export default function AdminDashboardPage() {
                       </TableCell>
 
                       {/* Actions */}
-                      <TableCell className="text-right space-x-2 whitespace-nowrap">
+                      <TableCell className="text-right space-x-2 whitespace-nowrap py-4">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setFullManageFacultyId(faculty.id)}
-                          className="text-oxford bg-oxford/5 hover:bg-oxford/10 hover:text-[#001733] border border-oxford/20 font-semibold"
+                          className="text-oxford bg-oxford/5 hover:bg-oxford/10 hover:text-[#001733] border border-oxford/20 font-semibold text-sm"
                           title="Manage Full Profile, Documents, Links & Guided Students"
                         >
                           <Edit3 className="w-3.5 h-3.5 mr-1.5" />
@@ -874,7 +878,7 @@ export default function AdminDashboardPage() {
                           variant="secondary"
                           size="icon"
                           onClick={() => openFacultyModal(faculty)}
-                          className="h-8 w-8 text-slate-600 hover:text-slate-900"
+                          className="h-9 w-9 text-slate-600 hover:text-slate-900"
                           title="Edit Details / Reset Predefined Password"
                         >
                           <Edit className="w-4 h-4" />
@@ -883,7 +887,7 @@ export default function AdminDashboardPage() {
                           variant="destructive"
                           size="icon"
                           onClick={() => handleDeleteFaculty(faculty.id)}
-                          className="h-8 w-8"
+                          className="h-9 w-9"
                           title="Delete Faculty Account"
                         >
                           <Trash2 className="w-4 h-4" />
