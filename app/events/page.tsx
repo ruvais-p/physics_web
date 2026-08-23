@@ -293,14 +293,13 @@ export default function EventsPage() {
 
               {/* Theme Blue Action Button: Know More ↗ */}
               <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => setActiveModalEvent(activeCurrentEvent)}
+                <Link
+                  href={`/events/${activeCurrentEvent.id}`}
                   className="bg-cyan-accent hover:bg-white text-oxford font-extrabold text-xs sm:text-sm px-6 py-3 rounded-none inline-flex items-center gap-2 transition-all shadow-xl uppercase tracking-wider"
                 >
                   <span>Know more</span>
                   <ArrowUpRight className="w-4 h-4 stroke-[3]" />
-                </button>
+                </Link>
               </div>
             </div>
 
@@ -356,11 +355,11 @@ export default function EventsPage() {
           {/* 3 Column Grid for Past Events */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {PAST_EVENTS.map((item) => (
-              <div 
+              <Link 
                 key={item.id}
                 id={item.id}
-                className="space-y-3 cursor-pointer group"
-                onClick={() => setActiveModalEvent(item)}
+                href={`/events/${item.id}`}
+                className="space-y-3 cursor-pointer group block"
               >
                 {/* Pure Image Block (Sharp edges) */}
                 <div className="relative aspect-[16/10] w-full rounded-none overflow-hidden bg-slate-900">
@@ -388,7 +387,7 @@ export default function EventsPage() {
                     {item.desc}
                   </p>
                 </div>
-              </div>
+              </Link>
             ))}
           </div>
         </div>
