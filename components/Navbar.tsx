@@ -54,6 +54,11 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
+    name: 'Events',
+    href: '/events',
+    iconType: 'chevron',
+  },
+  {
     name: 'Contact',
     href: '/contact',
     iconType: 'chevron',
