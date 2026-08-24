@@ -120,15 +120,28 @@ model AboutUs {
 }
 
 model Event {
-  id          Int      @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   title       String
-  description String   @db.Text
+  description String       @db.Text
   image       String
   date        DateTime
   venue       String?
   apply_link  String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  images      EventImage[]
 
   @@map("events")
+}
+
+model EventImage {
+  id        Int      @id @default(autoincrement())
+  eventId   Int      @map("event_id")
+  imagePath String   @map("image_path")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_images")
 }

@@ -51,6 +51,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import AdminFacultyFullManageModal from '@/components/AdminFacultyFullManageModal';
+import EventGallerySection from '@/components/EventGallerySection';
 
 // Import Shadcn UI elements
 import {
@@ -2873,8 +2874,20 @@ export default function UnifiedDashboardPage() {
                 </div>
 
                 {eventImagePreview && (
-                  <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-200 mt-2">
+                  <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-200 mt-2 group">
                     <img src={eventImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEventFormData({ ...eventFormData, imageFile: null, imageUrl: '' });
+                        setEventImagePreview(null);
+                      }}
+                      className="absolute top-2.5 right-2.5 bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-lg transition-all cursor-pointer"
+                      title="Remove Cover Image"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Remove Image</span>
+                    </button>
                   </div>
                 )}
               </div>
@@ -2889,6 +2902,9 @@ export default function UnifiedDashboardPage() {
                   className="w-full bg-white border border-[#e8e2d5] rounded-xl p-3 text-sm text-slate-900 font-sans focus:outline-none focus:ring-2 focus:ring-oxford leading-relaxed"
                 />
               </div>
+
+              {/* Event Gallery Management Section */}
+              <EventGallerySection eventId={editingEvent ? editingEvent.id : null} />
 
               <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
                 <Button variant="outline" type="button" onClick={closeEventModal} className="px-4">
@@ -4270,8 +4286,20 @@ export default function UnifiedDashboardPage() {
               </div>
 
               {eventImagePreview && (
-                <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-200 mt-2">
+                <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-200 mt-2 group">
                   <img src={eventImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEventFormData({ ...eventFormData, imageFile: null, imageUrl: '' });
+                      setEventImagePreview(null);
+                    }}
+                    className="absolute top-2.5 right-2.5 bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 shadow-lg transition-all cursor-pointer"
+                    title="Remove Cover Image"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Remove Image</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -4286,6 +4314,9 @@ export default function UnifiedDashboardPage() {
                 className="w-full bg-white border border-[#e8e2d5] rounded-xl p-3 text-sm text-slate-900 font-sans focus:outline-none focus:ring-2 focus:ring-oxford leading-relaxed"
               />
             </div>
+
+            {/* Event Gallery Management Section */}
+            <EventGallerySection eventId={editingEvent ? editingEvent.id : null} />
 
             <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
               <Button variant="outline" type="button" onClick={closeEventModal} className="px-4">

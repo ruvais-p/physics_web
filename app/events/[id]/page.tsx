@@ -16,7 +16,12 @@ import {
   Bookmark,
   Info,
   Building2,
-  FileText
+  FileText,
+  Images,
+  Eye,
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 interface EventItem {
@@ -34,6 +39,7 @@ interface EventItem {
   agenda?: string[];
   applyLink?: string;
   isFeatured?: boolean;
+  galleryImages?: { id: number; imagePath: string; sortOrder: number }[];
 }
 
 // Mock Events dataset matching app/events/page.tsx
@@ -172,6 +178,7 @@ export default function EventDetailPage({ params }: PageProps) {
   const eventId = resolvedParams.id;
 
   const [liveEvent, setLiveEvent] = useState<EventItem | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     async function loadLiveEvent() {
@@ -198,6 +205,7 @@ export default function EventDetailPage({ params }: PageProps) {
             desc: item.description,
             fullDetails: item.description,
             applyLink: item.apply_link || undefined,
+            galleryImages: Array.isArray(item.images) ? item.images : [],
           });
         }
       } catch (err) {
@@ -234,6 +242,21 @@ For further information regarding schedule or venue arrangements, please contact
   };
 
   const event = liveEvent || fallbackEvent;
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (lightboxIndex === null || !event.galleryImages || event.galleryImages.length === 0) return;
+      if (e.key === 'ArrowLeft' && lightboxIndex > 0) {
+        setLightboxIndex(lightboxIndex - 1);
+      } else if (e.key === 'ArrowRight' && lightboxIndex < event.galleryImages.length - 1) {
+        setLightboxIndex(lightboxIndex + 1);
+      } else if (e.key === 'Escape') {
+        setLightboxIndex(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxIndex, event.galleryImages]);
 
   const [copied, setCopied] = useState(false);
 
@@ -299,24 +322,28 @@ For further information regarding schedule or venue arrangements, please contact
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
           <div className="max-w-4xl space-y-5">
             
-            {/* Event Category & Status Badge */}
             <div className="flex flex-wrap items-center gap-3">
-              <span className="inline-flex items-center gap-1.5 text-xs font-bold text-cyan-accent uppercase tracking-wider bg-oxford/90 border border-cyan-accent/30 px-3 py-1 rounded-full shadow-sm">
-                <Sparkles className="w-3.5 h-3.5" />
-                {event.category} Event
-              </span>
-              <span className="text-xs font-medium text-slate-300 bg-white/10 px-3 py-1 rounded-full border border-white/10">
-                Event ID: {event.id}
+              <Link 
+                href="/events" 
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-sans text-xs font-semibold backdrop-blur-md transition-all border border-white/10"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Department Events</span>
+              </Link>
+
+              <span className="px-3.5 py-1 rounded-full text-xs font-bold font-sans uppercase tracking-widest bg-cyan-accent text-oxford shadow-xs">
+                {event.category}
               </span>
             </div>
+          </div>
 
-            {/* Event Title */}
+          {/* Event Header Information */}
+          <div className="space-y-4 max-w-4xl">
             <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
               {event.title}
             </h1>
 
-            {/* Event Summary */}
-            <p className="text-slate-300 text-sm sm:text-base lg:text-lg leading-relaxed max-w-3xl">
+            <p className="text-slate-300 font-sans text-base sm:text-lg leading-relaxed">
               {event.desc}
             </p>
 
@@ -378,12 +405,50 @@ For further information regarding schedule or venue arrangements, please contact
                 </h2>
               </div>
 
-              <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-4 text-sm sm:text-base">
+              <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-4 text-sm sm:text-base font-sans">
                 {(event.fullDetails || event.desc).split('\n\n').map((paragraph, idx) => (
                   <p key={idx}>{paragraph}</p>
                 ))}
               </div>
             </div>
+
+            {/* Event Photo Gallery Section */}
+            {event.galleryImages && event.galleryImages.length > 0 && (
+              <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-md space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-3">
+                    <Images className="w-6 h-6 text-oxford" />
+                    <h2 className="font-serif text-2xl font-bold text-oxford">
+                      Event Photo Gallery
+                    </h2>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-oxford bg-oxford/10 px-3 py-1 rounded-full border border-oxford/20">
+                    {event.galleryImages.length} Photos
+                  </span>
+                </div>
+
+                {/* Gallery Thumbnail Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                  {event.galleryImages.map((img, idx) => (
+                    <div
+                      key={img.id}
+                      onClick={() => setLightboxIndex(idx)}
+                      className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 cursor-pointer relative group shadow-xs hover:border-oxford transition-all"
+                    >
+                      <img
+                        src={img.imagePath}
+                        alt={`Gallery ${idx + 1}`}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-sans text-xs font-bold gap-1.5">
+                        <Eye className="w-5 h-5" />
+                        <span>View Photo</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Program Schedule & Agenda */}
             {event.agenda && event.agenda.length > 0 && (
@@ -395,7 +460,7 @@ For further information regarding schedule or venue arrangements, please contact
                   </h2>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-3 font-sans">
                   {event.agenda.map((item, index) => (
                     <div 
                       key={index}
@@ -415,7 +480,7 @@ For further information regarding schedule or venue arrangements, please contact
           <div className="space-y-6">
             
             {/* Registration Box */}
-            <div className="bg-oxford text-white p-6 sm:p-8 rounded-3xl shadow-xl space-y-5 border border-slate-800">
+            <div className="bg-oxford text-white p-6 sm:p-8 rounded-3xl shadow-xl space-y-5 border border-slate-800 font-sans">
               <h3 className="font-serif text-xl font-bold text-white flex items-center gap-2">
                 <Bookmark className="w-5 h-5 text-cyan-accent" />
                 <span>Event Registration</span>
@@ -501,6 +566,80 @@ For further information regarding schedule or venue arrangements, please contact
         </div>
       </section>
 
+      {/* Fullscreen Lightbox Overlay Modal */}
+      {lightboxIndex !== null && event.galleryImages && event.galleryImages[lightboxIndex] && (
+        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col justify-between p-4 sm:p-6 animate-fadeIn font-sans">
+          {/* Top Bar */}
+          <div className="flex items-center justify-between text-white max-w-7xl w-full mx-auto">
+            <div className="flex items-center gap-2">
+              <Images className="w-5 h-5 text-cyan-accent" />
+              <span className="text-sm font-bold truncate max-w-xs sm:max-w-md">{event.title}</span>
+            </div>
+            <div className="flex items-center gap-4">
+              <span className="text-xs font-mono text-slate-400">
+                {lightboxIndex + 1} / {event.galleryImages.length}
+              </span>
+              <button
+                onClick={() => setLightboxIndex(null)}
+                className="p-2 text-slate-400 hover:text-white rounded-full bg-white/10 hover:bg-white/20 transition-all cursor-pointer"
+                title="Close Lightbox (Esc)"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+
+          {/* Main Image Stage */}
+          <div className="relative flex-1 flex items-center justify-center my-4 max-w-7xl w-full mx-auto">
+            {/* Left Nav Button */}
+            {lightboxIndex > 0 && (
+              <button
+                onClick={() => setLightboxIndex(lightboxIndex - 1)}
+                className="absolute left-2 sm:left-4 z-10 p-3 rounded-full bg-white/10 hover:bg-white/30 text-white backdrop-blur-md transition-all cursor-pointer"
+                title="Previous Image (Left Arrow)"
+              >
+                <ChevronLeft className="w-6 h-6 sm:w-8 sm:h-8" />
+              </button>
+            )}
+
+            <div className="max-w-full max-h-[75vh] flex items-center justify-center overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
+              <img
+                src={event.galleryImages[lightboxIndex].imagePath}
+                alt={`Photo ${lightboxIndex + 1}`}
+                className="max-w-full max-h-[75vh] object-contain rounded-2xl"
+              />
+            </div>
+
+            {/* Right Nav Button */}
+            {lightboxIndex < event.galleryImages.length - 1 && (
+              <button
+                onClick={() => setLightboxIndex(lightboxIndex + 1)}
+                className="absolute right-2 sm:right-4 z-10 p-3 rounded-full bg-white/10 hover:bg-white/30 text-white backdrop-blur-md transition-all cursor-pointer"
+                title="Next Image (Right Arrow)"
+              >
+                <ChevronRight className="w-6 h-6 sm:w-8 sm:h-8" />
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Thumbnail Strip */}
+          <div className="max-w-4xl w-full mx-auto overflow-x-auto py-2">
+            <div className="flex justify-center gap-2 shrink-0">
+              {event.galleryImages.map((img, i) => (
+                <button
+                  key={img.id}
+                  onClick={() => setLightboxIndex(i)}
+                  className={`w-14 h-14 rounded-xl overflow-hidden border-2 transition-all shrink-0 cursor-pointer ${
+                    i === lightboxIndex ? 'border-cyan-accent scale-105 shadow-lg' : 'border-white/20 opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img.imagePath} alt={`Thumb ${i + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

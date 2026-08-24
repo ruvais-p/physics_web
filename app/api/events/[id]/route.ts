@@ -32,6 +32,11 @@ export async function GET(request: Request, { params }: Params) {
 
     const event = await (prisma as any).event.findUnique({
       where: { id: eventId },
+      include: {
+        images: {
+          orderBy: { sortOrder: 'asc' },
+        },
+      },
     });
 
     if (!event) {
