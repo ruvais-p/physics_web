@@ -48,6 +48,7 @@ import {
   ChevronUp,
   ChevronDown,
   Sliders,
+  Calendar,
 } from 'lucide-react';
 import AdminFacultyFullManageModal from '@/components/AdminFacultyFullManageModal';
 
@@ -392,10 +393,155 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // ADMIN DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'notifications' | 'faculty'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'events' | 'notifications' | 'faculty'>('dashboard');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Events Management States
+  const [eventsList, setEventsList] = useState<any[]>([]);
+  const [loadingEvents, setLoadingEvents] = useState(false);
+  const [isEventModalOpen, setIsEventModalOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<any | null>(null);
+  const [eventFormData, setEventFormData] = useState({
+    title: '',
+    description: '',
+    date: '',
+    venue: '',
+    apply_link: '',
+    imageFile: null as File | null,
+    imageUrl: '',
+  });
+  const [eventSaving, setEventSaving] = useState(false);
+  const [eventError, setEventError] = useState<string | null>(null);
+  const [eventImagePreview, setEventImagePreview] = useState<string | null>(null);
+
+  const fetchEvents = async () => {
+    setLoadingEvents(true);
+    try {
+      const res = await fetch('/api/events');
+      if (res.ok) {
+        const data = await res.json();
+        setEventsList(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch events:', err);
+    } finally {
+      setLoadingEvents(false);
+    }
+  };
+
+  const openEventModal = (ev?: any) => {
+    setEventError(null);
+    if (ev) {
+      setEditingEvent(ev);
+      const d = new Date(ev.date);
+      const isoLocal = !isNaN(d.getTime()) ? new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '';
+      setEventFormData({
+        title: ev.title || '',
+        description: ev.description || '',
+        date: isoLocal,
+        venue: ev.venue || '',
+        apply_link: ev.apply_link || '',
+        imageFile: null,
+        imageUrl: ev.image || '',
+      });
+      setEventImagePreview(ev.image || null);
+    } else {
+      setEditingEvent(null);
+      setEventFormData({
+        title: '',
+        description: '',
+        date: new Date().toISOString().slice(0, 16),
+        venue: '',
+        apply_link: '',
+        imageFile: null,
+        imageUrl: '',
+      });
+      setEventImagePreview(null);
+    }
+    setIsEventModalOpen(true);
+  };
+
+  const closeEventModal = () => {
+    setIsEventModalOpen(false);
+    setEditingEvent(null);
+    setEventImagePreview(null);
+  };
+
+  const handleEventSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEventError(null);
+
+    if (!eventFormData.title.trim()) {
+      setEventError('Event Title is required');
+      return;
+    }
+    if (!eventFormData.description.trim()) {
+      setEventError('Event Description is required');
+      return;
+    }
+    if (!eventFormData.date.trim()) {
+      setEventError('Event Date is required');
+      return;
+    }
+    if (!editingEvent && !eventFormData.imageFile && !eventFormData.imageUrl.trim()) {
+      setEventError('Please provide an Image File or Image URL');
+      return;
+    }
+
+    setEventSaving(true);
+
+    try {
+      const url = editingEvent ? `/api/events/${editingEvent.id}` : '/api/events';
+      const method = editingEvent ? 'PUT' : 'POST';
+
+      const formData = new FormData();
+      formData.append('title', eventFormData.title.trim());
+      formData.append('description', eventFormData.description.trim());
+      formData.append('date', eventFormData.date);
+      formData.append('venue', eventFormData.venue.trim());
+      formData.append('apply_link', eventFormData.apply_link.trim());
+
+      if (eventFormData.imageFile) {
+        formData.append('image', eventFormData.imageFile);
+      } else if (eventFormData.imageUrl) {
+        formData.append('imageUrl', eventFormData.imageUrl.trim());
+      }
+
+      const res = await fetch(url, {
+        method,
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to save event');
+      }
+
+      await fetchEvents();
+      closeEventModal();
+    } catch (err: any) {
+      setEventError(err.message || 'An error occurred while saving event.');
+    } finally {
+      setEventSaving(false);
+    }
+  };
+
+  const handleDeleteEvent = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this event?')) return;
+
+    try {
+      const res = await fetch(`/api/events/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setEventsList((prev) => prev.filter((item) => item.id !== id));
+      }
+    } catch (err) {
+      console.error('Failed to delete event:', err);
+    }
+  };
 
   // About Us CMS States
   const [aboutContent, setAboutContent] = useState('');
@@ -712,7 +858,7 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // FACULTY DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'hero'>('overview');
+  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'hero' | 'events'>('overview');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -779,9 +925,11 @@ export default function UnifiedDashboardPage() {
           fetchFaculty();
           fetchHeroSlides();
           fetchCmsAbout();
+          fetchEvents();
         } else if (data.role === 'faculty') {
           fetchFacultySelfData(data.user);
           fetchHeroSlides();
+          fetchEvents();
         }
       } catch (err) {
         console.error('Session check failed:', err);
@@ -1649,6 +1797,19 @@ export default function UnifiedDashboardPage() {
                 </TabsTrigger>
 
                 <TabsTrigger
+                  value="events"
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <Calendar className="w-4 h-4" />
+                    <span>Events Management</span>
+                  </div>
+                  <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
+                    {eventsList.length}
+                  </Badge>
+                </TabsTrigger>
+
+                <TabsTrigger
                   value="notifications"
                   className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
                 >
@@ -2494,9 +2655,252 @@ export default function UnifiedDashboardPage() {
               )}
             </div>
           </TabsContent>
+
+          {/* EVENTS MANAGEMENT TAB */}
+          <TabsContent value="events" className="space-y-10 animate-fadeIn mt-0">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-transparent py-2 border-b border-slate-200 pb-4">
+              <div>
+                <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                  <Calendar className="w-7 h-7 text-oxford" />
+                  <span>Department Events & Seminars</span>
+                </h2>
+                <p className="text-slate-600 text-base mt-1 font-sans">
+                  Publish, edit, and manage department events, workshops, endowment lectures, and conferences.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={fetchEvents}
+                  className="h-11 w-11 text-slate-700 hover:text-slate-950"
+                  title="Refresh Events"
+                >
+                  <RefreshCw className={`w-4 h-4 ${loadingEvents ? 'animate-spin' : ''}`} />
+                </Button>
+                <Button
+                  variant="default"
+                  onClick={() => openEventModal()}
+                  className="flex items-center gap-2 py-3 px-6 font-semibold rounded-xl shadow-xs transition-all text-base cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add New Event</span>
+                </Button>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
+              {eventsList.length === 0 ? (
+                <div className="text-center py-12 space-y-3">
+                  <Calendar className="w-10 h-10 mx-auto text-slate-400" />
+                  <p className="text-base font-semibold text-slate-800">No events found in database</p>
+                  <Button variant="outline" onClick={() => openEventModal()} className="mt-2">
+                    Create First Event
+                  </Button>
+                </div>
+              ) : (
+                <Table className="text-base">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="text-base font-bold">Cover Image</TableHead>
+                      <TableHead className="text-base font-bold">Event Title & ID</TableHead>
+                      <TableHead className="text-base font-bold">Event Date</TableHead>
+                      <TableHead className="text-base font-bold">Apply Link</TableHead>
+                      <TableHead className="text-right text-base font-bold">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {eventsList.map((ev) => (
+                      <TableRow key={ev.id} className="hover:bg-slate-50/40">
+                        <TableCell className="py-3">
+                          <div className="w-16 h-12 rounded-lg bg-slate-900 overflow-hidden border border-slate-200">
+                            <img src={ev.image} alt={ev.title} className="w-full h-full object-cover" />
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="py-3 max-w-xs">
+                          <div className="font-bold text-slate-900 truncate" title={ev.title}>{ev.title}</div>
+                          <div className="text-xs text-slate-500 font-mono">ID: {ev.id}</div>
+                        </TableCell>
+
+                        <TableCell className="font-mono text-sm text-slate-700 py-3 whitespace-nowrap">
+                          {new Date(ev.date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </TableCell>
+
+                        <TableCell className="py-3">
+                          {ev.apply_link ? (
+                            <a
+                              href={ev.apply_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-semibold text-indigo-600 hover:underline flex items-center gap-1"
+                            >
+                              <span>Registration URL</span>
+                              <ExternalLink className="w-3 h-3" />
+                            </a>
+                          ) : (
+                            <span className="text-xs text-slate-400 font-sans italic">None</span>
+                          )}
+                        </TableCell>
+
+                        <TableCell className="text-right space-x-2 whitespace-nowrap py-3">
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={() => openEventModal(ev)}
+                            className="h-9 w-9 text-slate-600 hover:text-slate-900"
+                            title="Edit Event"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => handleDeleteEvent(ev.id)}
+                            className="h-9 w-9"
+                            title="Delete Event"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </TabsContent>
         </main>
 
         {/* ADMIN MODALS */}
+        {/* Event Create / Edit Modal */}
+        <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
+          <DialogContent className="max-w-lg bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[90vh] overflow-y-auto">
+            <DialogHeader className="border-b border-slate-100 pb-4">
+              <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-oxford" />
+                <span>{editingEvent ? 'Edit Event' : 'Add New Event'}</span>
+              </DialogTitle>
+            </DialogHeader>
+
+            <form onSubmit={handleEventSave} className="space-y-5 pt-4">
+              {eventError && (
+                <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+                  {eventError}
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Event Title *</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. 15th Department Endowment Oration Lecture"
+                  value={eventFormData.title}
+                  onChange={(e) => setEventFormData({ ...eventFormData, title: e.target.value })}
+                  className="w-full text-base font-serif"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-slate-700">Event Date & Time *</label>
+                  <Input
+                    type="datetime-local"
+                    value={eventFormData.date}
+                    onChange={(e) => setEventFormData({ ...eventFormData, date: e.target.value })}
+                    className="w-full text-sm font-mono"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-slate-700">Event Venue (Optional)</label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Department Auditorium, CUSAT"
+                    value={eventFormData.venue}
+                    onChange={(e) => setEventFormData({ ...eventFormData, venue: e.target.value })}
+                    className="w-full text-sm font-sans"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Apply / Registration URL (Optional)</label>
+                <Input
+                  type="url"
+                  placeholder="https://forms.gle/..."
+                  value={eventFormData.apply_link}
+                  onChange={(e) => setEventFormData({ ...eventFormData, apply_link: e.target.value })}
+                  className="w-full text-sm font-mono"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700">Cover Image File OR Image URL *</label>
+                <div className="space-y-2">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setEventFormData({ ...eventFormData, imageFile: file, imageUrl: '' });
+                        setEventImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-cyan-accent hover:file:text-oxford transition-all"
+                  />
+
+                  <div className="text-center text-xs text-slate-400 font-sans">OR</div>
+
+                  <Input
+                    type="text"
+                    placeholder="https://images.unsplash.com/..."
+                    value={eventFormData.imageUrl}
+                    onChange={(e) => {
+                      setEventFormData({ ...eventFormData, imageUrl: e.target.value, imageFile: null });
+                      setEventImagePreview(e.target.value);
+                    }}
+                    className="w-full text-xs font-mono"
+                  />
+                </div>
+
+                {eventImagePreview && (
+                  <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-200 mt-2">
+                    <img src={eventImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Full Description (Text / Markdown) *</label>
+                <textarea
+                  rows={6}
+                  placeholder="Enter event details, schedule, key topics, resource persons..."
+                  value={eventFormData.description}
+                  onChange={(e) => setEventFormData({ ...eventFormData, description: e.target.value })}
+                  className="w-full bg-white border border-[#e8e2d5] rounded-xl p-3 text-sm text-slate-900 font-sans focus:outline-none focus:ring-2 focus:ring-oxford leading-relaxed"
+                />
+              </div>
+
+              <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
+                <Button variant="outline" type="button" onClick={closeEventModal} className="px-4">
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={eventSaving} className="px-5 font-semibold">
+                  {eventSaving ? 'Saving Event...' : editingEvent ? 'Update Event' : 'Create Event'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
         {/* Notification Modal */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif">
@@ -2889,6 +3293,20 @@ export default function UnifiedDashboardPage() {
                   {heroSlides.length}/10
                 </Badge>
               </TabsTrigger>
+
+              {/* Option 5: Events Management Page */}
+              <TabsTrigger
+                value="events"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-4 h-4" />
+                  <span>Events Management</span>
+                </div>
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
+                  {eventsList.length}
+                </Badge>
+              </TabsTrigger>
             </TabsList>
           </div>
         </div>
@@ -2933,7 +3351,7 @@ export default function UnifiedDashboardPage() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Profile Overview Card */}
             <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
               <div className="space-y-3">
@@ -2966,6 +3384,25 @@ export default function UnifiedDashboardPage() {
               </div>
               <Button onClick={() => setFacultyTab('scholars')} className="w-full font-semibold">
                 <span>Manage Scholars</span>
+              </Button>
+            </Card>
+
+            {/* Events Management Card */}
+            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 flex items-center justify-center">
+                    <Calendar className="w-6 h-6" />
+                  </div>
+                  <span className="text-3xl font-extrabold text-purple-700">{eventsList.length}</span>
+                </div>
+                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Events Management</CardTitle>
+                <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
+                  Publish, edit, or remove department seminars, workshops, and endowment lectures.
+                </CardDescription>
+              </div>
+              <Button onClick={() => setFacultyTab('events')} className="w-full font-semibold">
+                <span>Manage Events</span>
               </Button>
             </Card>
 
@@ -3272,6 +3709,128 @@ export default function UnifiedDashboardPage() {
               </Table>
             )}
           </Card>
+        </TabsContent>
+
+        {/* OPTION 5: EVENTS MANAGEMENT TAB */}
+        <TabsContent value="events" className="space-y-8 animate-fadeIn mt-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+            <div>
+              <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                <Calendar className="w-7 h-7 text-oxford" />
+                <span>Events Management Portal</span>
+              </h2>
+              <p className="text-slate-600 text-sm mt-1 font-sans">
+                Add, edit, or remove department seminars, workshops, endowment lectures, and conferences.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={fetchEvents}
+                className="h-10 w-10 text-slate-700 hover:text-slate-950"
+                title="Refresh Events"
+              >
+                <RefreshCw className={`w-4 h-4 ${loadingEvents ? 'animate-spin' : ''}`} />
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => openEventModal()}
+                className="flex items-center gap-2 py-2.5 px-5 font-semibold rounded-xl transition-all text-sm cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add New Event</span>
+              </Button>
+            </div>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+            {eventsList.length === 0 ? (
+              <div className="text-center py-12 space-y-3">
+                <Calendar className="w-10 h-10 mx-auto text-slate-400" />
+                <p className="text-base font-semibold text-slate-800">No events found in database</p>
+                <Button variant="outline" onClick={() => openEventModal()} className="mt-2">
+                  Create First Event
+                </Button>
+              </div>
+            ) : (
+              <Table className="text-base">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="text-base font-bold">Cover Image</TableHead>
+                    <TableHead className="text-base font-bold">Event Title & ID</TableHead>
+                    <TableHead className="text-base font-bold">Event Date</TableHead>
+                    <TableHead className="text-base font-bold">Apply Link</TableHead>
+                    <TableHead className="text-right text-base font-bold">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {eventsList.map((ev) => (
+                    <TableRow key={ev.id} className="hover:bg-slate-50/40">
+                      <TableCell className="py-3">
+                        <div className="w-16 h-12 rounded-lg bg-slate-900 overflow-hidden border border-slate-200">
+                          <img src={ev.image} alt={ev.title} className="w-full h-full object-cover" />
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="py-3 max-w-xs">
+                        <div className="font-bold text-slate-900 truncate" title={ev.title}>{ev.title}</div>
+                        <div className="text-xs text-slate-500 font-mono">ID: {ev.id}</div>
+                      </TableCell>
+
+                      <TableCell className="font-mono text-sm text-slate-700 py-3 whitespace-nowrap">
+                        {new Date(ev.date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </TableCell>
+
+                      <TableCell className="py-3">
+                        {ev.apply_link ? (
+                          <a
+                            href={ev.apply_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs font-semibold text-indigo-600 hover:underline flex items-center gap-1"
+                          >
+                            <span>Registration URL</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        ) : (
+                          <span className="text-xs text-slate-400 font-sans italic">None</span>
+                        )}
+                      </TableCell>
+
+                      <TableCell className="text-right space-x-2 whitespace-nowrap py-3">
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          onClick={() => openEventModal(ev)}
+                          className="h-9 w-9 text-slate-600 hover:text-slate-900"
+                          title="Edit Event"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="icon"
+                          onClick={() => handleDeleteEvent(ev.id)}
+                          className="h-9 w-9"
+                          title="Delete Event"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
         </TabsContent>
       </main>
 
@@ -3612,6 +4171,128 @@ export default function UnifiedDashboardPage() {
               </Button>
               <Button type="submit" disabled={savingStudent} className="px-5 font-semibold">
                 {savingStudent ? 'Saving...' : editingStudent ? 'Update Scholar' : 'Add Scholar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Event Create / Edit Modal for Faculty */}
+      <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
+        <DialogContent className="max-w-lg bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="border-b border-slate-100 pb-4">
+            <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-oxford" />
+              <span>{editingEvent ? 'Edit Event' : 'Add New Event'}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleEventSave} className="space-y-5 pt-4">
+            {eventError && (
+              <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+                {eventError}
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">Event Title *</label>
+              <Input
+                type="text"
+                placeholder="e.g. 15th Department Endowment Oration Lecture"
+                value={eventFormData.title}
+                onChange={(e) => setEventFormData({ ...eventFormData, title: e.target.value })}
+                className="w-full text-base font-serif"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Event Date & Time *</label>
+                <Input
+                  type="datetime-local"
+                  value={eventFormData.date}
+                  onChange={(e) => setEventFormData({ ...eventFormData, date: e.target.value })}
+                  className="w-full text-sm font-mono"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Event Venue (Optional)</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Department Auditorium, CUSAT"
+                  value={eventFormData.venue}
+                  onChange={(e) => setEventFormData({ ...eventFormData, venue: e.target.value })}
+                  className="w-full text-sm font-sans"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">Apply / Registration URL (Optional)</label>
+              <Input
+                type="url"
+                placeholder="https://forms.gle/..."
+                value={eventFormData.apply_link}
+                onChange={(e) => setEventFormData({ ...eventFormData, apply_link: e.target.value })}
+                className="w-full text-sm font-mono"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Cover Image File OR Image URL *</label>
+              <div className="space-y-2">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setEventFormData({ ...eventFormData, imageFile: file, imageUrl: '' });
+                      setEventImagePreview(URL.createObjectURL(file));
+                    }
+                  }}
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-cyan-accent hover:file:text-oxford transition-all"
+                />
+
+                <div className="text-center text-xs text-slate-400 font-sans">OR</div>
+
+                <Input
+                  type="text"
+                  placeholder="https://images.unsplash.com/..."
+                  value={eventFormData.imageUrl}
+                  onChange={(e) => {
+                    setEventFormData({ ...eventFormData, imageUrl: e.target.value, imageFile: null });
+                    setEventImagePreview(e.target.value);
+                  }}
+                  className="w-full text-xs font-mono"
+                />
+              </div>
+
+              {eventImagePreview && (
+                <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-200 mt-2">
+                  <img src={eventImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">Full Description (Text / Markdown) *</label>
+              <textarea
+                rows={6}
+                placeholder="Enter event details, schedule, key topics, resource persons..."
+                value={eventFormData.description}
+                onChange={(e) => setEventFormData({ ...eventFormData, description: e.target.value })}
+                className="w-full bg-white border border-[#e8e2d5] rounded-xl p-3 text-sm text-slate-900 font-sans focus:outline-none focus:ring-2 focus:ring-oxford leading-relaxed"
+              />
+            </div>
+
+            <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
+              <Button variant="outline" type="button" onClick={closeEventModal} className="px-4">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={eventSaving} className="px-5 font-semibold">
+                {eventSaving ? 'Saving Event...' : editingEvent ? 'Update Event' : 'Create Event'}
               </Button>
             </DialogFooter>
           </form>

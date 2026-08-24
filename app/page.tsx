@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Hero from '@/components/Hero';
 import NotificationsTicker from '@/components/NotificationsTicker';
+import HomeEvents from '@/components/HomeEvents';
 import { RESEARCH_LABS } from '@/lib/data';
 import { ChevronRight } from 'lucide-react';
 
@@ -223,59 +224,8 @@ export default function HomePage() {
                   Events
                 </h3>
                 
-                {/* Events Stack */}
-                <div className="space-y-6">
-                  {/* Event 1 */}
-                  <div className="flex gap-4 items-start group">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-cyan-accent text-white rounded-xl flex flex-col items-center justify-center text-center p-1.5 shadow-sm font-sans font-bold">
-                      <span className="text-sm sm:text-base leading-none">19</span>
-                      <span className="text-[9px] uppercase tracking-wider leading-none mt-0.5">Jul</span>
-                      <span className="text-[8px] font-medium leading-none mt-0.5">2026</span>
-                    </div>
-                    <div className="space-y-1">
-                      <Link href="/events#e1" className="font-sans text-sm sm:text-base font-bold text-cyan-accent hover:text-cyan-dark leading-snug block transition-colors">
-                        15th Department Endowment & Memorial Oration Lecture
-                      </Link>
-                      <p className="text-slate-600 text-xs sm:text-sm leading-normal line-clamp-2">
-                        Distinguished national physicists will speak on breakthroughs in low-temperature magnetics and topological insulators.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Event 2 */}
-                  <div className="flex gap-4 items-start group">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-cyan-accent text-white rounded-xl flex flex-col items-center justify-center text-center p-1.5 shadow-sm font-sans font-bold">
-                      <span className="text-sm sm:text-base leading-none">06</span>
-                      <span className="text-[9px] uppercase tracking-wider leading-none mt-0.5">Jul</span>
-                      <span className="text-[8px] font-medium leading-none mt-0.5">2026</span>
-                    </div>
-                    <div className="space-y-1">
-                      <Link href="/events#e2" className="font-sans text-sm sm:text-base font-bold text-cyan-accent hover:text-cyan-dark leading-snug block transition-colors">
-                        Hands-On Workshop on FE-SEM & micro-Raman Spectroscopy
-                      </Link>
-                      <p className="text-slate-600 text-xs sm:text-sm leading-normal line-clamp-2">
-                        A focused session on equipment slot bookings and instrumentation data analysis for regional researchers.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Event 3 */}
-                  <div className="flex gap-4 items-start group">
-                    <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-cyan-accent text-white rounded-xl flex flex-col items-center justify-center text-center p-1.5 shadow-sm font-sans font-bold">
-                      <span className="text-sm sm:text-base leading-none">30</span>
-                      <span className="text-[9px] uppercase tracking-wider leading-none mt-0.5">Jun</span>
-                      <span className="text-[8px] font-medium leading-none mt-0.5">2026</span>
-                    </div>
-                    <div className="space-y-1">
-                      <Link href="/events#e3" className="font-sans text-sm sm:text-base font-bold text-cyan-accent hover:text-cyan-dark leading-snug block transition-colors">
-                        National Seminar on Cosmology & Quantum Gravity (CQG-2026)
-                      </Link>
-                      <p className="text-slate-600 text-xs sm:text-sm leading-normal line-clamp-2">
-                        Presenting recent simulations and mathematical formulations on gravitational waves and cosmic expansions.
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                {/* Dynamic Events Stack Fetched Live from PostgreSQL DB */}
+                <HomeEvents />
               </div>
 
               <div className="pt-6">

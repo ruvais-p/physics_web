@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
@@ -197,11 +197,55 @@ const PAST_EVENTS: EventItem[] = [
 ];
 
 export default function EventsPage() {
+  const [dbEvents, setDbEvents] = useState<EventItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<number>(0);
   const [pastPageIndex, setPastPageIndex] = useState<number>(0);
   const [activeModalEvent, setActiveModalEvent] = useState<EventItem | null>(null);
 
-  const activeCurrentEvent = CURRENT_EVENTS[activeTab] || CURRENT_EVENTS[0];
+  useEffect(() => {
+    async function loadEvents() {
+      try {
+        const res = await fetch('/api/events');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            const formatted: EventItem[] = data.map((item: any) => {
+              const d = new Date(item.date);
+              const dateStr = !isNaN(d.getTime()) 
+                ? d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
+                : 'Upcoming';
+              return {
+                id: String(item.id),
+                title: item.title,
+                category: 'Seminar',
+                date: dateStr,
+                day: !isNaN(d.getTime()) ? String(d.getDate()) : '',
+                month: !isNaN(d.getTime()) ? d.toLocaleDateString('en-US', { month: 'short' }) : '',
+                year: !isNaN(d.getTime()) ? String(d.getFullYear()) : '',
+                time: !isNaN(d.getTime()) ? d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '10:00 AM',
+                venue: item.venue || 'Department of Physics, CUSAT',
+                image: item.image || '/eventssss.jpg',
+                desc: item.description,
+                fullDetails: item.description,
+              };
+            });
+            setDbEvents(formatted);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch public events:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadEvents();
+  }, []);
+
+  const displayCurrentEvents = dbEvents.length > 0 ? dbEvents : CURRENT_EVENTS;
+  const displayPastEvents = dbEvents.length > 3 ? dbEvents.slice(3) : PAST_EVENTS;
+
+  const activeCurrentEvent = displayCurrentEvents[activeTab] || displayCurrentEvents[0];
 
   return (
     <div className="pb-24 relative bg-surface">
@@ -305,7 +349,7 @@ export default function EventsPage() {
 
             {/* Indicator Dots at Bottom Right */}
             <div className="absolute bottom-4 right-6 flex items-center gap-2 z-20">
-              {CURRENT_EVENTS.map((_, idx) => (
+              {displayCurrentEvents.map((_, idx) => (
                 <button
                   key={idx}
                   type="button"
@@ -335,7 +379,7 @@ export default function EventsPage() {
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => setPastPageIndex((prev) => (prev > 0 ? prev - 1 : Math.max(0, Math.ceil(PAST_EVENTS.length / 3) - 1)))}
+                onClick={() => setPastPageIndex((prev) => (prev > 0 ? prev - 1 : Math.max(0, Math.ceil(displayPastEvents.length / 3) - 1)))}
                 className="w-10 h-10 rounded-full border border-oxford text-oxford hover:bg-oxford hover:text-white transition-all flex items-center justify-center shadow-sm"
                 aria-label="Previous Past Events"
               >
@@ -343,7 +387,7 @@ export default function EventsPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setPastPageIndex((prev) => (prev < Math.ceil(PAST_EVENTS.length / 3) - 1 ? prev + 1 : 0))}
+                onClick={() => setPastPageIndex((prev) => (prev < Math.ceil(displayPastEvents.length / 3) - 1 ? prev + 1 : 0))}
                 className="w-10 h-10 rounded-full border border-oxford text-oxford hover:bg-oxford hover:text-white transition-all flex items-center justify-center shadow-sm"
                 aria-label="Next Past Events"
               >
@@ -354,7 +398,7 @@ export default function EventsPage() {
 
           {/* 3 Column Grid for Past Events */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {PAST_EVENTS.map((item) => (
+            {displayPastEvents.map((item) => (
               <Link 
                 key={item.id}
                 id={item.id}

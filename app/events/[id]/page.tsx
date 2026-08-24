@@ -1,6 +1,6 @@
 'use client';
 
-import React, { use, useState } from 'react';
+import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { 
@@ -171,8 +171,44 @@ export default function EventDetailPage({ params }: PageProps) {
   const resolvedParams = use(params);
   const eventId = resolvedParams.id;
 
+  const [liveEvent, setLiveEvent] = useState<EventItem | null>(null);
+
+  useEffect(() => {
+    async function loadLiveEvent() {
+      try {
+        const res = await fetch(`/api/events/${eventId}`);
+        if (res.ok) {
+          const item = await res.json();
+          const d = new Date(item.date);
+          const dateStr = !isNaN(d.getTime()) 
+            ? d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
+            : 'Upcoming Date';
+          const timeStr = !isNaN(d.getTime()) 
+            ? d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+            : '10:00 AM - 01:00 PM';
+
+          setLiveEvent({
+            id: String(item.id),
+            title: item.title,
+            category: 'Seminar',
+            date: dateStr,
+            time: timeStr,
+            venue: item.venue || 'Department of Physics, CUSAT',
+            image: item.image || '/eventssss.jpg',
+            desc: item.description,
+            fullDetails: item.description,
+            applyLink: item.apply_link || undefined,
+          });
+        }
+      } catch (err) {
+        console.error('Error loading live event details:', err);
+      }
+    }
+    loadLiveEvent();
+  }, [eventId]);
+
   // Retrieve event from dummy dataset or create fallback
-  const event = DUMMY_EVENTS[eventId] || {
+  const fallbackEvent = DUMMY_EVENTS[eventId] || {
     id: eventId,
     title: `Department Event (${eventId})`,
     category: 'Seminar' as const,
@@ -196,6 +232,8 @@ For further information regarding schedule or venue arrangements, please contact
     ],
     applyLink: 'https://cusat.ac.in',
   };
+
+  const event = liveEvent || fallbackEvent;
 
   const [copied, setCopied] = useState(false);
 
