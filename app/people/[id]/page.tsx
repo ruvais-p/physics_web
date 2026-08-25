@@ -177,7 +177,7 @@ export default function ProfilePage({ params }: PageProps) {
   const [notFoundState, setNotFoundState] = useState(false);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'bio' | 'scholars'>('bio');
+  const [activeTab, setActiveTab] = useState<'bio' | 'scholars' | 'projects'>('bio');
 
   useEffect(() => {
     async function loadPersonData() {
@@ -185,15 +185,17 @@ export default function ProfilePage({ params }: PageProps) {
         const res = await fetch(`/api/public/faculty/${id}`);
         if (res.ok) {
           const data = await res.json();
-          setPerson(data);
+          if (data.type === 'scholar') {
+            setNotFoundState(true);
+          } else {
+            setPerson(data);
+          }
         } else {
-          // Fallback to static data
+          // Fallback to static data (faculty only)
           const fStatic = FACULTY_MEMBERS.find((f) => f.id === id);
-          const sStatic = SCHOLARS.find((s) => s.id === id);
-          const pStatic = fStatic || sStatic;
 
-          if (pStatic) {
-            setPerson(pStatic);
+          if (fStatic) {
+            setPerson(fStatic);
           } else {
             setNotFoundState(true);
           }
@@ -201,11 +203,9 @@ export default function ProfilePage({ params }: PageProps) {
       } catch (err) {
         console.error('Failed to load profile details:', err);
         const fStatic = FACULTY_MEMBERS.find((f) => f.id === id);
-        const sStatic = SCHOLARS.find((s) => s.id === id);
-        const pStatic = fStatic || sStatic;
 
-        if (pStatic) {
-          setPerson(pStatic);
+        if (fStatic) {
+          setPerson(fStatic);
         } else {
           setNotFoundState(true);
         }
@@ -240,6 +240,38 @@ export default function ProfilePage({ params }: PageProps) {
 
   const isFaculty = person.type === 'faculty';
   const supervisedScholars = isFaculty ? person.students || [] : [];
+  const facultyProjects = isFaculty ? person.projects || [
+    {
+      id: 'p1',
+      title: 'Development of Advanced Functional Materials for Energy Harvesting & Optoelectronics',
+      agency: 'DST-SERB',
+      role: 'Principal Investigator',
+      duration: '2023 – 2026',
+      amount: '₹48.50 Lakhs',
+      status: 'Ongoing',
+      description: 'Design and synthesis of novel oxide nanocomposites and 2D materials for high-efficiency solar cells and thermoelectric devices.',
+    },
+    {
+      id: 'p2',
+      title: 'Spectroscopic and Quantum Transport Investigation of Metamaterial Systems',
+      agency: 'CSIR',
+      role: 'Principal Investigator',
+      duration: '2021 – 2024',
+      amount: '₹32.00 Lakhs',
+      status: 'Ongoing',
+      description: 'Experimental study of nonlinear optical phenomena and electronic transport anomalies in topological insulators.',
+    },
+    {
+      id: 'p3',
+      title: 'Synthesis and Characterization of Conducting Polymer Multiferroic Hybrids',
+      agency: 'UGC-DAE CSR',
+      role: 'Co-Principal Investigator',
+      duration: '2019 – 2022',
+      amount: '₹24.00 Lakhs',
+      status: 'Completed',
+      description: 'Investigation of magnetoelectric coupling in flexible polymer-ceramic composite thin films.',
+    },
+  ] : [];
 
   return (
     <div className="pb-20 relative font-sans">
@@ -435,10 +467,10 @@ export default function ProfilePage({ params }: PageProps) {
 
         {/* Tabbed Navigation Component */}
         <div>
-          <div className="flex border-b border-slate-200 justify-start">
+          <div className="flex border-b border-slate-200 justify-start overflow-x-auto">
             <button
               onClick={() => setActiveTab('bio')}
-              className={`px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer ${
+              className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === 'bio'
                   ? 'border-oxford text-oxford'
                   : 'border-transparent text-slate-500 hover:text-oxford'
@@ -450,13 +482,26 @@ export default function ProfilePage({ params }: PageProps) {
             {isFaculty && (
               <button
                 onClick={() => setActiveTab('scholars')}
-                className={`px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer ${
+                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
                   activeTab === 'scholars'
                     ? 'border-oxford text-oxford'
                     : 'border-transparent text-slate-500 hover:text-oxford'
                 }`}
               >
                 Guided Scholars ({supervisedScholars.length})
+              </button>
+            )}
+
+            {isFaculty && (
+              <button
+                onClick={() => setActiveTab('projects')}
+                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'projects'
+                    ? 'border-oxford text-oxford'
+                    : 'border-transparent text-slate-500 hover:text-oxford'
+                }`}
+              >
+                Research Projects ({facultyProjects.length})
               </button>
             )}
           </div>
@@ -502,6 +547,92 @@ export default function ProfilePage({ params }: PageProps) {
                 ) : (
                   <p className="text-base text-slate-400 italic">No guided students or Ph.D. scholars currently listed.</p>
                 )}
+              </div>
+            )}
+
+            {/* Research Projects Tab */}
+            {activeTab === 'projects' && isFaculty && (
+              <div className="space-y-8 text-left font-sans">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl sm:text-2xl font-bold text-oxford font-serif">
+                    Funded & Sponsored Research Projects
+                  </h3>
+                  <span className="text-xs sm:text-sm font-semibold text-cyan-dark bg-cyan-50 border border-cyan-200 px-3 py-1 rounded-full">
+                    {facultyProjects.length} Projects
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {facultyProjects.map((proj: any) => (
+                    <div
+                      key={proj.id || proj.title}
+                      className="p-6 border border-slate-200 rounded-xl bg-slate-50 hover:bg-white hover:border-slate-300 hover:shadow-sm transition-all flex flex-col justify-between space-y-4"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-3">
+                          <span className={`inline-block text-xs font-bold px-2.5 py-1 rounded uppercase tracking-wider ${
+                            proj.status === 'Ongoing'
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              : 'bg-blue-100 text-blue-800 border border-blue-200'
+                          }`}>
+                            {proj.status || 'Ongoing'}
+                          </span>
+                          {proj.agency && (
+                            <span className="text-xs font-bold text-slate-700 bg-slate-200/80 px-2.5 py-1 rounded">
+                              {proj.agency}
+                            </span>
+                          )}
+                        </div>
+
+                        <h4 className="text-lg font-bold text-oxford leading-snug">
+                          {proj.title}
+                        </h4>
+
+                        {proj.description && (
+                          <p className="text-sm text-slate-600 leading-relaxed">
+                            {proj.description}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-200 space-y-2 text-xs sm:text-sm text-slate-600">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div>
+                            <span className="font-semibold text-oxford">Role:</span> {proj.role || 'Principal Investigator'}
+                          </div>
+                          {proj.duration && (
+                            <div>
+                              <span className="font-semibold text-oxford">Duration:</span> {proj.duration}
+                            </div>
+                          )}
+                          {proj.amount && (
+                            <div>
+                              <span className="font-semibold text-oxford">Grant:</span> {proj.amount}
+                            </div>
+                          )}
+                        </div>
+
+                        {proj.otherFaculty && (
+                          <div className="text-xs text-slate-700 bg-slate-100 p-2 rounded border border-slate-200">
+                            <span className="font-semibold text-oxford">Co-Faculty / Collaborators:</span> {proj.otherFaculty}
+                          </div>
+                        )}
+
+                        {proj.externalLink && (
+                          <a
+                            href={proj.externalLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-dark hover:underline"
+                          >
+                            <span>External Project Link</span>
+                            <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>

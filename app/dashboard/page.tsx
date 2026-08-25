@@ -214,6 +214,23 @@ interface StudentItem {
   createdAt: string;
 }
 
+interface ProjectItem {
+  id: string;
+  facultyId: string;
+  title: string;
+  description: string | null;
+  agency: string | null;
+  role: string | null;
+  funding: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  externalLink: string | null;
+  otherFaculty: string | null;
+  status: string | null;
+  createdAt: string;
+  faculty?: { id: string; name: string; email: string } | null;
+}
+
 // Markdown Parser Helper Function for Faculty Description
 function renderMarkdown(md: string) {
   if (!md || !md.trim()) {
@@ -857,9 +874,10 @@ export default function UnifiedDashboardPage() {
   const [fullManageFacultyId, setFullManageFacultyId] = useState<string | null>(null);
 
   // -------------------------------------------------------------
+  // -------------------------------------------------------------
   // FACULTY DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'hero' | 'events'>('overview');
+  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'projects' | 'hero' | 'events'>('overview');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -904,6 +922,154 @@ export default function UnifiedDashboardPage() {
   const [savingStudent, setSavingStudent] = useState(false);
   const [studentError, setStudentError] = useState<string | null>(null);
   const [studentSuccess, setStudentSuccess] = useState<string | null>(null);
+
+  // Faculty Projects State & Handlers
+  const [projectsList, setProjectsList] = useState<ProjectItem[]>([]);
+  const [loadingProjects, setLoadingProjects] = useState(false);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
+  const [allDbFaculty, setAllDbFaculty] = useState<{ id: string; name: string; designation?: string }[]>([]);
+  const [selectedCoFacultyNames, setSelectedCoFacultyNames] = useState<string[]>([]);
+  const [projectFormData, setProjectFormData] = useState({
+    title: '',
+    description: '',
+    role: 'Principal Investigator',
+    agency: '',
+    funding: '',
+    startDate: '',
+    endDate: '',
+    externalLink: '',
+    otherFaculty: '',
+  });
+  const [savingProject, setSavingProject] = useState(false);
+  const [projectError, setProjectError] = useState<string | null>(null);
+
+  const fetchProjects = async () => {
+    setLoadingProjects(true);
+    try {
+      const res = await fetch('/api/faculty/projects');
+      if (res.ok) {
+        const data = await res.json();
+        setProjectsList(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch faculty projects:', err);
+    } finally {
+      setLoadingProjects(false);
+    }
+  };
+
+  const openProjectModal = (proj?: ProjectItem) => {
+    setProjectError(null);
+    if (proj) {
+      setEditingProject(proj);
+      setProjectFormData({
+        title: proj.title || '',
+        description: proj.description || '',
+        role: proj.role || 'Principal Investigator',
+        agency: proj.agency || '',
+        funding: proj.funding || '',
+        startDate: proj.startDate ? new Date(proj.startDate).toISOString().slice(0, 10) : '',
+        endDate: proj.endDate ? new Date(proj.endDate).toISOString().slice(0, 10) : '',
+        externalLink: proj.externalLink || '',
+        otherFaculty: proj.otherFaculty || '',
+      });
+
+      if (proj.otherFaculty) {
+        const parts = proj.otherFaculty.split(',').map((s) => s.trim()).filter(Boolean);
+        const dbNames = allDbFaculty.map((f) => f.name);
+        const selected = parts.filter((p) => dbNames.includes(p));
+        setSelectedCoFacultyNames(selected);
+      } else {
+        setSelectedCoFacultyNames([]);
+      }
+    } else {
+      setEditingProject(null);
+      setProjectFormData({
+        title: '',
+        description: '',
+        role: 'Principal Investigator',
+        agency: '',
+        funding: '',
+        startDate: '',
+        endDate: '',
+        externalLink: '',
+        otherFaculty: '',
+      });
+      setSelectedCoFacultyNames([]);
+    }
+    setIsProjectModalOpen(true);
+  };
+
+  const closeProjectModal = () => {
+    setIsProjectModalOpen(false);
+    setEditingProject(null);
+  };
+
+  const handleProjectSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProjectError(null);
+
+    if (!projectFormData.title.trim()) {
+      setProjectError('Project Title is required');
+      return;
+    }
+
+    setSavingProject(true);
+
+    const combinedCoFaculty = selectedCoFacultyNames.join(', ');
+
+    try {
+      const url = editingProject
+        ? `/api/faculty/projects/${editingProject.id}`
+        : '/api/faculty/projects';
+      const method = editingProject ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: projectFormData.title.trim(),
+          description: projectFormData.description.trim(),
+          role: projectFormData.role.trim(),
+          agency: projectFormData.agency.trim(),
+          funding: projectFormData.funding.trim(),
+          startDate: projectFormData.startDate || null,
+          endDate: projectFormData.endDate || null,
+          externalLink: projectFormData.externalLink.trim(),
+          otherFaculty: combinedCoFaculty,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save research project.');
+      }
+
+      await fetchProjects();
+      closeProjectModal();
+    } catch (err: any) {
+      setProjectError(err.message || 'An error occurred while saving project.');
+    } finally {
+      setSavingProject(false);
+    }
+  };
+
+  const handleDeleteProject = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this research project record?')) return;
+
+    try {
+      const res = await fetch(`/api/faculty/projects/${id}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        setProjectsList((prev) => prev.filter((item) => item.id !== id));
+      }
+    } catch (err) {
+      console.error('Failed to delete research project:', err);
+    }
+  };
 
   // -------------------------------------------------------------
   // INITIAL SESSION FETCH
@@ -1224,11 +1390,13 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   const fetchFacultySelfData = async (userData?: any) => {
     try {
-      const [profileRes, docRes, descRes, studentsRes] = await Promise.all([
+      const [profileRes, docRes, descRes, studentsRes, projectsRes, allFacultyRes] = await Promise.all([
         fetch('/api/faculty/profile'),
         fetch('/api/faculty/documents'),
         fetch('/api/faculty/description'),
         fetch('/api/faculty/students'),
+        fetch('/api/faculty/projects'),
+        fetch('/api/public/faculty'),
       ]);
 
       if (userData?.mustChangePassword) {
@@ -1280,6 +1448,16 @@ export default function UnifiedDashboardPage() {
       if (studentsRes.ok) {
         const stData = await studentsRes.json();
         setStudentsList(stData);
+      }
+
+      if (projectsRes.ok) {
+        const prData = await projectsRes.json();
+        setProjectsList(prData);
+      }
+
+      if (allFacultyRes.ok) {
+        const afData = await allFacultyRes.json();
+        setAllDbFaculty(afData.map((f: any) => ({ id: f.id, name: f.name, designation: f.designation })));
       }
     } catch (err) {
       console.error('Failed to load faculty self data:', err);
@@ -3236,9 +3414,9 @@ export default function UnifiedDashboardPage() {
   // RENDER FACULTY DASHBOARD (IF ROLE IS FACULTY)
   // -------------------------------------------------------------
   return (
-    <Tabs value={facultyTab} onValueChange={(val) => setFacultyTab(val as any)} className="min-h-screen bg-[#faf7f2] text-slate-900 flex flex-col md:flex-row font-serif selection:bg-oxford selection:text-white">
+    <Tabs value={facultyTab} onValueChange={(val) => setFacultyTab(val as any)} className="min-h-screen bg-[#faf7f2] text-slate-900 flex flex-col md:flex-row font-sans selection:bg-oxford selection:text-white">
       {/* Left Sidebar */}
-      <aside className="w-full md:w-72 bg-oxford border-r border-[#001833] text-white flex flex-col justify-between shrink-0 min-h-screen p-6 shadow-xl sticky top-0 z-40 font-serif">
+      <aside className="w-full md:w-72 bg-oxford border-r border-[#001833] text-white flex flex-col justify-between shrink-0 min-h-screen p-6 pb-12 shadow-xl sticky top-0 z-40 font-sans">
         <div className="space-y-8">
           {/* Portal Branding Header */}
           <div className="flex items-center gap-3 border-b border-white/10 pb-6">
@@ -3293,6 +3471,20 @@ export default function UnifiedDashboardPage() {
                 </div>
                 <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
                   {studentsList.length}
+                </Badge>
+              </TabsTrigger>
+
+              {/* Option: Research Projects Page */}
+              <TabsTrigger
+                value="projects"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <FlaskConical className="w-4 h-4" />
+                  <span>Research Projects</span>
+                </div>
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
+                  {projectsList.length}
                 </Badge>
               </TabsTrigger>
 
@@ -3367,7 +3559,7 @@ export default function UnifiedDashboardPage() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Profile Overview Card */}
             <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
               <div className="space-y-3">
@@ -3400,6 +3592,25 @@ export default function UnifiedDashboardPage() {
               </div>
               <Button onClick={() => setFacultyTab('scholars')} className="w-full font-semibold">
                 <span>Manage Scholars</span>
+              </Button>
+            </Card>
+
+            {/* Research Projects Card */}
+            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center">
+                    <FlaskConical className="w-6 h-6" />
+                  </div>
+                  <span className="text-3xl font-extrabold text-emerald-700">{projectsList.length}</span>
+                </div>
+                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Research Projects</CardTitle>
+                <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
+                  Manage sponsored and funded research projects, collaborator faculty, funding agency, dates, and links.
+                </CardDescription>
+              </div>
+              <Button onClick={() => setFacultyTab('projects')} className="w-full font-semibold">
+                <span>Manage Projects</span>
               </Button>
             </Card>
 
@@ -4324,6 +4535,367 @@ export default function UnifiedDashboardPage() {
               </Button>
               <Button type="submit" disabled={eventSaving} className="px-5 font-semibold">
                 {eventSaving ? 'Saving Event...' : editingEvent ? 'Update Event' : 'Create Event'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* RESEARCH PROJECTS TAB CONTENT */}
+      <TabsContent value="projects" className="space-y-8 animate-fadeIn mt-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+          <div>
+            <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+              <FlaskConical className="w-7 h-7 text-oxford" />
+              <span>Sponsored & Funded Research Projects ({projectsList.length})</span>
+            </h2>
+            <p className="text-slate-600 text-sm mt-1 font-sans">
+              Add, edit, or remove research projects, co-faculty collaborators, funding agencies, grants, and dates.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={fetchProjects}
+              className="h-10 w-10 text-slate-700 hover:text-slate-950"
+              title="Refresh Projects"
+            >
+              <RefreshCw className={`w-4 h-4 ${loadingProjects ? 'animate-spin' : ''}`} />
+            </Button>
+            <Button
+              onClick={() => openProjectModal()}
+              className="flex items-center gap-2 py-3 px-5 font-semibold"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Create Project</span>
+            </Button>
+          </div>
+        </div>
+
+        <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          {loadingProjects ? (
+            <div className="p-12 text-center text-slate-500 flex flex-col items-center gap-3">
+              <div className="w-8 h-8 border-2 border-oxford border-t-transparent rounded-full animate-spin" />
+              <span>Loading research projects...</span>
+            </div>
+          ) : projectsList.length === 0 ? (
+            <div className="p-12 text-center text-slate-500 space-y-3">
+              <FlaskConical className="w-10 h-10 mx-auto text-slate-400" />
+              <p className="text-base font-semibold text-slate-800">No research projects added yet.</p>
+              <p className="text-xs text-slate-500 font-sans">Click "Create Project" to record sponsored or funded research projects.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {projectsList.map((proj) => {
+                const isOngoing = !proj.endDate || (proj.status ? proj.status === 'Ongoing' : new Date(proj.endDate) >= new Date());
+                const isOwner = proj.facultyId === currentUser?.id;
+
+                return (
+                  <div
+                    key={proj.id}
+                    className="p-6 border border-slate-200 rounded-2xl bg-slate-50/50 hover:bg-white hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between space-y-4 font-sans"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
+                            isOngoing
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                              : 'bg-blue-100 text-blue-800 border border-blue-200'
+                          }`}>
+                            {isOngoing ? 'Ongoing' : 'Completed'}
+                          </span>
+
+                          {!isOwner && (
+                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                              Co-Faculty Project
+                            </span>
+                          )}
+                        </div>
+
+                        {proj.agency && (
+                          <span className="text-xs font-bold text-slate-700 bg-slate-200/70 border border-slate-300/80 px-2.5 py-1 rounded">
+                            {proj.agency}
+                          </span>
+                        )}
+                      </div>
+
+                      <h3 className="text-xl font-bold font-serif text-oxford leading-snug">
+                        {proj.title}
+                      </h3>
+
+                      {proj.description && (
+                        <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">
+                          {proj.description}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm font-sans pt-3 border-t border-slate-200/80">
+                        <div>
+                          <span className="font-semibold text-oxford">Role:</span>{' '}
+                          <span>{isOwner ? (proj.role || 'Principal Investigator') : `Co-Investigator (PI: ${proj.faculty?.name || 'Faculty Member'})`}</span>
+                        </div>
+
+                        {proj.funding && (
+                          <div>
+                            <span className="font-semibold text-oxford">Funding:</span>{' '}
+                            <span>{proj.funding}</span>
+                          </div>
+                        )}
+
+                        {proj.startDate && (
+                          <div>
+                            <span className="font-semibold text-oxford">Start Date:</span>{' '}
+                            <span>{new Date(proj.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                          </div>
+                        )}
+
+                        <div>
+                          <span className="font-semibold text-oxford">End Date:</span>{' '}
+                          <span>{proj.endDate ? new Date(proj.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'None (Ongoing)'}</span>
+                        </div>
+                      </div>
+
+                      {proj.otherFaculty && (
+                        <div className="text-xs text-slate-700 bg-slate-100 p-2.5 rounded-lg border border-slate-200 font-sans">
+                          <span className="font-semibold text-oxford">Co-Faculty / Team:</span> {proj.otherFaculty}
+                        </div>
+                      )}
+
+                      <div className="pt-3 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                        {proj.externalLink ? (
+                          <a
+                            href={proj.externalLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:underline"
+                          >
+                            <span>External Project Link</span>
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                        ) : <div />}
+
+                        {isOwner ? (
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() => openProjectModal(proj)}
+                              className="h-8 text-xs px-3"
+                            >
+                              <Edit className="w-3.5 h-3.5 mr-1" />
+                              <span>Edit</span>
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDeleteProject(proj.id)}
+                              className="h-8 text-xs px-3"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 mr-1" />
+                              <span>Delete</span>
+                            </Button>
+                          </div>
+                        ) : (
+                          <span className="text-[11px] text-slate-400 font-sans italic">
+                            Managed by PI ({proj.faculty?.name || 'Faculty Member'})
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </Card>
+      </TabsContent>
+
+      {/* Project Create / Edit Modal */}
+      <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
+        <DialogContent className="max-w-lg bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="border-b border-slate-100 pb-4">
+            <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
+              <FlaskConical className="w-5 h-5 text-oxford" />
+              <span>{editingProject ? 'Edit Research Project' : 'Create New Research Project'}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleProjectSave} className="space-y-4 pt-4 font-sans">
+            {projectError && (
+              <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+                {projectError}
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">Project Title *</label>
+              <Input
+                type="text"
+                placeholder="e.g. Development of Advanced Functional Materials"
+                value={projectFormData.title}
+                onChange={(e) => setProjectFormData({ ...projectFormData, title: e.target.value })}
+                className="w-full text-base font-serif"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Faculty Role</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Principal Investigator / Co-PI"
+                  value={projectFormData.role}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, role: e.target.value })}
+                  className="w-full text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Funding Agency</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. DST-SERB, CSIR, UGC-DAE CSR"
+                  value={projectFormData.agency}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, agency: e.target.value })}
+                  className="w-full text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Grant / Funding</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. ₹48.50 Lakhs"
+                  value={projectFormData.funding}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, funding: e.target.value })}
+                  className="w-full text-sm font-mono"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Start Date</label>
+                <Input
+                  type="date"
+                  value={projectFormData.startDate}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, startDate: e.target.value })}
+                  className="w-full text-sm font-mono"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">End Date</label>
+                <Input
+                  type="date"
+                  value={projectFormData.endDate}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, endDate: e.target.value })}
+                  className="w-full text-sm font-mono"
+                />
+                <p className="text-[11px] text-slate-500 italic">If empty, Status = Ongoing</p>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700 block">Co-Faculty Members / Collaborators</label>
+              
+              <div className="space-y-1.5">
+                <span className="text-xs text-slate-500 font-sans font-semibold">Select Faculty from Department DB:</span>
+                <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                  {(() => {
+                    const availableCoFaculty = allDbFaculty.filter(
+                      (fac) => fac.id !== currentUser?.id && fac.name?.toLowerCase() !== currentUser?.name?.toLowerCase()
+                    );
+                    if (availableCoFaculty.length === 0) {
+                      return <span className="text-xs text-slate-400 italic font-sans">No other department faculty records found</span>;
+                    }
+                    return availableCoFaculty.map((fac) => {
+                      const isSelected = selectedCoFacultyNames.includes(fac.name);
+                      return (
+                        <button
+                          key={fac.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setSelectedCoFacultyNames(selectedCoFacultyNames.filter((n) => n !== fac.name));
+                            } else {
+                              setSelectedCoFacultyNames([...selectedCoFacultyNames, fac.name]);
+                            }
+                          }}
+                          className={`text-xs px-3 py-1.5 rounded-lg border font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+                            isSelected
+                              ? 'bg-oxford text-white border-oxford font-bold shadow-xs'
+                              : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:bg-slate-100'
+                          }`}
+                        >
+                          <span>{fac.name}</span>
+                          {isSelected ? (
+                            <CheckCircle2 className="w-3.5 h-3.5 text-cyan-accent" />
+                          ) : (
+                            <Plus className="w-3.5 h-3.5 text-slate-400" />
+                          )}
+                        </button>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+
+              {selectedCoFacultyNames.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-xs font-semibold text-oxford">Selected:</span>
+                  {selectedCoFacultyNames.map((name) => (
+                    <span
+                      key={name}
+                      className="inline-flex items-center gap-1 text-xs font-semibold bg-indigo-50 text-indigo-900 border border-indigo-200 px-2.5 py-0.5 rounded-full"
+                    >
+                      <span>{name}</span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCoFacultyNames(selectedCoFacultyNames.filter((n) => n !== name))}
+                        className="hover:text-rose-600 font-bold ml-0.5"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">External Project Link (Optional)</label>
+              <Input
+                type="url"
+                placeholder="https://..."
+                value={projectFormData.externalLink}
+                onChange={(e) => setProjectFormData({ ...projectFormData, externalLink: e.target.value })}
+                className="w-full text-sm font-mono"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">Description / Abstract</label>
+              <textarea
+                rows={4}
+                placeholder="Enter project summary, objectives, or key achievements..."
+                value={projectFormData.description}
+                onChange={(e) => setProjectFormData({ ...projectFormData, description: e.target.value })}
+                className="w-full bg-white border border-[#e8e2d5] rounded-xl p-3 text-sm text-slate-900 font-sans focus:outline-none focus:ring-2 focus:ring-oxford leading-relaxed"
+              />
+            </div>
+
+            <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
+              <Button variant="outline" type="button" onClick={closeProjectModal} className="px-4">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={savingProject} className="px-5 font-semibold">
+                {savingProject ? 'Saving Project...' : editingProject ? 'Update Project' : 'Create Project'}
               </Button>
             </DialogFooter>
           </form>

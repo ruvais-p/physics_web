@@ -17,6 +17,9 @@ export async function GET(
         documents: true,
         descriptionRecord: true,
         students: true,
+        projects: {
+          orderBy: { createdAt: 'desc' },
+        },
       },
     });
 
@@ -35,6 +38,84 @@ export async function GET(
       if (profileJson.personal_website) socialLinks.website = profileJson.personal_website;
 
       const customProfiles = Array.isArray(profileJson.other) ? profileJson.other : [];
+
+      const collaboratedProjects = await prisma.facultyProject.findMany({
+        where: {
+          otherFaculty: {
+            contains: faculty.name,
+            mode: 'insensitive',
+          },
+          NOT: {
+            facultyId: faculty.id,
+          },
+        },
+        include: {
+          faculty: { select: { name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      const ownedProjectsMapped = faculty.projects.map((p) => {
+        const startYear = p.startDate ? new Date(p.startDate).getFullYear() : null;
+        const endYear = p.endDate ? new Date(p.endDate).getFullYear() : null;
+        let duration = '';
+        if (startYear && endYear) {
+          duration = `${startYear} – ${endYear}`;
+        } else if (startYear) {
+          duration = `${startYear} – Present`;
+        } else if (endYear) {
+          duration = `Until ${endYear}`;
+        }
+
+        const isOngoing = !p.endDate || new Date(p.endDate) >= new Date();
+
+        return {
+          id: p.id,
+          title: p.title,
+          description: p.description,
+          agency: p.agency,
+          role: p.role || 'Principal Investigator',
+          amount: p.funding,
+          duration: duration || null,
+          startDate: p.startDate ? p.startDate.toISOString().slice(0, 10) : null,
+          endDate: p.endDate ? p.endDate.toISOString().slice(0, 10) : null,
+          status: isOngoing ? 'Ongoing' : 'Completed',
+          externalLink: p.externalLink,
+          otherFaculty: p.otherFaculty,
+          isCoFaculty: false,
+        };
+      });
+
+      const collaboratedProjectsMapped = collaboratedProjects.map((p) => {
+        const startYear = p.startDate ? new Date(p.startDate).getFullYear() : null;
+        const endYear = p.endDate ? new Date(p.endDate).getFullYear() : null;
+        let duration = '';
+        if (startYear && endYear) {
+          duration = `${startYear} – ${endYear}`;
+        } else if (startYear) {
+          duration = `${startYear} – Present`;
+        } else if (endYear) {
+          duration = `Until ${endYear}`;
+        }
+
+        const isOngoing = !p.endDate || new Date(p.endDate) >= new Date();
+
+        return {
+          id: p.id,
+          title: p.title,
+          description: p.description,
+          agency: p.agency,
+          role: 'Co-Investigator / Collaborator',
+          amount: p.funding,
+          duration: duration || null,
+          startDate: p.startDate ? p.startDate.toISOString().slice(0, 10) : null,
+          endDate: p.endDate ? p.endDate.toISOString().slice(0, 10) : null,
+          status: isOngoing ? 'Ongoing' : 'Completed',
+          externalLink: p.externalLink,
+          otherFaculty: `PI: ${p.faculty.name}${p.otherFaculty ? `, ${p.otherFaculty}` : ''}`,
+          isCoFaculty: true,
+        };
+      });
 
       return NextResponse.json({
         id: faculty.id,
@@ -63,6 +144,7 @@ export async function GET(
           email: faculty.email,
           type: 'scholar' as const,
         })),
+        projects: [...ownedProjectsMapped, ...collaboratedProjectsMapped],
       });
     }
 

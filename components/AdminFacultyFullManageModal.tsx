@@ -123,6 +123,22 @@ interface StudentItem {
   createdAt: string;
 }
 
+interface ProjectItem {
+  id: string;
+  facultyId: string;
+  title: string;
+  description: string | null;
+  agency: string | null;
+  role: string | null;
+  funding: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  externalLink: string | null;
+  otherFaculty: string | null;
+  status: string | null;
+  createdAt: string;
+}
+
 interface AdminFacultyFullManageModalProps {
   facultyId: string | null;
   isOpen: boolean;
@@ -181,7 +197,7 @@ export default function AdminFacultyFullManageModal({
   onClose,
   onFacultyUpdated,
 }: AdminFacultyFullManageModalProps) {
-  const [activeTab, setActiveTab] = useState<'account' | 'profiles' | 'documents' | 'description' | 'students'>('account');
+  const [activeTab, setActiveTab] = useState<'account' | 'profiles' | 'documents' | 'description' | 'students' | 'projects'>('account');
   const [loading, setLoading] = useState(true);
 
   // Account Info State
@@ -233,6 +249,25 @@ export default function AdminFacultyFullManageModal({
   const [savingStudent, setSavingStudent] = useState(false);
   const [studentError, setStudentError] = useState<string | null>(null);
   const [studentSuccess, setStudentSuccess] = useState<string | null>(null);
+
+  // Research Projects State
+  const [projectsList, setProjectsList] = useState<ProjectItem[]>([]);
+  const [allFacultyList, setAllFacultyList] = useState<{ id: string; name: string }[]>([]);
+  const [selectedCoFacultyNames, setSelectedCoFacultyNames] = useState<string[]>([]);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<ProjectItem | null>(null);
+  const [projectTitle, setProjectTitle] = useState('');
+  const [projectDescription, setProjectDescription] = useState('');
+  const [projectAgency, setProjectAgency] = useState('');
+  const [projectRole, setProjectRole] = useState('Principal Investigator');
+  const [projectFunding, setProjectFunding] = useState('');
+  const [projectStartDate, setProjectStartDate] = useState('');
+  const [projectEndDate, setProjectEndDate] = useState('');
+  const [projectExternalLink, setProjectExternalLink] = useState('');
+  const [projectOtherFaculty, setProjectOtherFaculty] = useState('');
+  const [savingProject, setSavingProject] = useState(false);
+  const [projectError, setProjectError] = useState<string | null>(null);
+  const [projectSuccess, setProjectSuccess] = useState<string | null>(null);
 
   // Load Faculty Record
   const fetchFacultyFullData = async () => {
@@ -287,6 +322,9 @@ export default function AdminFacultyFullManageModal({
 
       // Students
       setStudentsList(data.students || []);
+
+      // Projects
+      setProjectsList(data.projects || []);
     } catch (err: any) {
       console.error('Error fetching faculty details:', err);
     } finally {
@@ -299,6 +337,21 @@ export default function AdminFacultyFullManageModal({
       fetchFacultyFullData();
     }
   }, [isOpen, facultyId]);
+
+  useEffect(() => {
+    const fetchAllFaculty = async () => {
+      try {
+        const res = await fetch('/api/public/faculty');
+        if (res.ok) {
+          const data = await res.json();
+          setAllFacultyList(data.map((f: any) => ({ id: f.id, name: f.name })));
+        }
+      } catch (err) {
+        console.error('Failed to fetch faculty list:', err);
+      }
+    };
+    fetchAllFaculty();
+  }, []);
 
   if (!isOpen || !facultyId) return null;
 
@@ -552,6 +605,120 @@ export default function AdminFacultyFullManageModal({
     }
   };
 
+  // Research Projects Modal & Actions
+  const openProjectModal = (project?: ProjectItem) => {
+    setProjectError(null);
+    setProjectSuccess(null);
+    if (project) {
+      setEditingProject(project);
+      setProjectTitle(project.title);
+      setProjectDescription(project.description || '');
+      setProjectAgency(project.agency || '');
+      setProjectRole(project.role || 'Principal Investigator');
+      setProjectFunding(project.funding || '');
+      setProjectStartDate(project.startDate ? project.startDate.split('T')[0] : '');
+      setProjectEndDate(project.endDate ? project.endDate.split('T')[0] : '');
+      setProjectExternalLink(project.externalLink || '');
+
+      if (project.otherFaculty) {
+        const parts = project.otherFaculty.split(',').map((s) => s.trim()).filter(Boolean);
+        const registeredNames = allFacultyList.map((f) => f.name);
+        const selectedReg = parts.filter((p) => registeredNames.includes(p));
+        const customParts = parts.filter((p) => !registeredNames.includes(p));
+
+        setSelectedCoFacultyNames(selectedReg);
+        setProjectOtherFaculty(customParts.join(', '));
+      } else {
+        setSelectedCoFacultyNames([]);
+        setProjectOtherFaculty('');
+      }
+    } else {
+      setEditingProject(null);
+      setProjectTitle('');
+      setProjectDescription('');
+      setProjectAgency('');
+      setProjectRole('Principal Investigator');
+      setProjectFunding('');
+      setProjectStartDate('');
+      setProjectEndDate('');
+      setProjectExternalLink('');
+      setProjectOtherFaculty('');
+      setSelectedCoFacultyNames([]);
+    }
+    setIsProjectModalOpen(true);
+  };
+
+  const handleSaveProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setProjectError(null);
+    setProjectSuccess(null);
+
+    if (!projectTitle.trim()) {
+      setProjectError('Project Title is required.');
+      return;
+    }
+
+    setSavingProject(true);
+
+    try {
+      const customNames = projectOtherFaculty.split(',').map((s) => s.trim()).filter(Boolean);
+      const combinedOtherFaculty = Array.from(
+        new Set([...selectedCoFacultyNames, ...customNames])
+      ).join(', ');
+
+      const payload = {
+        title: projectTitle.trim(),
+        description: projectDescription.trim() || undefined,
+        agency: projectAgency.trim() || undefined,
+        role: projectRole.trim() || 'Principal Investigator',
+        funding: projectFunding.trim() || undefined,
+        startDate: projectStartDate || undefined,
+        endDate: projectEndDate || undefined,
+        externalLink: projectExternalLink.trim() || undefined,
+        otherFaculty: combinedOtherFaculty || undefined,
+      };
+
+      const url = editingProject
+        ? `/api/admin/faculty/${facultyId}/projects/${editingProject.id}`
+        : `/api/admin/faculty/${facultyId}/projects`;
+      const method = editingProject ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save project record.');
+
+      await fetchFacultyFullData();
+      setIsProjectModalOpen(false);
+      setProjectSuccess(editingProject ? 'Research project updated!' : 'Research project added!');
+      onFacultyUpdated();
+      setTimeout(() => setProjectSuccess(null), 2500);
+    } catch (err: any) {
+      setProjectError(err.message || 'Failed to save research project.');
+    } finally {
+      setSavingProject(false);
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (!confirm('Are you sure you want to delete this research project?')) return;
+    try {
+      const res = await fetch(`/api/admin/faculty/${facultyId}/projects/${projectId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        await fetchFacultyFullData();
+        onFacultyUpdated();
+      }
+    } catch {
+      console.error('Failed to delete research project.');
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-fadeIn overflow-y-auto">
       <div className="bg-[#faf7f2] border border-[#e8e2d5] rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-slate-900">
@@ -633,6 +800,17 @@ export default function AdminFacultyFullManageModal({
           >
             <GraduationCap className="w-3.5 h-3.5" />
             <span>Guided Students ({studentsList.length})</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('projects')}
+            className={`px-3.5 py-2 rounded-t-xl border-b-2 transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'projects'
+                ? 'border-indigo-600 bg-white text-indigo-600 font-bold shadow-xs'
+                : 'border-transparent text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <FlaskConical className="w-3.5 h-3.5" />
+            <span>Research Projects ({projectsList.length})</span>
           </button>
         </div>
 
@@ -1148,6 +1326,106 @@ export default function AdminFacultyFullManageModal({
                   )}
                 </div>
               )}
+
+              {/* TAB 6: RESEARCH PROJECTS */}
+              {activeTab === 'projects' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-semibold uppercase text-slate-700">Research & Sponsored Projects</h4>
+                    <button
+                      type="button"
+                      onClick={() => openProjectModal()}
+                      className="py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl flex items-center gap-1.5 shadow cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Research Project</span>
+                    </button>
+                  </div>
+
+                  {projectsList.length === 0 ? (
+                    <div className="p-8 border border-slate-200 rounded-2xl text-center text-slate-400 space-y-2">
+                      <FlaskConical className="w-8 h-8 mx-auto opacity-50" />
+                      <p className="text-xs font-medium">No research projects recorded for this faculty member.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {projectsList.map((pj) => (
+                        <div
+                          key={pj.id}
+                          className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3"
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-bold text-slate-900">{pj.title}</span>
+                                {pj.status === 'Ongoing' ? (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    Ongoing
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-300">
+                                    Completed
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-slate-600 flex items-center gap-3 flex-wrap">
+                                {pj.role && <span className="font-semibold text-indigo-700">{pj.role}</span>}
+                                {pj.agency && <span>Agency: <strong className="text-slate-800">{pj.agency}</strong></span>}
+                                {pj.funding && <span>Grant: <strong className="text-slate-800">{pj.funding}</strong></span>}
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              {pj.externalLink && (
+                                <a
+                                  href={pj.externalLink}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="p-1.5 text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 rounded-lg cursor-pointer"
+                                  title="External Project Link"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                              )}
+                              <button
+                                onClick={() => openProjectModal(pj)}
+                                className="p-1.5 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg cursor-pointer"
+                                title="Edit Project"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteProject(pj.id)}
+                                className="p-1.5 text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 rounded-lg cursor-pointer"
+                                title="Delete Project"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+
+                          {pj.description && (
+                            <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">{pj.description}</p>
+                          )}
+
+                          <div className="flex items-center justify-between text-[11px] text-slate-500 border-t border-slate-200/60 pt-2 flex-wrap gap-2">
+                            <div>
+                              {pj.startDate || pj.endDate ? (
+                                <span>
+                                  Duration: {pj.startDate ? new Date(pj.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A'} - {pj.endDate ? new Date(pj.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Present'}
+                                </span>
+                              ) : null}
+                            </div>
+                            {pj.otherFaculty && (
+                              <span>Collaborators: <strong className="text-slate-700">{pj.otherFaculty}</strong></span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>
@@ -1226,6 +1504,217 @@ export default function AdminFacultyFullManageModal({
                   className="py-2 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow cursor-pointer"
                 >
                   {savingStudent ? 'Saving...' : 'Save Student'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Nested Add/Edit Research Project Popup Modal */}
+      {isProjectModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
+          <div className="bg-[#faf7f2] border border-[#e8e2d5] rounded-2xl w-full max-w-lg p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 className="text-sm font-bold text-slate-900">
+                {editingProject ? 'Edit Research Project' : 'Add Research Project'}
+              </h3>
+              <button onClick={() => setIsProjectModalOpen(false)} className="text-slate-400 hover:text-slate-600 cursor-pointer">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {projectError && (
+              <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl">
+                {projectError}
+              </div>
+            )}
+
+            <form onSubmit={handleSaveProject} className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Project Title *</label>
+                <input
+                  type="text"
+                  required
+                  value={projectTitle}
+                  onChange={(e) => setProjectTitle(e.target.value)}
+                  placeholder="e.g. Investigation of High-Tc Superconductors"
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Role / Designation</label>
+                  <input
+                    type="text"
+                    value={projectRole}
+                    onChange={(e) => setProjectRole(e.target.value)}
+                    placeholder="e.g. Principal Investigator"
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Funding Agency</label>
+                  <input
+                    type="text"
+                    value={projectAgency}
+                    onChange={(e) => setProjectAgency(e.target.value)}
+                    placeholder="e.g. DST-SERB, ISRO, CSIR"
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Funding Amount / Grant</label>
+                  <input
+                    type="text"
+                    value={projectFunding}
+                    onChange={(e) => setProjectFunding(e.target.value)}
+                    placeholder="e.g. ₹45,00,000"
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">External Link / URL</label>
+                  <input
+                    type="url"
+                    value={projectExternalLink}
+                    onChange={(e) => setProjectExternalLink(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">Start Date</label>
+                  <input
+                    type="date"
+                    value={projectStartDate}
+                    onChange={(e) => setProjectStartDate(e.target.value)}
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">End Date</label>
+                  <input
+                    type="date"
+                    value={projectEndDate}
+                    onChange={(e) => setProjectEndDate(e.target.value)}
+                    className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-slate-700">Other Faculty Collaborators</label>
+                
+                <div className="space-y-1.5">
+                  <span className="text-[11px] text-slate-500 font-sans font-semibold">Select Registered Department Faculty:</span>
+                  <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                    {(() => {
+                      const availableCoFaculty = allFacultyList.filter(
+                        (fac) => fac.id !== facultyId && fac.name?.toLowerCase() !== name?.toLowerCase()
+                      );
+                      if (availableCoFaculty.length === 0) {
+                        return <span className="text-xs text-slate-400 italic font-sans">No other registered faculty records found</span>;
+                      }
+                      return availableCoFaculty.map((fac) => {
+                        const isSelected = selectedCoFacultyNames.includes(fac.name);
+                        return (
+                          <button
+                            key={fac.id}
+                            type="button"
+                            onClick={() => {
+                              if (isSelected) {
+                                setSelectedCoFacultyNames(selectedCoFacultyNames.filter((n) => n !== fac.name));
+                              } else {
+                                setSelectedCoFacultyNames([...selectedCoFacultyNames, fac.name]);
+                              }
+                            }}
+                            className={`text-xs px-2.5 py-1 rounded-lg border font-medium transition-all flex items-center gap-1.5 cursor-pointer ${
+                              isSelected
+                                ? 'bg-indigo-600 text-white border-indigo-600 font-bold shadow-xs'
+                                : 'bg-white text-slate-700 border-slate-300 hover:border-slate-400 hover:bg-slate-100'
+                            }`}
+                          >
+                            <span>{fac.name}</span>
+                            {isSelected ? (
+                              <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                            ) : (
+                              <Plus className="w-3.5 h-3.5 text-slate-400" />
+                            )}
+                          </button>
+                        );
+                      });
+                    })()}
+                  </div>
+                </div>
+
+                {selectedCoFacultyNames.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                    <span className="text-[11px] font-semibold text-slate-600">Selected:</span>
+                    {selectedCoFacultyNames.map((collabName) => (
+                      <span
+                        key={collabName}
+                        className="inline-flex items-center gap-1 text-xs font-semibold bg-indigo-50 text-indigo-900 border border-indigo-200 px-2.5 py-0.5 rounded-full"
+                      >
+                        <span>{collabName}</span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedCoFacultyNames(selectedCoFacultyNames.filter((n) => n !== collabName))}
+                          className="hover:text-red-600 cursor-pointer"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="pt-1">
+                  <span className="text-[11px] text-slate-500 font-sans">Additional / External Collaborators (Optional):</span>
+                  <input
+                    type="text"
+                    value={projectOtherFaculty}
+                    onChange={(e) => setProjectOtherFaculty(e.target.value)}
+                    placeholder="e.g. Dr. A. Kumar (IISc), Prof. B. Sharma (IIT M)"
+                    className="w-full mt-1 p-2 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Project Description</label>
+                <textarea
+                  rows={3}
+                  value={projectDescription}
+                  onChange={(e) => setProjectDescription(e.target.value)}
+                  placeholder="Summary of research objectives, methodologies, and outcomes..."
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+
+              <div className="pt-3 flex justify-end gap-2 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setIsProjectModalOpen(false)}
+                  className="py-2 px-3 bg-slate-100 text-slate-600 hover:bg-slate-200 rounded-xl text-xs cursor-pointer font-semibold"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingProject}
+                  className="py-2 px-4 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold shadow cursor-pointer"
+                >
+                  {savingProject ? 'Saving...' : 'Save Project'}
                 </button>
               </div>
             </form>

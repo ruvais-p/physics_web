@@ -55,8 +55,29 @@ model Faculty {
   documents          FacultyDocument?
   descriptionRecord  FacultyDescription?
   students           FacultyStudent[]
+  projects           FacultyProject[]
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
+}
+
+model FacultyProject {
+  id           String    @id @default(uuid())
+  facultyId    String
+  faculty      Faculty   @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?   @db.Text
+  agency       String?
+  role         String?   @default("Principal Investigator")
+  funding      String?
+  startDate    DateTime?
+  endDate      DateTime?
+  externalLink String?
+  otherFaculty String?
+  status       String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([facultyId])
 }
 
 model FacultyProfile {

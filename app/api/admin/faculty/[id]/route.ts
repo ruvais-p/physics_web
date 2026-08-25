@@ -32,6 +32,9 @@ export async function GET(
         students: {
           orderBy: { createdAt: 'desc' },
         },
+        projects: {
+          orderBy: { createdAt: 'desc' },
+        },
       },
     });
 
@@ -133,6 +136,9 @@ export async function PUT(
         documents: true,
         descriptionRecord: true,
         students: {
+          orderBy: { createdAt: 'desc' },
+        },
+        projects: {
           orderBy: { createdAt: 'desc' },
         },
       },

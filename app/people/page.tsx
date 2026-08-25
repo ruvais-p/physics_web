@@ -117,9 +117,9 @@ export default function PeoplePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 font-sans">
               {scholarsList.map((person) => (
-                <Link key={person.id} href={`/people/${person.id}`} className="block h-full">
+                <div key={person.id} className="h-full">
                   <FacultyCard person={person} />
-                </Link>
+                </div>
               ))}
             </div>
           </section>
