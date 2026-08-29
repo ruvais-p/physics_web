@@ -35,6 +35,9 @@ export async function GET(
         projects: {
           orderBy: { createdAt: 'desc' },
         },
+        publications: {
+          orderBy: { publicationDate: 'desc' },
+        },
       },
     });
 

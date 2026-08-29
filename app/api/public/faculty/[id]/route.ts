@@ -20,6 +20,9 @@ export async function GET(
         projects: {
           orderBy: { createdAt: 'desc' },
         },
+        publications: {
+          orderBy: { publicationDate: 'desc' },
+        },
       },
     });
 
@@ -145,6 +148,18 @@ export async function GET(
           type: 'scholar' as const,
         })),
         projects: [...ownedProjectsMapped, ...collaboratedProjectsMapped],
+        publications: faculty.publications.map((pub) => ({
+          id: pub.id,
+          title: pub.title,
+          journal: pub.journal,
+          authors: pub.authors,
+          publicationDate: pub.publicationDate ? pub.publicationDate.toISOString().slice(0, 10) : null,
+          year: pub.publicationDate ? new Date(pub.publicationDate).getFullYear() : null,
+          externalLink: pub.externalLink,
+          doi: pub.doi,
+          category: pub.category || 'Journal Article',
+          description: pub.description,
+        })),
       });
     }
 

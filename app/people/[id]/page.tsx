@@ -177,7 +177,7 @@ export default function ProfilePage({ params }: PageProps) {
   const [notFoundState, setNotFoundState] = useState(false);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'bio' | 'scholars' | 'projects'>('bio');
+  const [activeTab, setActiveTab] = useState<'bio' | 'scholars' | 'projects' | 'publications'>('bio');
 
   useEffect(() => {
     async function loadPersonData() {
@@ -272,6 +272,7 @@ export default function ProfilePage({ params }: PageProps) {
       description: 'Investigation of magnetoelectric coupling in flexible polymer-ceramic composite thin films.',
     },
   ] : [];
+  const facultyPublications = isFaculty ? person.publications || [] : [];
 
   return (
     <div className="pb-20 relative font-sans">
@@ -504,6 +505,19 @@ export default function ProfilePage({ params }: PageProps) {
                 Research Projects ({facultyProjects.length})
               </button>
             )}
+
+            {isFaculty && (
+              <button
+                onClick={() => setActiveTab('publications')}
+                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
+                  activeTab === 'publications'
+                    ? 'border-oxford text-oxford'
+                    : 'border-transparent text-slate-500 hover:text-oxford'
+                }`}
+              >
+                Publications ({facultyPublications.length})
+              </button>
+            )}
           </div>
 
           <div className="py-8 min-h-[220px]">
@@ -633,6 +647,89 @@ export default function ProfilePage({ params }: PageProps) {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Publications Tab */}
+            {activeTab === 'publications' && isFaculty && (
+              <div className="space-y-8 text-left font-sans">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl sm:text-2xl font-bold text-oxford font-serif">
+                    Peer-Reviewed Publications & Research Papers
+                  </h3>
+                  <span className="text-xs sm:text-sm font-semibold text-oxford bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+                    {facultyPublications.length} Publications
+                  </span>
+                </div>
+
+                {facultyPublications.length > 0 ? (
+                  <div className="space-y-4">
+                    {facultyPublications.map((pub: any) => (
+                      <div
+                        key={pub.id || pub.title}
+                        className="p-6 border border-slate-200 rounded-xl bg-slate-50 hover:bg-white hover:border-slate-300 hover:shadow-sm transition-all flex flex-col justify-between space-y-3"
+                      >
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-3 flex-wrap">
+                            <span className="inline-block text-xs font-bold px-2.5 py-1 rounded uppercase tracking-wider bg-indigo-100 text-indigo-900 border border-indigo-200">
+                              {pub.category || 'Journal Article'}
+                            </span>
+                            {pub.publicationDate && (
+                              <span className="text-xs font-semibold text-slate-500">
+                                {new Date(pub.publicationDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                              </span>
+                            )}
+                          </div>
+
+                          <h4 className="text-lg font-bold text-oxford leading-snug">
+                            {pub.title}
+                          </h4>
+
+                          {pub.authors && (
+                            <p className="text-sm text-slate-700 font-medium">
+                              <strong className="text-oxford">Authors:</strong> {pub.authors}
+                            </p>
+                          )}
+
+                          {pub.journal && (
+                            <p className="text-sm text-slate-600 italic font-serif">
+                              {pub.journal}
+                            </p>
+                          )}
+
+                          {pub.description && (
+                            <p className="text-sm text-slate-600 leading-relaxed pt-1">
+                              {pub.description}
+                            </p>
+                          )}
+                        </div>
+
+                        {(pub.externalLink || pub.doi) && (
+                          <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-3 text-xs sm:text-sm">
+                            {pub.doi && (
+                              <span className="text-xs font-mono text-slate-500">
+                                DOI: {pub.doi}
+                              </span>
+                            )}
+                            {pub.externalLink && (
+                              <a
+                                href={pub.externalLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-dark hover:underline ml-auto"
+                              >
+                                <span>View Publication / External Link</span>
+                                <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                              </a>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-base text-slate-400 italic">No publications listed for this faculty member yet.</p>
+                )}
               </div>
             )}
           </div>

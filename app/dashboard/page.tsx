@@ -125,6 +125,20 @@ interface FacultyProfile {
   phone?: string | null;
 }
 
+interface PublicationItem {
+  id: string;
+  facultyId: string;
+  title: string;
+  journal: string | null;
+  authors: string | null;
+  publicationDate: string | null;
+  externalLink: string | null;
+  doi: string | null;
+  category: string | null;
+  description: string | null;
+  createdAt: string;
+}
+
 interface PredefinedPlatform {
   key: string;
   label: string;
@@ -877,7 +891,7 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // FACULTY DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'projects' | 'hero' | 'events'>('overview');
+  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'projects' | 'publications' | 'hero' | 'events'>('overview');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -943,6 +957,130 @@ export default function UnifiedDashboardPage() {
   });
   const [savingProject, setSavingProject] = useState(false);
   const [projectError, setProjectError] = useState<string | null>(null);
+
+  // Faculty Publications State & Handlers
+  const [publicationsList, setPublicationsList] = useState<PublicationItem[]>([]);
+  const [loadingPublications, setLoadingPublications] = useState(false);
+  const [isPublicationModalOpen, setIsPublicationModalOpen] = useState(false);
+  const [editingPublication, setEditingPublication] = useState<PublicationItem | null>(null);
+  const [publicationFormData, setPublicationFormData] = useState({
+    title: '',
+    journal: '',
+    authors: '',
+    publicationDate: '',
+    externalLink: '',
+    doi: '',
+    category: 'Journal Article',
+    description: '',
+  });
+  const [savingPublication, setSavingPublication] = useState(false);
+  const [publicationError, setPublicationError] = useState<string | null>(null);
+
+  const fetchPublications = async () => {
+    setLoadingPublications(true);
+    try {
+      const res = await fetch('/api/faculty/publications');
+      if (res.ok) {
+        const data = await res.json();
+        setPublicationsList(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch faculty publications:', err);
+    } finally {
+      setLoadingPublications(false);
+    }
+  };
+
+  const openPublicationModal = (pub?: PublicationItem) => {
+    setPublicationError(null);
+    if (pub) {
+      setEditingPublication(pub);
+      setPublicationFormData({
+        title: pub.title || '',
+        journal: pub.journal || '',
+        authors: pub.authors || '',
+        publicationDate: pub.publicationDate ? new Date(pub.publicationDate).toISOString().slice(0, 10) : '',
+        externalLink: pub.externalLink || '',
+        doi: pub.doi || '',
+        category: pub.category || 'Journal Article',
+        description: pub.description || '',
+      });
+    } else {
+      setEditingPublication(null);
+      setPublicationFormData({
+        title: '',
+        journal: '',
+        authors: '',
+        publicationDate: '',
+        externalLink: '',
+        doi: '',
+        category: 'Journal Article',
+        description: '',
+      });
+    }
+    setIsPublicationModalOpen(true);
+  };
+
+  const handlePublicationSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPublicationError(null);
+
+    if (!publicationFormData.title.trim()) {
+      setPublicationError('Publication Title is required.');
+      return;
+    }
+
+    setSavingPublication(true);
+
+    try {
+      const url = editingPublication
+        ? `/api/faculty/publications/${editingPublication.id}`
+        : '/api/faculty/publications';
+      const method = editingPublication ? 'PUT' : 'POST';
+
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: publicationFormData.title.trim(),
+          journal: publicationFormData.journal.trim() || undefined,
+          authors: publicationFormData.authors.trim() || undefined,
+          publicationDate: publicationFormData.publicationDate || undefined,
+          externalLink: publicationFormData.externalLink.trim() || undefined,
+          doi: publicationFormData.doi.trim() || undefined,
+          category: publicationFormData.category.trim() || 'Journal Article',
+          description: publicationFormData.description.trim() || undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save publication.');
+      }
+
+      await fetchPublications();
+      setIsPublicationModalOpen(false);
+      setEditingPublication(null);
+    } catch (err: any) {
+      setPublicationError(err.message || 'Failed to save publication.');
+    } finally {
+      setSavingPublication(false);
+    }
+  };
+
+  const handleDeletePublication = async (pubId: string) => {
+    if (!confirm('Are you sure you want to delete this publication?')) return;
+    try {
+      const res = await fetch(`/api/faculty/publications/${pubId}`, {
+        method: 'DELETE',
+      });
+      if (res.ok) {
+        await fetchPublications();
+      }
+    } catch (err) {
+      console.error('Failed to delete publication:', err);
+    }
+  };
 
   const fetchProjects = async () => {
     setLoadingProjects(true);
@@ -1390,12 +1528,13 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   const fetchFacultySelfData = async (userData?: any) => {
     try {
-      const [profileRes, docRes, descRes, studentsRes, projectsRes, allFacultyRes] = await Promise.all([
+      const [profileRes, docRes, descRes, studentsRes, projectsRes, publicationsRes, allFacultyRes] = await Promise.all([
         fetch('/api/faculty/profile'),
         fetch('/api/faculty/documents'),
         fetch('/api/faculty/description'),
         fetch('/api/faculty/students'),
         fetch('/api/faculty/projects'),
+        fetch('/api/faculty/publications'),
         fetch('/api/public/faculty'),
       ]);
 
@@ -1453,6 +1592,11 @@ export default function UnifiedDashboardPage() {
       if (projectsRes.ok) {
         const prData = await projectsRes.json();
         setProjectsList(prData);
+      }
+
+      if (publicationsRes.ok) {
+        const pubData = await publicationsRes.json();
+        setPublicationsList(pubData);
       }
 
       if (allFacultyRes.ok) {
@@ -3488,6 +3632,20 @@ export default function UnifiedDashboardPage() {
                 </Badge>
               </TabsTrigger>
 
+              {/* Option: Publications Page */}
+              <TabsTrigger
+                value="publications"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <BookOpen className="w-4 h-4" />
+                  <span>Publications</span>
+                </div>
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
+                  {publicationsList.length}
+                </Badge>
+              </TabsTrigger>
+
               {/* Option 4: Hero Section Page */}
               <TabsTrigger
                 value="hero"
@@ -3611,6 +3769,25 @@ export default function UnifiedDashboardPage() {
               </div>
               <Button onClick={() => setFacultyTab('projects')} className="w-full font-semibold">
                 <span>Manage Projects</span>
+              </Button>
+            </Card>
+
+            {/* Publications Card */}
+            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center">
+                    <BookOpen className="w-6 h-6" />
+                  </div>
+                  <span className="text-3xl font-extrabold text-indigo-700">{publicationsList.length}</span>
+                </div>
+                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Publications</CardTitle>
+                <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
+                  Manage journal articles, conference papers, publication dates, and external links / DOIs.
+                </CardDescription>
+              </div>
+              <Button onClick={() => setFacultyTab('publications')} className="w-full font-semibold">
+                <span>Manage Publications</span>
               </Button>
             </Card>
 
@@ -3839,6 +4016,148 @@ export default function UnifiedDashboardPage() {
                       <button onClick={() => handleDeleteStudent(st.uid)} className="p-1 text-rose-600 hover:text-rose-700" title="Delete Scholar">
                         <Trash2 className="w-4 h-4" />
                       </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </TabsContent>
+
+        {/* OPTION: RESEARCH PROJECTS TAB */}
+        <TabsContent value="projects" className="space-y-8 animate-fadeIn mt-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+            <div>
+              <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                <FlaskConical className="w-7 h-7 text-oxford" />
+                <span>Sponsored & Funded Research Projects ({projectsList.length})</span>
+              </h2>
+              <p className="text-slate-600 text-sm mt-1 font-sans">
+                Manage your research projects, funding agencies, role, timelines, and collaborators.
+              </p>
+            </div>
+            <Button onClick={() => openProjectModal()} className="flex items-center gap-2 py-3 px-5 font-semibold">
+              <Plus className="w-4 h-4" />
+              <span>Add Research Project</span>
+            </Button>
+          </div>
+
+          <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+            {projectsList.length === 0 ? (
+              <div className="p-12 text-center text-slate-500 space-y-3">
+                <FlaskConical className="w-10 h-10 mx-auto text-slate-400" />
+                <p className="text-base font-semibold text-slate-800">No research projects listed yet.</p>
+                <p className="text-xs text-slate-500 font-sans">Click "Add Research Project" to record sponsored research grants.</p>
+              </div>
+            ) : (
+              <div className="space-y-4 font-sans">
+                {projectsList.map((pj) => (
+                  <div key={pj.id} className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-3 relative group hover:bg-white hover:border-slate-300 transition-all">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-base font-bold text-slate-900 font-serif">{pj.title}</span>
+                          <Badge variant={pj.status === 'Ongoing' ? 'default' : 'secondary'} className="text-[10px]">
+                            {pj.status || 'Ongoing'}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-slate-600 font-sans">
+                          {pj.role && <strong className="text-oxford">{pj.role}</strong>}
+                          {pj.agency && <span> • Agency: <strong>{pj.agency}</strong></span>}
+                          {pj.funding && <span> • Grant: <strong>{pj.funding}</strong></span>}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        {pj.externalLink && (
+                          <a href={pj.externalLink} target="_blank" rel="noreferrer" className="p-1.5 text-indigo-600 hover:text-indigo-800">
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                        <button onClick={() => openProjectModal(pj)} className="p-1.5 text-slate-500 hover:text-slate-900" title="Edit Project">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDeleteProject(pj.id)} className="p-1.5 text-rose-600 hover:text-rose-700" title="Delete Project">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                    {pj.description && <p className="text-xs text-slate-600 leading-relaxed font-sans">{pj.description}</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </TabsContent>
+
+        {/* OPTION: PUBLICATIONS TAB */}
+        <TabsContent value="publications" className="space-y-8 animate-fadeIn mt-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+            <div>
+              <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                <BookOpen className="w-7 h-7 text-oxford" />
+                <span>Publications & Research Papers ({publicationsList.length})</span>
+              </h2>
+              <p className="text-slate-600 text-sm mt-1 font-sans">
+                Manage your peer-reviewed journal papers, conference articles, publication dates, and external links / DOIs.
+              </p>
+            </div>
+            <Button onClick={() => openPublicationModal()} className="flex items-center gap-2 py-3 px-5 font-semibold">
+              <Plus className="w-4 h-4" />
+              <span>Add Publication</span>
+            </Button>
+          </div>
+
+          <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+            {publicationsList.length === 0 ? (
+              <div className="p-12 text-center text-slate-500 space-y-3">
+                <BookOpen className="w-10 h-10 mx-auto text-slate-400" />
+                <p className="text-base font-semibold text-slate-800">No publications listed yet.</p>
+                <p className="text-xs text-slate-500 font-sans">Click "Add Publication" to add your research publications.</p>
+              </div>
+            ) : (
+              <div className="space-y-4 font-sans">
+                {publicationsList.map((pub) => (
+                  <div key={pub.id} className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-3 relative group hover:bg-white hover:border-slate-300 transition-all">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
+                            {pub.category || 'Journal Article'}
+                          </span>
+                          {pub.publicationDate && (
+                            <span className="text-xs text-slate-500 font-medium">
+                              {new Date(pub.publicationDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                            </span>
+                          )}
+                        </div>
+                        <h4 className="text-base font-bold text-slate-900 font-serif leading-snug">{pub.title}</h4>
+                        {pub.authors && (
+                          <p className="text-xs text-slate-700 font-medium">
+                            <span className="font-semibold text-slate-800">Authors:</span> {pub.authors}
+                          </p>
+                        )}
+                        {pub.journal && (
+                          <p className="text-xs text-slate-600 italic font-serif">{pub.journal}</p>
+                        )}
+                        {pub.description && (
+                          <p className="text-xs text-slate-600 leading-relaxed pt-1">{pub.description}</p>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        {pub.externalLink && (
+                          <a href={pub.externalLink} target="_blank" rel="noreferrer" className="p-1.5 text-indigo-600 hover:text-indigo-800 bg-indigo-50 rounded-lg" title="External Link / DOI">
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        )}
+                        <button onClick={() => openPublicationModal(pub)} className="p-1.5 text-slate-500 hover:text-slate-900" title="Edit Publication">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => handleDeletePublication(pub.id)} className="p-1.5 text-rose-600 hover:text-rose-700" title="Delete Publication">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -4398,6 +4717,256 @@ export default function UnifiedDashboardPage() {
               </Button>
               <Button type="submit" disabled={savingStudent} className="px-5 font-semibold">
                 {savingStudent ? 'Saving...' : editingStudent ? 'Update Scholar' : 'Add Scholar'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Faculty Project Modal */}
+      <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
+        <DialogContent className="max-w-lg bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="border-b border-slate-100 pb-4">
+            <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
+              <FlaskConical className="w-5 h-5 text-oxford" />
+              <span>{editingProject ? 'Edit Research Project' : 'Add Research Project'}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleProjectSave} className="space-y-4 pt-3 font-sans">
+            {projectError && (
+              <div className="p-3 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
+                {projectError}
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 block">Project Title *</label>
+              <Input
+                type="text"
+                required
+                value={projectFormData.title}
+                onChange={(e) => setProjectFormData({ ...projectFormData, title: e.target.value })}
+                placeholder="e.g. Investigation of High-Tc Superconductors"
+                className="w-full text-sm"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 block">Role</label>
+                <Input
+                  type="text"
+                  value={projectFormData.role}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, role: e.target.value })}
+                  placeholder="e.g. Principal Investigator"
+                  className="w-full text-sm"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 block">Funding Agency</label>
+                <Input
+                  type="text"
+                  value={projectFormData.agency}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, agency: e.target.value })}
+                  placeholder="e.g. DST-SERB, ISRO, CSIR"
+                  className="w-full text-sm"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 block">Grant / Funding Amount</label>
+                <Input
+                  type="text"
+                  value={projectFormData.funding}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, funding: e.target.value })}
+                  placeholder="e.g. ₹45,00,000"
+                  className="w-full text-sm"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 block">External Link / URL</label>
+                <Input
+                  type="url"
+                  value={projectFormData.externalLink}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, externalLink: e.target.value })}
+                  placeholder="https://..."
+                  className="w-full text-xs font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 block">Start Date</label>
+                <Input
+                  type="date"
+                  value={projectFormData.startDate}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, startDate: e.target.value })}
+                  className="w-full text-xs"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 block">End Date (Leave blank if Ongoing)</label>
+                <Input
+                  type="date"
+                  value={projectFormData.endDate}
+                  onChange={(e) => setProjectFormData({ ...projectFormData, endDate: e.target.value })}
+                  className="w-full text-xs"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 block">Project Description</label>
+              <textarea
+                rows={3}
+                value={projectFormData.description}
+                onChange={(e) => setProjectFormData({ ...projectFormData, description: e.target.value })}
+                placeholder="Summary of research objectives, methodologies, and outcomes..."
+                className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-oxford"
+              />
+            </div>
+
+            <DialogFooter className="pt-3 flex gap-2 justify-end border-t border-slate-100">
+              <Button variant="outline" type="button" onClick={() => setIsProjectModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={savingProject} className="font-semibold">
+                {savingProject ? 'Saving...' : 'Save Project'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Faculty Publication Modal */}
+      <Dialog open={isPublicationModalOpen} onOpenChange={setIsPublicationModalOpen}>
+        <DialogContent className="max-w-lg bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="border-b border-slate-100 pb-4">
+            <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-oxford" />
+              <span>{editingPublication ? 'Edit Publication' : 'Add New Publication'}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handlePublicationSave} className="space-y-4 pt-3 font-sans">
+            {publicationError && (
+              <div className="p-3 text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
+                {publicationError}
+              </div>
+            )}
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 block">Publication Title *</label>
+              <Input
+                type="text"
+                required
+                value={publicationFormData.title}
+                onChange={(e) => setPublicationFormData({ ...publicationFormData, title: e.target.value })}
+                placeholder="e.g. Quantum Transport in Nanostructure Arrays"
+                className="w-full text-sm"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 block">Journal / Publisher / Venue</label>
+              <Input
+                type="text"
+                value={publicationFormData.journal}
+                onChange={(e) => setPublicationFormData({ ...publicationFormData, journal: e.target.value })}
+                placeholder="e.g. Physical Review B, ACS Nano"
+                className="w-full text-sm"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 block">Authors</label>
+              <Input
+                type="text"
+                value={publicationFormData.authors}
+                onChange={(e) => setPublicationFormData({ ...publicationFormData, authors: e.target.value })}
+                placeholder="e.g. A. Sharma, B. Ray, C. Kumar"
+                className="w-full text-sm"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 block">Publication Date</label>
+                <Input
+                  type="date"
+                  value={publicationFormData.publicationDate}
+                  onChange={(e) => setPublicationFormData({ ...publicationFormData, publicationDate: e.target.value })}
+                  className="w-full text-sm"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 block">Category</label>
+                <Select
+                  value={publicationFormData.category}
+                  onValueChange={(val) => setPublicationFormData({ ...publicationFormData, category: val })}
+                >
+                  <SelectTrigger className="w-full text-xs">
+                    <SelectValue placeholder="Select Category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Journal Article">Journal Article</SelectItem>
+                    <SelectItem value="Conference Paper">Conference Paper</SelectItem>
+                    <SelectItem value="Book Chapter">Book Chapter</SelectItem>
+                    <SelectItem value="Preprint">Preprint</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 block">External Link / URL</label>
+                <Input
+                  type="url"
+                  value={publicationFormData.externalLink}
+                  onChange={(e) => setPublicationFormData({ ...publicationFormData, externalLink: e.target.value })}
+                  placeholder="https://doi.org/..."
+                  className="w-full text-xs font-mono"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-700 block">DOI Number</label>
+                <Input
+                  type="text"
+                  value={publicationFormData.doi}
+                  onChange={(e) => setPublicationFormData({ ...publicationFormData, doi: e.target.value })}
+                  placeholder="10.1016/j.physletb..."
+                  className="w-full text-xs font-mono"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-slate-700 block">Abstract / Brief Notes</label>
+              <textarea
+                rows={3}
+                value={publicationFormData.description}
+                onChange={(e) => setPublicationFormData({ ...publicationFormData, description: e.target.value })}
+                placeholder="Brief summary or notes..."
+                className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-oxford"
+              />
+            </div>
+
+            <DialogFooter className="pt-3 flex gap-2 justify-end border-t border-slate-100">
+              <Button variant="outline" type="button" onClick={() => setIsPublicationModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={savingPublication} className="font-semibold">
+                {savingPublication ? 'Saving...' : 'Save Publication'}
               </Button>
             </DialogFooter>
           </form>
