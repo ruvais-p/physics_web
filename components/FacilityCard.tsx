@@ -1,90 +1,125 @@
+import React from 'react';
 import Image from 'next/image';
-import { Facility } from '@/lib/data';
-import { Settings, ShieldCheck, UserCheck, Calendar } from 'lucide-react';
 import Link from 'next/link';
+import { ArrowRight, Sparkles } from 'lucide-react';
+
+export interface FacilityItem {
+  id: string;
+  name: string;
+  description: string;
+  image?: string | null;
+  category?: string | null;
+  bookingStatus?: string | null;
+  make?: string | null;
+  model?: string | null;
+  specifications?: string[] | null;
+  inCharge?: string | null;
+  chargeInternal?: string | null;
+  chargeExternal?: string | null;
+}
 
 interface FacilityCardProps {
-  facility: Facility;
+  facility: FacilityItem;
 }
 
 export default function FacilityCard({ facility }: FacilityCardProps) {
+  const imageSrc = facility.image || 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80';
+
+  // Helper to extract a short description snippet without markdown tags
+  const getShortDescription = (text: string) => {
+    if (!text) return '';
+    const cleanText = text
+      .replace(/^#+\s+/gm, '') // Remove Markdown headers
+      .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
+      .replace(/\*([^*]+)\*/g, '$1') // Remove italics
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
+      .replace(/>\s+/g, '') // Remove blockquotes
+      .trim();
+
+    const firstPara = cleanText.split('\n\n')[0] || cleanText;
+    if (firstPara.length > 150) {
+      return firstPara.substring(0, 150) + '...';
+    }
+    return firstPara;
+  };
+
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm hover-lift flex flex-col justify-between">
+    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between group">
       <div>
-        {/* Instrument Image & Badge */}
-        <div className="relative h-52 w-full overflow-hidden bg-slate-100">
+        {/* Facility Hero Image */}
+        <div className="relative h-56 w-full overflow-hidden bg-slate-900">
           <Image
-            src={facility.image}
+            src={imageSrc}
             alt={facility.name}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           />
-          <div className="absolute top-3 left-3 bg-oxford/90 backdrop-blur-md text-white text-xs font-semibold px-2.5 py-1 rounded border border-white/20">
-            {facility.category}
-          </div>
-          <div className={`absolute top-3 right-3 text-xs font-bold px-2.5 py-1 rounded shadow ${
-            facility.bookingStatus === 'Available'
-              ? 'bg-emerald-500 text-white'
-              : facility.bookingStatus === 'High Demand'
-              ? 'bg-amber-500 text-white'
-              : 'bg-rose-500 text-white'
-          }`}>
-            {facility.bookingStatus}
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-80" />
+          
+          {facility.category && (
+            <div className="absolute top-3 left-3 bg-oxford/90 backdrop-blur-md text-white text-xs font-semibold px-3 py-1 rounded-full border border-white/20 shadow-xs">
+              {facility.category}
+            </div>
+          )}
+
+          {facility.bookingStatus && (
+            <div
+              className={`absolute top-3 right-3 text-[11px] font-bold px-2.5 py-0.5 rounded-full shadow ${
+                facility.bookingStatus === 'Available'
+                  ? 'bg-emerald-500 text-white'
+                  : facility.bookingStatus === 'High Demand'
+                  ? 'bg-amber-500 text-white'
+                  : 'bg-rose-500 text-white'
+              }`}
+            >
+              {facility.bookingStatus}
+            </div>
+          )}
         </div>
 
-        {/* Card Body */}
-        <div className="p-6 space-y-4">
-          <div>
-            <span className="text-xs font-semibold text-cyan-accent uppercase tracking-wider block">
-              {facility.make} ({facility.model})
+        {/* Card Content */}
+        <div className="p-6 space-y-3">
+          {facility.make && (
+            <span className="text-[11px] font-bold text-cyan-700 uppercase tracking-wider block font-sans">
+              {facility.make} {facility.model ? `(${facility.model})` : ''}
             </span>
-            <h3 className="font-serif text-xl font-bold text-oxford leading-snug">
-              {facility.name}
-            </h3>
-          </div>
+          )}
 
-          <p className="text-sm text-slate-600 leading-relaxed">
-            {facility.description}
+          <h3 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-800 transition-colors leading-snug line-clamp-2">
+            {facility.name}
+          </h3>
+
+          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-sans line-clamp-3">
+            {getShortDescription(facility.description)}
           </p>
 
-          {/* Specifications list */}
-          <div className="bg-surface-gray p-3.5 rounded-lg border border-slate-200">
-            <span className="block text-xs font-bold text-oxford uppercase tracking-wider mb-2 flex items-center space-x-1.5">
-              <Settings className="w-3.5 h-3.5 text-cyan-accent" />
-              <span>Technical Specifications</span>
-            </span>
-            <ul className="space-y-1 text-xs text-slate-700">
-              {facility.specifications.map((spec, idx) => (
-                <li key={idx} className="flex items-start space-x-1.5">
-                  <span className="text-cyan-accent font-bold">•</span>
-                  <span>{spec}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* In charge info */}
-          <div className="flex items-center space-x-2 text-xs text-slate-500">
-            <UserCheck className="w-4 h-4 text-cyan-accent shrink-0" />
-            <span>Faculty In-Charge: <strong className="text-oxford">{facility.inCharge}</strong></span>
-          </div>
+          {facility.specifications && facility.specifications.length > 0 && (
+            <div className="pt-2 border-t border-slate-100">
+              <span className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-1.5 font-sans">
+                Technical Highlights:
+              </span>
+              <ul className="space-y-1 text-xs text-slate-600 font-sans">
+                {facility.specifications.slice(0, 2).map((spec, idx) => (
+                  <li key={idx} className="flex items-start space-x-1.5 truncate">
+                    <span className="text-cyan-600 font-bold">•</span>
+                    <span className="truncate">{spec}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Footer / User Tariff & Booking CTA */}
-      <div className="p-6 pt-0 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 mt-4">
-        <div className="text-xs text-slate-500">
-          <span className="font-semibold text-oxford block">Sample Tariff:</span>
-          <span>Internal: {facility.chargeInternal} | Ext: {facility.chargeExternal}</span>
-        </div>
+      {/* Card Footer with View Details */}
+      <div className="p-6 pt-0 border-t border-slate-100 flex items-center justify-between mt-4">
         <Link
-          href="/contact"
-          className="inline-flex items-center space-x-1.5 bg-cyan-accent hover:bg-cyan-accent/90 text-oxford-dark text-xs font-bold px-4 py-2 rounded-lg transition-colors shadow"
+          href={`/facilities/${facility.id}`}
+          className="w-full inline-flex items-center justify-center gap-2 bg-oxford hover:bg-cyan-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all shadow-sm group-hover:shadow-md cursor-pointer"
         >
-          <Calendar className="w-3.5 h-3.5" />
-          <span>Book Slot</span>
+          <span>View Details</span>
+          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
         </Link>
       </div>
     </div>

@@ -243,6 +243,100 @@ The group maintains a **128-core HPC cluster** (Dual AMD EPYC 7742) with 512 GB 
 
     console.log('[SEED] Research laboratories seeded successfully.');
   }
+
+  // Seed default facilities
+  const facilityCount = await prisma.facility.count();
+  if (facilityCount === 0) {
+    console.log('[SEED] Seeding initial research/department facilities...');
+    const faculty = await prisma.faculty.findFirst();
+
+    const facilitiesData = [
+      {
+        id: 'fac1',
+        name: 'X-Ray Powder Diffractometer (XRD)',
+        image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80',
+        description: `# X-Ray Powder Diffractometer (XRD)
+
+**Model**: D8 Advance Bruker | **Manufacturer**: Bruker AXS, Germany
+
+High-resolution powder X-ray diffractometer equipped with Cu-Kα radiation source, LynxEye ultra-fast detector, and temperature-controlled sample stage (-180°C to 1200°C).
+
+## Key Specifications & Attachments
+- **Angular Range (2θ)**: 0.5° to 140°
+- **Detector**: LynxEye 1D silicon strip detector
+- **Temperature Range**: Low & High Temperature Attachments (Anton Paar)
+- **Analytical Capabilities**: Phase identification, Rietveld refinement, crystallite size calculation & lattice strain analysis.
+
+## Requisition & Guidelines
+Users must submit finely powdered, homogeneous samples (< 50 microns). Submission forms available online or at the central instrumentation lab.
+`,
+      },
+      {
+        id: 'fac2',
+        name: 'Field Emission Scanning Electron Microscope (FE-SEM)',
+        image: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?w=600&q=80',
+        description: `# Field Emission Scanning Electron Microscope (FE-SEM)
+
+**Model**: Sigma 300 VP | **Manufacturer**: Carl Zeiss, Germany
+
+Ultra-high resolution Schottky field emission SEM fitted with Oxford EDS (Energy Dispersive X-ray Spectroscopy) for micro-area elemental mapping and morphological analysis of nanostructures.
+
+## Key Technical Features
+- **Spatial Resolution**: 1.0 nm @ 15 kV | 1.6 nm @ 1 kV
+- **Magnification Range**: 10x to 1,000,000x
+- **EDS Microanalysis**: Oxford Ultim Max 65 mm² detector for quantitative element identification.
+- **Sputter Coater**: Gold & Carbon dual sputter coater for non-conducting specimens.
+
+> *Operating hours: Monday to Friday (9:30 AM – 4:30 PM)*
+`,
+      },
+      {
+        id: 'fac3',
+        name: 'Confocal Micro-Raman Spectrometer',
+        image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=600&q=80',
+        description: `# Confocal Micro-Raman Spectrometer
+
+**Model**: LabRAM HR Evolution | **Manufacturer**: Horiba Jobin Yvon, France
+
+High-resolution micro-Raman spectroscopy system with multi-laser excitation sources (532 nm, 633 nm, 785 nm) and automated XYZ spatial mapping stage.
+
+## Technical Specifications
+- **Spectral Resolution**: < 0.5 cm⁻¹
+- **Excitation Lasers**: 532 nm diode-pumped solid state, 633 nm He-Ne, 785 nm diode
+- **Spatial Resolution**: Sub-micron (< 0.5 µm)
+- **Photoluminescence (PL)**: Integrated PL spectral mapping capability
+`,
+      },
+      {
+        id: 'fac4',
+        name: 'Vibrating Sample Magnetometer (VSM)',
+        image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&q=80',
+        description: `# Vibrating Sample Magnetometer (VSM)
+
+**Model**: VSM 7404 | **Manufacturer**: Lake Shore Cryotronics, USA
+
+Characterizes magnetic properties of solids, powders, thin films, and liquid ferrofluids as a function of magnetic field (up to 2.1 Tesla) and temperature (77 K to 1000 K).
+
+## Features
+- **Dynamic Magnetic Moment Range**: 1 x 10⁻⁶ emu to 10³ emu
+- **Maximum Field**: 2.15 Tesla (21.5 kG)
+- **Cryostat / Oven Attachments**: Liquid Nitrogen (77 K to 450 K) & High Temp Oven (300 K to 1000 K)
+- **Applications**: Hysteresis loop (M-H), FC/ZFC magnetization curves, and Curie point determinations.
+`,
+      },
+    ];
+
+    for (const fac of facilitiesData) {
+      await prisma.facility.create({
+        data: {
+          ...fac,
+          faculties: faculty ? { connect: [{ id: faculty.id }] } : undefined,
+        },
+      });
+    }
+
+    console.log('[SEED] Facilities seeded successfully.');
+  }
 }
 
 main()

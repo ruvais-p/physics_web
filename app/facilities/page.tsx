@@ -1,54 +1,145 @@
-import FacilityCard from '@/components/FacilityCard';
-import { FACILITIES } from '@/lib/data';
-import { FileText, Clock } from 'lucide-react';
-import Link from 'next/link';
+'use client';
 
-export const metadata = {
-  title: 'Central Facilities',
-  description: 'Advanced Analytical Equipment & Instrumentation Facilities at Department of Physics, CUSAT.',
-};
+import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import FacilityCard, { FacilityItem } from '@/components/FacilityCard';
+import { FACILITIES } from '@/lib/data';
+import { RefreshCw, Wrench, FileText, Clock } from 'lucide-react';
 
 export default function FacilitiesPage() {
+  const [facilities, setFacilities] = useState<FacilityItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+
+  useEffect(() => {
+    async function fetchFacilities() {
+      setLoading(true);
+      try {
+        const res = await fetch('/api/facilities');
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            setFacilities(data);
+            return;
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load dynamic facilities:', err);
+      }
+      // Fallback to static data if API/DB returns empty
+      const staticFacilities: FacilityItem[] = FACILITIES.map((f) => ({
+        id: f.id,
+        name: f.name,
+        description: f.description,
+        image: f.image,
+        category: f.category,
+        bookingStatus: f.bookingStatus,
+        make: f.make,
+        model: f.model,
+        specifications: f.specifications,
+        inCharge: f.inCharge,
+        chargeInternal: f.chargeInternal,
+        chargeExternal: f.chargeExternal,
+      }));
+      setFacilities(staticFacilities);
+      setLoading(false);
+    }
+
+    fetchFacilities().finally(() => setLoading(false));
+  }, []);
+
+  const categories = ['ALL', ...Array.from(new Set(facilities.map((f) => f.category || 'Central Facility')))];
+
+  const filteredFacilities =
+    selectedCategory === 'ALL'
+      ? facilities
+      : facilities.filter((f) => (f.category || 'Central Facility') === selectedCategory);
+
   return (
-    <div className="space-y-12 pb-20">
-      
-      {/* Page Header (No Hero image, clean text block) */}
-      <div className="-mt-[116px] sm:-mt-[128px] bg-slate-50 pt-32 sm:pt-40 pb-6 sm:pb-8">
-        <div className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 space-y-4 pt-4">
-          <span className="inline-block text-xs font-bold uppercase tracking-wider text-cyan-accent">
-            OUR FACILITIES
-          </span>
-          <h1 className="font-serif text-4xl sm:text-5xl font-extrabold text-oxford">
-            Explore our state-of-the-art research instrumentation.
+    <div className="space-y-12 pb-20 relative font-sans">
+      {/* Page Header (Campus image background) */}
+      <div className="-mt-[116px] sm:-mt-[128px] relative bg-slate-900 text-white overflow-hidden">
+        {/* Background Image with Dark Blue Overlay */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/physics.png"
+            alt="Central Facilities Banner"
+            fill
+            className="object-cover opacity-45"
+            priority
+          />
+          <div className="absolute inset-0 bg-oxford/75 mix-blend-multiply" />
+        </div>
+
+        {/* Content (Centered) */}
+        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 pt-52 pb-32 sm:pt-64 sm:pb-44 text-center space-y-3">
+          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white uppercase">
+            Central Research Facilities
           </h1>
-          <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed font-sans">
-            Providing advanced analytical characterization services for internal researchers, academic institutes, and industrial R&D laboratories.
-          </p>
+
+          {/* Centered Breadcrumbs */}
+          <div className="flex items-center justify-center space-x-2 text-xs sm:text-sm font-sans font-medium text-slate-300">
+            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
+            <span>&gt;</span>
+            <span className="text-white font-semibold">Facilities</span>
+          </div>
         </div>
       </div>
 
-      {/* Facilities Grid */}
-      <section className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 space-y-12">
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {FACILITIES.map((facility) => (
-            <FacilityCard key={facility.id} facility={facility} />
-          ))}
-        </div>
+      {/* Main Content Container */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">
+        {/* Category Filters */}
+        {categories.length > 1 && (
+          <div className="flex flex-wrap items-center justify-center gap-2 bg-white p-3 rounded-2xl border border-slate-200 shadow-sm">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  selectedCategory === cat
+                    ? 'bg-oxford text-white shadow-md'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                {cat === 'ALL' ? 'All Research Facilities' : cat}
+              </button>
+            ))}
+          </div>
+        )}
 
-        {/* Requisition & Booking Rules */}
-        <div className="bg-surface-low border border-slate-200 rounded-2xl p-8 lg:p-10 shadow-sm space-y-6">
+        {/* Facilities Grid */}
+        {loading ? (
+          <div className="py-20 text-center space-y-3 text-slate-500 font-sans">
+            <RefreshCw className="w-8 h-8 animate-spin mx-auto text-cyan-600" />
+            <p className="text-sm font-medium">Loading research facilities...</p>
+          </div>
+        ) : filteredFacilities.length === 0 ? (
+          <div className="py-20 text-center space-y-3 text-slate-500 font-sans bg-white rounded-2xl border border-slate-200">
+            <Wrench className="w-10 h-10 mx-auto text-slate-400" />
+            <p className="text-base font-semibold text-slate-800">No research facilities found.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredFacilities.map((facility) => (
+              <FacilityCard key={facility.id} facility={facility} />
+            ))}
+          </div>
+        )}
+
+        {/* Requisition & Usage Procedures */}
+        <div className="bg-surface-low border border-slate-200 rounded-3xl p-8 lg:p-10 shadow-sm space-y-6">
           <div className="border-b border-slate-200 pb-4">
-            <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block">
+            <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block font-sans">
               USAGE GUIDELINES
             </span>
-            <h2 className="font-serif text-2xl font-bold text-oxford">
+            <h2 className="font-serif text-2xl sm:text-3xl font-bold text-oxford">
               Sample Submission & Booking Procedures
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs text-slate-700 font-sans">
-            <div className="bg-white p-5 rounded-xl border border-slate-200 space-y-2">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-2">
               <div className="w-8 h-8 rounded-lg bg-cyan-accent/10 text-cyan-dark flex items-center justify-center font-bold">
                 1
               </div>
@@ -58,7 +149,7 @@ export default function FacilitiesPage() {
               </p>
             </div>
 
-            <div className="bg-white p-5 rounded-xl border border-slate-200 space-y-2">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-2">
               <div className="w-8 h-8 rounded-lg bg-cyan-accent/10 text-cyan-dark flex items-center justify-center font-bold">
                 2
               </div>
@@ -68,7 +159,7 @@ export default function FacilitiesPage() {
               </p>
             </div>
 
-            <div className="bg-white p-5 rounded-xl border border-slate-200 space-y-2">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200 space-y-2">
               <div className="w-8 h-8 rounded-lg bg-cyan-accent/10 text-cyan-dark flex items-center justify-center font-bold">
                 3
               </div>
@@ -86,16 +177,14 @@ export default function FacilitiesPage() {
             </div>
             <Link
               href="/contact"
-              className="inline-flex items-center space-x-2 bg-oxford text-white text-xs font-semibold px-5 py-2.5 rounded-lg shadow hover:bg-oxford-dark transition-colors"
+              className="inline-flex items-center space-x-2 bg-oxford text-white text-xs font-semibold px-5 py-2.5 rounded-xl shadow hover:bg-oxford-dark transition-colors"
             >
               <FileText className="w-4 h-4 text-cyan-accent" />
               <span>Download Requisition Form</span>
             </Link>
           </div>
         </div>
-
       </section>
-
     </div>
   );
 }

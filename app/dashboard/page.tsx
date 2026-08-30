@@ -49,11 +49,13 @@ import {
   ChevronDown,
   Sliders,
   Calendar,
+  Wrench,
 } from 'lucide-react';
 import AdminFacultyFullManageModal from '@/components/AdminFacultyFullManageModal';
 import EventGallerySection from '@/components/EventGallerySection';
 import CurriculumManagementSection from '@/components/CurriculumManagementSection';
 import ResearchLabManagementSection from '@/components/ResearchLabManagementSection';
+import FacilityManagementSection from '@/components/FacilityManagementSection';
 
 // Import Shadcn UI elements
 import {
@@ -2179,6 +2181,16 @@ export default function UnifiedDashboardPage() {
                     <span>Research Laboratories</span>
                   </div>
                 </TabsTrigger>
+
+                <TabsTrigger
+                  value="facilities"
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <Wrench className="w-4 h-4" />
+                    <span>Facilities Management</span>
+                  </div>
+                </TabsTrigger>
               </TabsList>
             </div>
           </div>
@@ -3131,6 +3143,11 @@ export default function UnifiedDashboardPage() {
           {/* RESEARCH LABS TAB */}
           <TabsContent value="labs" className="space-y-10 animate-fadeIn mt-0">
             <ResearchLabManagementSection />
+          </TabsContent>
+
+          {/* FACILITIES TAB */}
+          <TabsContent value="facilities" className="space-y-10 animate-fadeIn mt-0">
+            <FacilityManagementSection />
           </TabsContent>
         </main>
 
