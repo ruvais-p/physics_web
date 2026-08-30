@@ -1,5 +1,5 @@
 import { Publication } from '@/lib/data';
-import { ExternalLink, Bookmark, Quote } from 'lucide-react';
+import { ExternalLink, Quote } from 'lucide-react';
 
 interface JournalCardProps {
   publication: Publication;

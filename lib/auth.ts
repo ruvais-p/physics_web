@@ -28,7 +28,7 @@ export async function verifyAdminToken(token: string) {
     const payload = verified.payload as { id: string; email: string; name: string; role?: string };
     if (payload.role && payload.role !== 'admin') return null;
     return payload;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -47,7 +47,7 @@ export async function verifyFacultyToken(token: string) {
     const payload = verified.payload as { id: string; email: string; name: string; role?: string };
     if (payload.role && payload.role !== 'faculty') return null;
     return payload;
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -64,9 +64,7 @@ export async function verifyAuthToken(token: string) {
   try {
     const verified = await jwtVerify(token, JWT_SECRET);
     return verified.payload as { id: string; email: string; name: string; role: 'admin' | 'faculty' };
-  } catch (error) {
+  } catch {
     return null;
   }
 }
-
-
