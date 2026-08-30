@@ -1,0 +1,386 @@
+'use client';
+
+import React, { use, useState, useEffect } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import {
+  FlaskConical,
+  Users,
+  ArrowLeft,
+  Mail,
+  User,
+  ExternalLink,
+  ChevronRight,
+  Sparkles,
+} from 'lucide-react';
+import { RESEARCH_LABS, FACULTY_MEMBERS } from '@/lib/data';
+
+interface PageProps {
+  params: Promise<{ id: string }>;
+}
+
+interface FacultyAssociated {
+  id: string;
+  name: string;
+  email?: string;
+  designation?: string | null;
+  department?: string | null;
+  image?: string | null;
+  documents?: { image?: string | null } | null;
+}
+
+interface LabDetailData {
+  id: string;
+  name: string;
+  category?: string | null;
+  description: string;
+  image?: string | null;
+  faculties?: FacultyAssociated[];
+}
+
+// Markdown Parser Helper Function
+function renderMarkdown(md: string) {
+  if (!md || !md.trim()) {
+    return <p className="text-slate-600 leading-relaxed text-base font-sans italic">No laboratory description added yet.</p>;
+  }
+
+  const lines = md.split('\n');
+  const elements: React.ReactNode[] = [];
+  let currentList: { type: 'ul' | 'ol'; items: string[] } | null = null;
+
+  const flushList = () => {
+    if (currentList) {
+      if (currentList.type === 'ul') {
+        elements.push(
+          <ul key={`ul_${elements.length}`} className="list-disc ml-6 space-y-2 my-4 text-base text-slate-700 font-sans leading-relaxed">
+            {currentList.items.map((item, idx) => (
+              <li key={idx}>{parseInlineMarkdown(item)}</li>
+            ))}
+          </ul>
+        );
+      } else {
+        elements.push(
+          <ol key={`ol_${elements.length}`} className="list-decimal ml-6 space-y-2 my-4 text-base text-slate-700 font-sans leading-relaxed">
+            {currentList.items.map((item, idx) => (
+              <li key={idx}>{parseInlineMarkdown(item)}</li>
+            ))}
+          </ol>
+        );
+      }
+      currentList = null;
+    }
+  };
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      const itemText = trimmed.slice(2);
+      if (!currentList || currentList.type !== 'ul') {
+        flushList();
+        currentList = { type: 'ul', items: [itemText] };
+      } else {
+        currentList.items.push(itemText);
+      }
+      return;
+    }
+
+    if (/^\d+\.\s/.test(trimmed)) {
+      const itemText = trimmed.replace(/^\d+\.\s/, '');
+      if (!currentList || currentList.type !== 'ol') {
+        flushList();
+        currentList = { type: 'ol', items: [itemText] };
+      } else {
+        currentList.items.push(itemText);
+      }
+      return;
+    }
+
+    flushList();
+
+    if (!trimmed) {
+      elements.push(<div key={`br_${index}`} className="h-3" />);
+      return;
+    }
+
+    if (trimmed.startsWith('# ')) {
+      elements.push(
+        <h2 key={index} className="text-2xl sm:text-3xl font-serif font-bold text-oxford mt-8 mb-3 border-b border-slate-200 pb-2">
+          {parseInlineMarkdown(trimmed.slice(2))}
+        </h2>
+      );
+    } else if (trimmed.startsWith('## ')) {
+      elements.push(
+        <h3 key={index} className="text-xl sm:text-2xl font-serif font-bold text-oxford mt-6 mb-2 text-cyan-900">
+          {parseInlineMarkdown(trimmed.slice(3))}
+        </h3>
+      );
+    } else if (trimmed.startsWith('### ')) {
+      elements.push(
+        <h4 key={index} className="text-base sm:text-lg font-bold font-sans uppercase tracking-wider text-cyan-600 mt-5 mb-1.5">
+          {parseInlineMarkdown(trimmed.slice(4))}
+        </h4>
+      );
+    } else if (trimmed.startsWith('> ')) {
+      elements.push(
+        <blockquote key={index} className="border-l-4 border-cyan-500 pl-4 py-2.5 my-4 bg-cyan-50/60 rounded-r-xl text-slate-700 italic text-sm sm:text-base font-serif">
+          {parseInlineMarkdown(trimmed.slice(2))}
+        </blockquote>
+      );
+    } else {
+      elements.push(
+        <p key={index} className="text-base text-slate-700 font-sans leading-relaxed my-2">
+          {parseInlineMarkdown(trimmed)}
+        </p>
+      );
+    }
+  });
+
+  flushList();
+  return <div className="space-y-1">{elements}</div>;
+}
+
+function parseInlineMarkdown(text: string): React.ReactNode {
+  const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
+  const elements: React.ReactNode[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  const keyPrefix = Math.random().toString(36).substring(2, 7);
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      elements.push(text.substring(lastIndex, match.index));
+    }
+
+    if (match[1]) {
+      elements.push(<strong key={`${keyPrefix}_b_${match.index}`} className="font-bold text-slate-900">{match[2]}</strong>);
+    } else if (match[3]) {
+      elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-800">{match[4]}</em>);
+    } else if (match[5]) {
+      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-100 text-cyan-800 px-1.5 py-0.5 rounded font-mono text-xs border border-slate-200">{match[6]}</code>);
+    }
+
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    elements.push(text.substring(lastIndex));
+  }
+
+  return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
+}
+
+export default function ResearchLabDetailPage({ params }: PageProps) {
+  const { id } = use(params);
+  const [lab, setLab] = useState<LabDetailData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchLabDetail() {
+      setLoading(true);
+      try {
+        const res = await fetch(`/api/research/${id}`);
+        if (res.ok) {
+          const data = await res.json();
+          setLab(data);
+          return;
+        }
+      } catch (err) {
+        console.error('Failed to fetch research lab details:', err);
+      }
+
+      // Static fallback
+      const staticLab = RESEARCH_LABS.find((l) => l.id === id);
+      if (staticLab) {
+        setLab({
+          id: staticLab.id,
+          name: staticLab.name,
+          category: staticLab.category,
+          description: staticLab.description,
+          image: staticLab.image,
+          faculties: FACULTY_MEMBERS.slice(0, 3).map((f) => ({
+            id: f.id,
+            name: f.name,
+            email: f.email,
+            designation: f.designation,
+            image: f.image,
+          })),
+        });
+      }
+      setLoading(false);
+    }
+
+    fetchLabDetail().finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center py-20 font-serif text-slate-800">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-4 border-oxford border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-sm font-semibold">Loading Laboratory Details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!lab) {
+    return (
+      <div className="max-w-4xl mx-auto px-6 py-24 text-center space-y-4 font-sans">
+        <FlaskConical className="w-16 h-16 text-slate-400 mx-auto" />
+        <h1 className="text-3xl font-bold font-serif text-oxford">Laboratory Not Found</h1>
+        <p className="text-slate-600 text-sm">The research laboratory you requested could not be found.</p>
+        <Link
+          href="/research"
+          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-oxford text-white font-semibold text-xs uppercase tracking-wider hover:bg-cyan-900 transition-colors shadow-md"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back to Research Laboratories
+        </Link>
+      </div>
+    );
+  }
+
+  const heroImage = lab.image || 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80';
+
+  return (
+    <div className="space-y-12 pb-24 relative font-sans">
+      {/* Laboratory Hero Image Banner */}
+      <div className="-mt-[116px] sm:-mt-[128px] relative bg-slate-900 text-white overflow-hidden min-h-[420px] sm:min-h-[500px] flex items-end">
+        {/* Hero Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src={heroImage}
+            alt={lab.name}
+            fill
+            className="object-cover opacity-45"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-oxford/70 to-oxford/50 mix-blend-multiply" />
+        </div>
+
+        {/* Hero Content */}
+        <div className="relative z-10 max-w-7xl mx-auto w-full px-6 sm:px-12 lg:px-20 pt-48 pb-12 sm:pb-16 space-y-4">
+          <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-slate-300 font-medium">
+            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
+            <span>&gt;</span>
+            <Link href="/research" className="hover:text-cyan-accent transition-colors">Research</Link>
+            <span>&gt;</span>
+            <span className="text-cyan-accent font-semibold truncate max-w-[200px] sm:max-w-none">{lab.name}</span>
+          </div>
+
+          <div className="space-y-3">
+            {lab.category && (
+              <span className="inline-block bg-cyan-500/20 backdrop-blur-md text-cyan-300 border border-cyan-400/30 text-xs font-bold px-3.5 py-1 rounded-full uppercase tracking-wider">
+                {lab.category}
+              </span>
+            )}
+            <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
+              {lab.name}
+            </h1>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Layout */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-3 gap-12 pt-4">
+        {/* Left 2 Columns: Full Markdown Laboratory Description */}
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-md space-y-6">
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+              <div className="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-800 flex items-center justify-center border border-cyan-200">
+                <FlaskConical className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold font-serif text-oxford">About the Laboratory</h2>
+                <p className="text-xs text-slate-500 font-sans">Detailed research objectives, instrumentation, and outcomes</p>
+              </div>
+            </div>
+
+            {/* Markdown Rendered Content */}
+            <div className="prose max-w-none">
+              {renderMarkdown(lab.description)}
+            </div>
+          </div>
+        </div>
+
+        {/* Right 1 Column: Associated Faculty Members */}
+        <div className="space-y-8">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-md space-y-6 sticky top-28">
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+              <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center border border-indigo-200">
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold font-serif text-oxford">Associated Faculty</h3>
+                <p className="text-xs text-slate-500 font-sans">Principal Researchers & Mentors</p>
+              </div>
+            </div>
+
+            {!lab.faculties || lab.faculties.length === 0 ? (
+              <p className="text-xs text-slate-500 italic">No faculty members linked to this laboratory yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {lab.faculties.map((fac) => {
+                  const facImg = fac.documents?.image || fac.image || '/cvs/cv_placeholder.pdf';
+                  const isDefaultImg = facImg.endsWith('.pdf');
+
+                  return (
+                    <Link
+                      key={fac.id}
+                      href={`/people/${fac.id}`}
+                      className="group block p-3.5 rounded-2xl border border-slate-100 hover:border-cyan-500/40 bg-slate-50/60 hover:bg-cyan-50/40 transition-all duration-200 shadow-xs"
+                    >
+                      <div className="flex items-center gap-3.5">
+                        <div className="w-12 h-12 rounded-xl bg-oxford/10 overflow-hidden shrink-0 border border-slate-200 relative">
+                          {!isDefaultImg ? (
+                            <Image
+                              src={facImg}
+                              alt={fac.name}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-oxford bg-slate-100">
+                              <User className="w-6 h-6" />
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-bold text-oxford group-hover:text-cyan-700 transition-colors font-serif truncate">
+                            {fac.name}
+                          </h4>
+                          <p className="text-xs text-slate-500 font-sans truncate">
+                            {fac.designation || 'Faculty Member'}
+                          </p>
+                          {fac.email && (
+                            <p className="text-[11px] text-slate-400 font-mono truncate">
+                              {fac.email}
+                            </p>
+                          )}
+                        </div>
+
+                        <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-cyan-600 group-hover:translate-x-0.5 transition-all shrink-0" />
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+
+            <div className="pt-2">
+              <Link
+                href="/research"
+                className="w-full py-3 px-4 rounded-xl border border-slate-200 hover:border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs flex items-center justify-center gap-2 transition-all"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>All Research Laboratories</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

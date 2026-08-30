@@ -161,6 +161,88 @@ async function main() {
 
     console.log('[SEED] Default courses and schemes seeded successfully.');
   }
+
+  // Seed default research laboratories
+  const labCount = await prisma.researchLab.count();
+  if (labCount === 0) {
+    console.log('[SEED] Seeding initial research laboratories...');
+    const faculty = await prisma.faculty.findFirst();
+
+    const labsData = [
+      {
+        id: 'l1',
+        name: 'Magnetics & Advanced Materials Laboratory',
+        category: 'Materials Science',
+        image: 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80',
+        description: `# Magnetics & Advanced Materials Laboratory
+
+The **Magnetics & Advanced Materials Laboratory** specializes in the synthesis, characterization, and application of nanostructured magnetic materials, multiferroics, and 2D materials for next-generation spintronics and sensor applications.
+
+## Key Research Focus Areas
+- **Spintronics & Magnetic Thin Films**: Exchange bias phenomena, spin-orbit torques, and magnetic anisotropy in metallic multilayers.
+- **Multiferroic Heterostructures**: Magnetoelectric coupling in nanocomposites for ultra-low power memory devices.
+- **2D Topological Insulators**: Synthesis and characterization of transition metal dichalcogenides (TMDs) and MXenes.
+- **Energy Storage Materials**: Functional oxide nanoparticles for supercapacitors and lithium-ion batteries.
+
+## Experimental Capabilities & Instrumentation
+- Vibrating Sample Magnetometer (VSM) with cryo-temperature attachment (4.2 K to 400 K)
+- Sol-gel, hydrothermal, and chemical co-precipitation synthesis setups
+- High-temperature tubular furnace (1700°C) with inert gas purge controls
+- Keithley 2450 SourceMeter & impedance spectroscopy setup (20 Hz to 50 MHz)
+
+> *Our laboratory collaborates actively with international research facilities such as DAE-CSR, BARC, and DESY Germany for synchrotron radiation characterization.*
+`,
+      },
+      {
+        id: 'l2',
+        name: 'Quantum Optics & Applied Photonics Lab',
+        category: 'Photonics',
+        image: 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&q=80',
+        description: `# Quantum Optics & Applied Photonics Lab
+
+The **Quantum Optics & Applied Photonics Lab** conducts theoretical and experimental investigations into non-classical light-matter interactions, nonlinear optics, ultrafast laser spectroscopy, and integrated optical sensors.
+
+## Research Themes
+1. **Quantum Information Processing**: Single-photon sources, entangled photon-pair generation via spontaneous parametric down-conversion (SPDC).
+2. **Nonlinear Optical Spectroscopy**: Z-scan measurements, optical limiting in organic dyes and semiconductor quantum dots.
+3. **Fiber Optic & Photonic Crystal Sensors**: Surface Plasmon Resonance (SPR) sensors for biomedical diagnostic applications.
+4. **Ultrafast Dynamics**: Femtosecond laser ablation and transient absorption spectroscopy of nanostructures.
+
+> *"Pioneering quantum photonics solutions for secure optical communications and high-precision sensing."*
+`,
+      },
+      {
+        id: 'l3',
+        name: 'Theoretical & Computational Physics Group',
+        category: 'Theoretical Physics',
+        image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80',
+        description: `# Theoretical & Computational Physics Group
+
+The **Theoretical & Computational Physics Group** employs first-principles density functional theory (DFT), Monte Carlo simulations, and relativistic quantum mechanics to model novel physical phenomena across condensed matter, cosmology, and nuclear physics.
+
+## Core Specializations
+* **Density Functional Theory (DFT)**: Band structure engineering, electron-phonon coupling, and thermoelectric property predictions using VASP, Quantum ESPRESSO, and WIEN2k.
+* **Nuclear Structure & Superheavy Elements**: Alpha decay kinetics, cluster decay half-lives, and fission barrier modeling in Z=114-126 nuclei.
+* **Gravitation & High Energy Cosmology**: Dark energy models, black hole thermodynamics, and modified gravity theories.
+* **Machine Learning in Materials Science**: Physics-informed neural networks (PINNs) for accelerated crystal structure discovery.
+
+## High-Performance Computing (HPC) Facilities
+The group maintains a **128-core HPC cluster** (Dual AMD EPYC 7742) with 512 GB RAM and NVIDIA A100 Tensor Core GPUs for accelerated quantum mechanical calculations.
+`,
+      },
+    ];
+
+    for (const lab of labsData) {
+      await prisma.researchLab.create({
+        data: {
+          ...lab,
+          faculties: faculty ? { connect: [{ id: faculty.id }] } : undefined,
+        },
+      });
+    }
+
+    console.log('[SEED] Research laboratories seeded successfully.');
+  }
 }
 
 main()

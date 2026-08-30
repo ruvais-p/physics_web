@@ -44,7 +44,7 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/research-labs" className="hover:text-cyan-accent transition-colors flex items-center space-x-1.5">
+                <Link href="/research" className="hover:text-cyan-accent transition-colors flex items-center space-x-1.5">
                   <span>›</span> <span>Research Centers & Labs</span>
                 </Link>
               </li>

@@ -53,6 +53,7 @@ import {
 import AdminFacultyFullManageModal from '@/components/AdminFacultyFullManageModal';
 import EventGallerySection from '@/components/EventGallerySection';
 import CurriculumManagementSection from '@/components/CurriculumManagementSection';
+import ResearchLabManagementSection from '@/components/ResearchLabManagementSection';
 
 // Import Shadcn UI elements
 import {
@@ -426,7 +427,7 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // ADMIN DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'events' | 'notifications' | 'faculty' | 'curriculum'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'events' | 'notifications' | 'faculty' | 'curriculum' | 'labs'>('dashboard');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -892,7 +893,7 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // FACULTY DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'projects' | 'publications' | 'hero' | 'events' | 'curriculum'>('overview');
+  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'projects' | 'publications' | 'hero' | 'events' | 'curriculum' | 'labs'>('overview');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -2168,6 +2169,16 @@ export default function UnifiedDashboardPage() {
                     <span>Curriculum & Regulations</span>
                   </div>
                 </TabsTrigger>
+
+                <TabsTrigger
+                  value="labs"
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <FlaskConical className="w-4 h-4" />
+                    <span>Research Laboratories</span>
+                  </div>
+                </TabsTrigger>
               </TabsList>
             </div>
           </div>
@@ -3116,6 +3127,11 @@ export default function UnifiedDashboardPage() {
           <TabsContent value="curriculum" className="space-y-10 animate-fadeIn mt-0">
             <CurriculumManagementSection />
           </TabsContent>
+
+          {/* RESEARCH LABS TAB */}
+          <TabsContent value="labs" className="space-y-10 animate-fadeIn mt-0">
+            <ResearchLabManagementSection />
+          </TabsContent>
         </main>
 
         {/* ADMIN MODALS */}
@@ -3698,6 +3714,17 @@ export default function UnifiedDashboardPage() {
                 <div className="flex items-center gap-3">
                   <BookOpen className="w-4 h-4" />
                   <span>Curriculum & Regulations</span>
+                </div>
+              </TabsTrigger>
+
+              {/* Option 7: Research Laboratories Management */}
+              <TabsTrigger
+                value="labs"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <FlaskConical className="w-4 h-4" />
+                  <span>Research Laboratories</span>
                 </div>
               </TabsTrigger>
             </TabsList>
@@ -4583,6 +4610,11 @@ export default function UnifiedDashboardPage() {
         {/* FACULTY CURRICULUM TAB */}
         <TabsContent value="curriculum" className="space-y-10 animate-fadeIn mt-0">
           <CurriculumManagementSection />
+        </TabsContent>
+
+        {/* FACULTY RESEARCH LABS TAB */}
+        <TabsContent value="labs" className="space-y-10 animate-fadeIn mt-0">
+          <ResearchLabManagementSection />
         </TabsContent>
       </main>
 

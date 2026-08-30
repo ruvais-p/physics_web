@@ -45,7 +45,7 @@ function LabCard({ lab, className = "h-64" }: { lab: typeof RESEARCH_LABS[0]; cl
 
         {/* Back Side: Laboratory Details */}
         <Link
-          href={`/research-labs#${lab.id}`}
+          href={`/research/${lab.id}`}
           className="flip-card-back w-full h-full bg-[#000a1e] text-white border border-slate-800 rounded-2xl flex flex-col justify-between items-center text-center p-5 shadow-lg"
         >
           <div className="space-y-2 my-auto">
@@ -259,7 +259,7 @@ export default function HomePage() {
               
               <div className="pt-4">
                 <Link
-                  href="/research-labs"
+                  href="/research"
                   className="inline-flex items-center text-base font-bold text-cyan-accent hover:text-cyan-dark transition-colors duration-200"
                 >
                   <span className="font-sans">→ Know More</span>

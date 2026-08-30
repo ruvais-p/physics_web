@@ -29,16 +29,15 @@ model Notification {
 }
 
 model ResearchLab {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
-  lead        String
-  description String
-  equipment   String[]
+  category    String?   @default("Experimental")
+  description String    @db.Text
   image       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  faculties   Faculty[] @relation("FacultyResearchLabs")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
-
 
 model Faculty {
   id                 String              @id @default(uuid())
@@ -57,6 +56,7 @@ model Faculty {
   students           FacultyStudent[]
   projects           FacultyProject[]
   publications       FacultyPublication[]
+  researchLabs       ResearchLab[]       @relation("FacultyResearchLabs")
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
 }

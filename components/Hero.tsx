@@ -28,7 +28,7 @@ const DEFAULT_SLIDES: Slide[] = [
     overlay: 'rgba(0, 10, 30, 0.65)',
     titleColor: '#0284c7',
     ctaText: 'Explore Laboratories',
-    ctaLink: '/research-labs',
+    ctaLink: '/research',
   },
   {
     id: 'academics',
