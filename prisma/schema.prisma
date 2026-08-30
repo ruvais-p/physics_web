@@ -185,3 +185,34 @@ model EventImage {
 
   @@map("event_images")
 }
+
+model Course {
+  id          String             @id
+  code        String
+  title       String
+  level       String
+  duration    String
+  intake      Int
+  fees        String
+  eligibility String             @db.Text
+  description String             @db.Text
+  highlights  String[]
+  schemes     CurriculumScheme[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model CurriculumScheme {
+  id        String   @id @default(uuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  year      String
+  scheme    String
+  pdfUrl    String
+  sortOrder Int      @default(0)
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courseId])
+}

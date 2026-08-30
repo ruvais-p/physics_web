@@ -3,11 +3,24 @@
 import { Course } from '@/lib/data';
 import { Clock, Users, CreditCard } from 'lucide-react';
 
-interface CourseCardProps {
-  course: Course;
+export interface CourseSchemeItem {
+  id?: string;
+  year: string;
+  scheme: string;
+  pdfUrl: string;
+  sortOrder?: number;
 }
 
-const COURSE_SCHEMES: Record<string, { year: string; scheme: string; pdfUrl: string }[]> = {
+export interface CourseWithSchemes extends Omit<Course, 'syllabus'> {
+  schemes?: CourseSchemeItem[];
+  syllabus?: { semester: string; subjects: string[] }[];
+}
+
+interface CourseCardProps {
+  course: CourseWithSchemes;
+}
+
+const DEFAULT_COURSE_SCHEMES: Record<string, CourseSchemeItem[]> = {
   c1: [
     { year: 'First Year (Semesters 1 & 2)', scheme: '2024 CBCS Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
     { year: 'Second Year (Semesters 3 & 4)', scheme: '2024 CBCS Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' }
@@ -24,7 +37,10 @@ const COURSE_SCHEMES: Record<string, { year: string; scheme: string; pdfUrl: str
 };
 
 export default function CourseCard({ course }: CourseCardProps) {
-  const schemes = COURSE_SCHEMES[course.id] || [];
+  const schemes = (course.schemes && course.schemes.length > 0)
+    ? course.schemes
+    : DEFAULT_COURSE_SCHEMES[course.id] || [];
+
   // Format title (e.g., "MSc in Physics")
   const cleanTitle = course.level === 'MSc' 
     ? 'MSc in Physics' 

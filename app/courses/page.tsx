@@ -3,11 +3,37 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import CourseCard from '@/components/CourseCard';
+import CourseCard, { CourseWithSchemes } from '@/components/CourseCard';
 import { COURSES } from '@/lib/data';
 
 export default function CoursesPage() {
   const [activeCourseId, setActiveCourseId] = useState<string>('c1');
+  const [dynamicCourses, setDynamicCourses] = useState<CourseWithSchemes[]>(COURSES);
+
+  useEffect(() => {
+    async function fetchDynamicCourses() {
+      try {
+        const res = await fetch('/api/courses/schemes');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.courses && data.courses.length > 0) {
+            // Merge static course info with dynamic schemes
+            const merged = COURSES.map((staticCourse) => {
+              const matched = data.courses.find((dc: any) => dc.id === staticCourse.id);
+              return {
+                ...staticCourse,
+                schemes: matched?.schemes && matched.schemes.length > 0 ? matched.schemes : undefined,
+              };
+            });
+            setDynamicCourses(merged);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading dynamic course schemes:', err);
+      }
+    }
+    fetchDynamicCourses();
+  }, []);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -33,7 +59,8 @@ export default function CoursesPage() {
     };
   }, []);
 
-  const selectedCourse = COURSES.find(c => c.id === activeCourseId) || COURSES[0];
+  const selectedCourse = dynamicCourses.find(c => c.id === activeCourseId) || dynamicCourses[0];
+
 
   return (
     <div className="space-y-12 pb-20 relative">

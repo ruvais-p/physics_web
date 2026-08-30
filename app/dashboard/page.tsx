@@ -52,6 +52,7 @@ import {
 } from 'lucide-react';
 import AdminFacultyFullManageModal from '@/components/AdminFacultyFullManageModal';
 import EventGallerySection from '@/components/EventGallerySection';
+import CurriculumManagementSection from '@/components/CurriculumManagementSection';
 
 // Import Shadcn UI elements
 import {
@@ -425,7 +426,7 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // ADMIN DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'events' | 'notifications' | 'faculty'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'events' | 'notifications' | 'faculty' | 'curriculum'>('dashboard');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -891,7 +892,7 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // FACULTY DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'projects' | 'publications' | 'hero' | 'events'>('overview');
+  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'projects' | 'publications' | 'hero' | 'events' | 'curriculum'>('overview');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -2157,6 +2158,16 @@ export default function UnifiedDashboardPage() {
                     {facultyList.length}
                   </Badge>
                 </TabsTrigger>
+
+                <TabsTrigger
+                  value="curriculum"
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+                >
+                  <div className="flex items-center gap-3">
+                    <BookOpen className="w-4 h-4" />
+                    <span>Curriculum & Regulations</span>
+                  </div>
+                </TabsTrigger>
               </TabsList>
             </div>
           </div>
@@ -3100,6 +3111,11 @@ export default function UnifiedDashboardPage() {
               )}
             </div>
           </TabsContent>
+
+          {/* CURRICULUM TAB */}
+          <TabsContent value="curriculum" className="space-y-10 animate-fadeIn mt-0">
+            <CurriculumManagementSection />
+          </TabsContent>
         </main>
 
         {/* ADMIN MODALS */}
@@ -3672,6 +3688,17 @@ export default function UnifiedDashboardPage() {
                 <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
                   {eventsList.length}
                 </Badge>
+              </TabsTrigger>
+
+              {/* Option 6: Curriculum & Regulations Management */}
+              <TabsTrigger
+                value="curriculum"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <BookOpen className="w-4 h-4" />
+                  <span>Curriculum & Regulations</span>
+                </div>
               </TabsTrigger>
             </TabsList>
           </div>
@@ -4377,6 +4404,185 @@ export default function UnifiedDashboardPage() {
               </Table>
             )}
           </div>
+        </TabsContent>
+
+        {/* RESEARCH PROJECTS TAB CONTENT */}
+        <TabsContent value="projects" className="space-y-8 animate-fadeIn mt-0">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
+            <div>
+              <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                <FlaskConical className="w-7 h-7 text-oxford" />
+                <span>Sponsored & Funded Research Projects ({projectsList.length})</span>
+              </h2>
+              <p className="text-slate-600 text-sm mt-1 font-sans">
+                Add, edit, or remove research projects, co-faculty collaborators, funding agencies, grants, and dates.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={fetchProjects}
+                className="h-10 w-10 text-slate-700 hover:text-slate-950"
+                title="Refresh Projects"
+              >
+                <RefreshCw className={`w-4 h-4 ${loadingProjects ? 'animate-spin' : ''}`} />
+              </Button>
+              <Button
+                onClick={() => openProjectModal()}
+                className="flex items-center gap-2 py-3 px-5 font-semibold"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create Project</span>
+              </Button>
+            </div>
+          </div>
+
+          <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+            {loadingProjects ? (
+              <div className="p-12 text-center text-slate-500 flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-2 border-oxford border-t-transparent rounded-full animate-spin" />
+                <span>Loading research projects...</span>
+              </div>
+            ) : projectsList.length === 0 ? (
+              <div className="p-12 text-center text-slate-500 space-y-3">
+                <FlaskConical className="w-10 h-10 mx-auto text-slate-400" />
+                <p className="text-base font-semibold text-slate-800">No research projects added yet.</p>
+                <p className="text-xs text-slate-500 font-sans">Click "Create Project" to record sponsored or funded research projects.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {projectsList.map((proj) => {
+                  const isOngoing = !proj.endDate || (proj.status ? proj.status === 'Ongoing' : new Date(proj.endDate) >= new Date());
+                  const isOwner = proj.facultyId === currentUser?.id;
+
+                  return (
+                    <div
+                      key={proj.id}
+                      className="p-6 border border-slate-200 rounded-2xl bg-slate-50/50 hover:bg-white hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between space-y-4 font-sans"
+                    >
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
+                          <div className="flex items-center gap-2">
+                            <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
+                              isOngoing
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                : 'bg-blue-100 text-blue-800 border border-blue-200'
+                            }`}>
+                              {isOngoing ? 'Ongoing' : 'Completed'}
+                            </span>
+
+                            {!isOwner && (
+                              <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
+                                Co-Faculty Project
+                              </span>
+                            )}
+                          </div>
+
+                          {proj.agency && (
+                            <span className="text-xs font-bold text-slate-700 bg-slate-200/70 border border-slate-300/80 px-2.5 py-1 rounded">
+                              {proj.agency}
+                            </span>
+                          )}
+                        </div>
+
+                        <h3 className="text-xl font-bold font-serif text-oxford leading-snug">
+                          {proj.title}
+                        </h3>
+
+                        {proj.description && (
+                          <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">
+                            {proj.description}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm font-sans pt-3 border-t border-slate-200/80">
+                          <div>
+                            <span className="font-semibold text-oxford">Role:</span>{' '}
+                            <span>{isOwner ? (proj.role || 'Principal Investigator') : `Co-Investigator (PI: ${proj.faculty?.name || 'Faculty Member'})`}</span>
+                          </div>
+
+                          {proj.funding && (
+                            <div>
+                              <span className="font-semibold text-oxford">Funding:</span>{' '}
+                              <span>{proj.funding}</span>
+                            </div>
+                          )}
+
+                          {proj.startDate && (
+                            <div>
+                              <span className="font-semibold text-oxford">Start Date:</span>{' '}
+                              <span>{new Date(proj.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
+                            </div>
+                          )}
+
+                          <div>
+                            <span className="font-semibold text-oxford">End Date:</span>{' '}
+                            <span>{proj.endDate ? new Date(proj.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'None (Ongoing)'}</span>
+                          </div>
+                        </div>
+
+                        {proj.otherFaculty && (
+                          <div className="text-xs text-slate-700 bg-slate-100 p-2.5 rounded-lg border border-slate-200 font-sans">
+                            <span className="font-semibold text-oxford">Co-Faculty / Team:</span> {proj.otherFaculty}
+                          </div>
+                        )}
+
+                        <div className="pt-3 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                          {proj.externalLink ? (
+                            <a
+                              href={proj.externalLink}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:underline"
+                            >
+                              <span>External Project Link</span>
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+                          ) : <div />}
+
+                          {isOwner ? (
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => openProjectModal(proj)}
+                                className="h-8 text-xs px-3"
+                              >
+                                <Edit className="w-3.5 h-3.5 mr-1" />
+                                <span>Edit</span>
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() => handleDeleteProject(proj.id)}
+                                className="h-8 text-xs px-3"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 mr-1" />
+                                <span>Delete</span>
+                              </Button>
+                            </div>
+                          ) : (
+                            <span className="text-[11px] text-slate-400 font-sans italic">
+                              Managed by PI ({proj.faculty?.name || 'Faculty Member'})
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </Card>
+        </TabsContent>
+
+        {/* FACULTY CURRICULUM TAB */}
+        <TabsContent value="curriculum" className="space-y-10 animate-fadeIn mt-0">
+          <CurriculumManagementSection />
         </TabsContent>
       </main>
 
@@ -5109,180 +5315,6 @@ export default function UnifiedDashboardPage() {
           </form>
         </DialogContent>
       </Dialog>
-
-      {/* RESEARCH PROJECTS TAB CONTENT */}
-      <TabsContent value="projects" className="space-y-8 animate-fadeIn mt-0">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-          <div>
-            <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
-              <FlaskConical className="w-7 h-7 text-oxford" />
-              <span>Sponsored & Funded Research Projects ({projectsList.length})</span>
-            </h2>
-            <p className="text-slate-600 text-sm mt-1 font-sans">
-              Add, edit, or remove research projects, co-faculty collaborators, funding agencies, grants, and dates.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={fetchProjects}
-              className="h-10 w-10 text-slate-700 hover:text-slate-950"
-              title="Refresh Projects"
-            >
-              <RefreshCw className={`w-4 h-4 ${loadingProjects ? 'animate-spin' : ''}`} />
-            </Button>
-            <Button
-              onClick={() => openProjectModal()}
-              className="flex items-center gap-2 py-3 px-5 font-semibold"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Create Project</span>
-            </Button>
-          </div>
-        </div>
-
-        <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-          {loadingProjects ? (
-            <div className="p-12 text-center text-slate-500 flex flex-col items-center gap-3">
-              <div className="w-8 h-8 border-2 border-oxford border-t-transparent rounded-full animate-spin" />
-              <span>Loading research projects...</span>
-            </div>
-          ) : projectsList.length === 0 ? (
-            <div className="p-12 text-center text-slate-500 space-y-3">
-              <FlaskConical className="w-10 h-10 mx-auto text-slate-400" />
-              <p className="text-base font-semibold text-slate-800">No research projects added yet.</p>
-              <p className="text-xs text-slate-500 font-sans">Click "Create Project" to record sponsored or funded research projects.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {projectsList.map((proj) => {
-                const isOngoing = !proj.endDate || (proj.status ? proj.status === 'Ongoing' : new Date(proj.endDate) >= new Date());
-                const isOwner = proj.facultyId === currentUser?.id;
-
-                return (
-                  <div
-                    key={proj.id}
-                    className="p-6 border border-slate-200 rounded-2xl bg-slate-50/50 hover:bg-white hover:border-slate-300 hover:shadow-md transition-all flex flex-col justify-between space-y-4 font-sans"
-                  >
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200/80 pb-3">
-                        <div className="flex items-center gap-2">
-                          <span className={`inline-block text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider ${
-                            isOngoing
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                              : 'bg-blue-100 text-blue-800 border border-blue-200'
-                          }`}>
-                            {isOngoing ? 'Ongoing' : 'Completed'}
-                          </span>
-
-                          {!isOwner && (
-                            <span className="text-xs font-bold px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300">
-                              Co-Faculty Project
-                            </span>
-                          )}
-                        </div>
-
-                        {proj.agency && (
-                          <span className="text-xs font-bold text-slate-700 bg-slate-200/70 border border-slate-300/80 px-2.5 py-1 rounded">
-                            {proj.agency}
-                          </span>
-                        )}
-                      </div>
-
-                      <h3 className="text-xl font-bold font-serif text-oxford leading-snug">
-                        {proj.title}
-                      </h3>
-
-                      {proj.description && (
-                        <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">
-                          {proj.description}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm font-sans pt-3 border-t border-slate-200/80">
-                        <div>
-                          <span className="font-semibold text-oxford">Role:</span>{' '}
-                          <span>{isOwner ? (proj.role || 'Principal Investigator') : `Co-Investigator (PI: ${proj.faculty?.name || 'Faculty Member'})`}</span>
-                        </div>
-
-                        {proj.funding && (
-                          <div>
-                            <span className="font-semibold text-oxford">Funding:</span>{' '}
-                            <span>{proj.funding}</span>
-                          </div>
-                        )}
-
-                        {proj.startDate && (
-                          <div>
-                            <span className="font-semibold text-oxford">Start Date:</span>{' '}
-                            <span>{new Date(proj.startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
-                          </div>
-                        )}
-
-                        <div>
-                          <span className="font-semibold text-oxford">End Date:</span>{' '}
-                          <span>{proj.endDate ? new Date(proj.endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'None (Ongoing)'}</span>
-                        </div>
-                      </div>
-
-                      {proj.otherFaculty && (
-                        <div className="text-xs text-slate-700 bg-slate-100 p-2.5 rounded-lg border border-slate-200 font-sans">
-                          <span className="font-semibold text-oxford">Co-Faculty / Team:</span> {proj.otherFaculty}
-                        </div>
-                      )}
-
-                      <div className="pt-3 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
-                        {proj.externalLink ? (
-                          <a
-                            href={proj.externalLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:underline"
-                          >
-                            <span>External Project Link</span>
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
-                        ) : <div />}
-
-                        {isOwner ? (
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="secondary"
-                              size="sm"
-                              onClick={() => openProjectModal(proj)}
-                              className="h-8 text-xs px-3"
-                            >
-                              <Edit className="w-3.5 h-3.5 mr-1" />
-                              <span>Edit</span>
-                            </Button>
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              onClick={() => handleDeleteProject(proj.id)}
-                              className="h-8 text-xs px-3"
-                            >
-                              <Trash2 className="w-3.5 h-3.5 mr-1" />
-                              <span>Delete</span>
-                            </Button>
-                          </div>
-                        ) : (
-                          <span className="text-[11px] text-slate-400 font-sans italic">
-                            Managed by PI ({proj.faculty?.name || 'Faculty Member'})
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Card>
-      </TabsContent>
 
       {/* Project Create / Edit Modal */}
       <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
