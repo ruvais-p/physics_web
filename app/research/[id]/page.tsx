@@ -270,11 +270,6 @@ export default function ResearchLabDetailPage({ params }: PageProps) {
           </div>
 
           <div className="space-y-3">
-            {lab.category && (
-              <span className="inline-block bg-cyan-500/20 backdrop-blur-md text-cyan-300 border border-cyan-400/30 text-xs font-bold px-3.5 py-1 rounded-full uppercase tracking-wider">
-                {lab.category}
-              </span>
-            )}
             <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
               {lab.name}
             </h1>

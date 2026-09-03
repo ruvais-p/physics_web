@@ -53,11 +53,6 @@ export default function LabCard({ lab, variant = 'light' }: LabCardProps) {
           className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
-        {lab.category && (
-          <span className="absolute top-3 left-3 bg-oxford/90 backdrop-blur-md text-cyan-accent text-[11px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border border-cyan-accent/20">
-            {lab.category}
-          </span>
-        )}
       </div>
 
       {/* Card Body */}

@@ -49,9 +49,6 @@ function LabCard({ lab, className = "h-64" }: { lab: typeof RESEARCH_LABS[0]; cl
           className="flip-card-back w-full h-full bg-[#000a1e] text-white border border-slate-800 rounded-2xl flex flex-col justify-between items-center text-center p-5 shadow-lg"
         >
           <div className="space-y-2 my-auto">
-            <span className="text-[9px] font-bold text-cyan-accent uppercase tracking-widest block">
-              {lab.category}
-            </span>
             <h4 className="font-sans text-xs sm:text-sm font-bold text-white leading-tight">
               {lab.name}
             </h4>

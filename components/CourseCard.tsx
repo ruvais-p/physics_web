@@ -1,7 +1,7 @@
 'use client';
 
 import { Course } from '@/lib/data';
-import { Clock, Users, CreditCard } from 'lucide-react';
+import { Clock, Users } from 'lucide-react';
 
 export interface CourseSchemeItem {
   id?: string;
@@ -66,10 +66,6 @@ export default function CourseCard({ course }: CourseCardProps) {
           <div className="flex items-center space-x-1.5">
             <Users className="w-4.5 h-4.5 text-cyan-accent" />
             <span>Annual Intake: {course.intake} Seats</span>
-          </div>
-          <div className="flex items-center space-x-1.5">
-            <CreditCard className="w-4.5 h-4.5 text-cyan-accent" />
-            <span>Fees: {course.fees}</span>
           </div>
         </div>
       </div>

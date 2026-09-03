@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { useState, useEffect } from 'react';
-import { Sparkles, ExternalLink, BookOpen, ArrowRight } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 
 // Markdown Parser Helper Function
 function renderMarkdown(md: string) {
@@ -224,23 +224,14 @@ export default function AboutPage() {
       {/* Main Content Area: Simplified, Clean, left-aligned, large text */}
       <section className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 py-16">
         <div className="max-w-4xl space-y-8 text-left">
-          {/* Section Heading & Button Row */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 pb-6">
+          {/* Section Heading */}
+          <div className="border-b border-slate-200 pb-6">
             <div className="space-y-2">
               <div className="w-16 h-1 bg-cyan-accent rounded-full" />
               <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford font-serif">
                 About Us
               </h2>
             </div>
-
-            <Link
-              href="/journals"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-oxford hover:bg-oxford-dark text-white font-sans font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all transform hover:-translate-y-0.5 group shrink-0"
-            >
-              <BookOpen className="w-5 h-5 text-cyan-accent" />
-              <span>Projects &amp; Publications</span>
-              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-            </Link>
           </div>
 
           {loading ? (
