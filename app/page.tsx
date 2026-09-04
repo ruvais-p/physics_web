@@ -2,70 +2,43 @@ import Link from 'next/link';
 import Hero from '@/components/Hero';
 import NotificationsTicker from '@/components/NotificationsTicker';
 import HomeEvents from '@/components/HomeEvents';
-import { RESEARCH_LABS } from '@/lib/data';
-import { ChevronRight } from 'lucide-react';
+import { RESEARCH_LABS, PUBLICATIONS } from '@/lib/data';
+import { ChevronRight, ExternalLink, BookOpen } from 'lucide-react';
 
 function LabCard({ lab, className = "h-64" }: { lab: typeof RESEARCH_LABS[0]; className?: string }) {
   const isLogo = lab.image === '/dop-logo.svg';
 
   return (
-    <div className={`flip-card w-full cursor-pointer group ${className}`}>
-      <div className="flip-card-inner w-full h-full">
-        
-        {/* Front Side: Only the Image / Logo */}
-        <div className="flip-card-front w-full h-full bg-white rounded-2xl shadow-sm relative overflow-hidden flex items-center justify-center">
-          {isLogo ? (
-            <div className="w-full h-full flex items-center justify-center bg-slate-50/50 rounded-xl p-6 border border-slate-100/80">
-              <div className="relative w-32 h-24 flex items-center justify-center">
-                <svg
-                  className="w-full h-full text-blue-600"
-                  viewBox="0 0 220 160"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <text x="5" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">D</text>
-                  <g transform="translate(110, 80)">
-                    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="2.5" fill="none"/>
-                    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="2.5" fill="none" transform="rotate(60)"/>
-                    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="2.5" fill="none" transform="rotate(-60)"/>
-                    <circle cx="0" cy="0" r="15" fill="currentColor"/>
-                  </g>
-                  <text x="150" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">P</text>
-                </svg>
-              </div>
-            </div>
-          ) : (
-            <img
-              src={lab.image}
-              alt={lab.name}
-              className="w-full h-full object-cover rounded-2xl"
-            />
-          )}
+    <Link
+      href={`/research/${lab.id}`}
+      className={`group relative rounded-2xl border border-slate-200/90 bg-white overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex items-center justify-center cursor-pointer ${className}`}
+    >
+      {isLogo ? (
+        <div className="w-full h-full flex items-center justify-center bg-slate-50 p-6">
+          <svg
+            className="w-32 h-24 text-blue-600"
+            viewBox="0 0 220 160"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <text x="5" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">D</text>
+            <g transform="translate(110, 80)">
+              <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="2.5" fill="none" />
+              <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="2.5" fill="none" transform="rotate(60)" />
+              <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="2.5" fill="none" transform="rotate(-60)" />
+              <circle cx="0" cy="0" r="15" fill="currentColor" />
+            </g>
+            <text x="150" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">P</text>
+          </svg>
         </div>
-
-        {/* Back Side: Laboratory Details */}
-        <Link
-          href={`/research/${lab.id}`}
-          className="flip-card-back w-full h-full bg-[#000a1e] text-white border border-slate-800 rounded-2xl flex flex-col justify-between items-center text-center p-5 shadow-lg"
-        >
-          <div className="space-y-2 my-auto">
-            <h4 className="font-sans text-xs sm:text-sm font-bold text-white leading-tight">
-              {lab.name}
-            </h4>
-            <p className="text-[10px] text-slate-400 font-sans mt-2">
-              Director: <span className="font-semibold text-slate-300">{lab.director}</span>
-            </p>
-            <p className="text-[9px] text-slate-400 font-sans line-clamp-3">
-              {lab.shortDesc}
-            </p>
-          </div>
-          <div className="w-full flex items-center justify-center text-[10px] font-bold text-cyan-accent font-sans mt-1">
-            <span>Explore Lab →</span>
-          </div>
-        </Link>
-
-      </div>
-    </div>
+      ) : (
+        <img
+          src={lab.image}
+          alt={lab.name}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-2xl"
+        />
+      )}
+    </Link>
   );
 }
 
@@ -102,47 +75,49 @@ export default function HomePage() {
           </div>
 
           {/* Content Column */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-6 text-center">
             <div className="space-y-2">
-              <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold text-oxford tracking-tight leading-tight">
+              <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold text-oxford tracking-tight leading-tight text-center">
                 Academics done <span className="text-cyan-accent italic font-light">differently.</span>
               </h2>
             </div>
 
-            <h3 className="text-xl sm:text-2xl font-bold text-slate-800 font-sans">
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-800 font-sans text-center">
               Dive into world-class programs &amp; research
             </h3>
 
-            <p className="text-slate-700 text-sm sm:text-base leading-relaxed text-justify">
+            <p className="text-slate-700 text-sm sm:text-base leading-relaxed text-center">
               Established in 1971, the Department of Physics, CUSAT has maintained the highest standards in postgraduate education and scientific research. Over the years, the Department has become the premier destination for students in Kerala and across India seeking advanced studies in Physics. Our postgraduates and researchers are consistently placed in top faculty, postdoctoral, and Ph.D. positions at world-renowned research centers across the globe.
             </p>
 
-            <p className="text-slate-700 text-sm sm:text-base leading-relaxed text-justify">
+            <p className="text-slate-700 text-sm sm:text-base leading-relaxed text-center">
               Going forward, the Department envisions continuing its mission of providing quality advanced training in Physics through its M.Sc., Integrated M.Sc., and Ph.D. research programs, driving fundamental scientific breakthroughs in materials science, quantum technology, and photonics.
             </p>
           </div>
         </div>
-      </section>      {/* Events Section */}
+      </section>
+
+      {/* Events Section */}
       <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-low/20 border-b border-surface-mid/30">
         <div className="max-w-[1536px] mx-auto space-y-10">
-          
+
           {/* Section Header */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 pb-4">
-            <div>
-              <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest font-sans">
-                Department Activities
-              </span>
-              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight mt-1">
-                Upcoming &amp; Featured Events
-              </h2>
+          <div className="text-center space-y-3 border-b border-slate-200 pb-6">
+            <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest font-sans block text-center">
+              Department Activities
+            </span>
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight text-center">
+              Upcoming &amp; Featured Events
+            </h2>
+            <div className="pt-1 flex justify-center">
+              <Link
+                href="/events"
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors duration-200"
+              >
+                <span>View All Events</span>
+                <ChevronRight className="w-4 h-4" />
+              </Link>
             </div>
-            <Link
-              href="/events"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors duration-200 shrink-0"
-            >
-              <span>View All Events</span>
-              <ChevronRight className="w-4 h-4" />
-            </Link>
           </div>
 
           {/* Dynamic Events Cards Grid Fetched Live from PostgreSQL DB */}
@@ -154,19 +129,19 @@ export default function HomePage() {
       {/* Featured Research Laboratories */}
       <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-lowest border-y border-surface-low/60">
         <div className="max-w-[1536px] mx-auto">
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
-            
+
             {/* Left side: Innovation Description */}
-            <div className="lg:col-span-5 space-y-6 text-left">
-              <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold text-oxford leading-tight">
+            <div className="lg:col-span-5 space-y-6 text-center">
+              <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold text-oxford leading-tight text-center">
                 Research Labs & Facilities
               </h2>
-              <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-sans font-normal text-justify">
+              <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-sans font-normal text-center">
                 The Department of Physics at CUSAT has partnered with nearly 50 funded projects, 25 in-house initiatives, and over 150 student research projects. We have broken barriers in materials science, lasers, and quantum cosmology to attain global recognition.
               </p>
-              
-              <div className="pt-4">
+
+              <div className="pt-2 flex justify-center">
                 <Link
                   href="/research"
                   className="inline-flex items-center text-base font-bold text-cyan-accent hover:text-cyan-dark transition-colors duration-200"
@@ -178,12 +153,12 @@ export default function HomePage() {
 
             {/* Right side: Asymmetric Flippable Grid */}
             <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-12 gap-6 h-full items-stretch">
-              
+
               {/* Stacked Left Column (2 Small Cards) */}
               <div className="md:col-span-7 flex flex-col gap-6 justify-between">
                 {/* Lab 1 */}
                 <LabCard lab={RESEARCH_LABS[2]} className="h-[220px]" />
-                
+
                 {/* Lab 2 */}
                 <LabCard lab={RESEARCH_LABS[5]} className="h-[220px]" />
               </div>
@@ -203,10 +178,10 @@ export default function HomePage() {
       {/* Spotlight Projects Section */}
       <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-low/40 border-y border-surface-mid/40">
         <div className="max-w-[1536px] mx-auto space-y-10">
-          
+
           {/* Section Title */}
-          <div className="border-b border-slate-200 pb-4">
-            <h2 className="font-serif text-4xl sm:text-5xl font-bold text-oxford">
+          <div className="text-center border-b border-slate-200 pb-4">
+            <h2 className="font-serif text-4xl sm:text-5xl font-bold text-oxford text-center">
               Spotlight Projects
             </h2>
           </div>
@@ -292,6 +267,89 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* Featured Publications Section */}
+      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-lowest border-t border-surface-low/60">
+        <div className="max-w-[1536px] mx-auto space-y-10">
+
+          {/* Header */}
+          <div className="text-center space-y-3 border-b border-slate-200 pb-6">
+            <h2 className="font-serif text-4xl sm:text-5xl font-bold text-oxford text-center">
+              Recent Publications
+            </h2>
+            <div className="flex justify-center">
+              <Link
+                href="/research"
+                className="inline-flex items-center gap-1 text-sm font-bold text-cyan-accent hover:text-cyan-dark transition-colors"
+              >
+                <span>View All Publications &rarr;</span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Publications Table */}
+          <div className="overflow-x-auto border border-slate-200/90 rounded-2xl bg-white shadow-xs">
+            <table className="w-full text-left border-collapse font-sans">
+              <thead>
+                <tr className="bg-oxford text-white text-xs uppercase tracking-wider font-bold">
+                  <th className="py-4 px-5">Paper Title &amp; Abstract</th>
+                  <th className="py-4 px-4 whitespace-nowrap">Category</th>
+                  <th className="py-4 px-4 whitespace-nowrap">Journal &amp; Year</th>
+                  <th className="py-4 px-4 text-right whitespace-nowrap">DOI / Link</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+                {PUBLICATIONS.slice(0, 5).map((pub) => (
+                  <tr key={pub.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-4 px-5 space-y-1.5 align-top min-w-[320px]">
+                      <h3 className="font-bold text-oxford text-base leading-snug">
+                        {pub.title}
+                      </h3>
+                      {pub.authors && pub.authors.length > 0 && (
+                        <p className="text-xs text-slate-600 font-medium">
+                          <span className="font-semibold text-slate-900">Authors:</span> {pub.authors.join(', ')}
+                        </p>
+                      )}
+                      {pub.abstract && (
+                        <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                          {pub.abstract}
+                        </p>
+                      )}
+                    </td>
+                    <td className="py-4 px-4 align-top whitespace-nowrap">
+                      <span className="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-indigo-50 text-indigo-800 border border-indigo-200">
+                        {pub.category}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 align-top whitespace-nowrap space-y-1">
+                      <p className="text-xs font-semibold text-oxford italic font-serif">
+                        {pub.journal}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Year: <span className="font-bold text-slate-700">{pub.year}</span> {pub.volume && `| ${pub.volume}`}
+                      </p>
+                    </td>
+                    <td className="py-4 px-4 align-top text-right whitespace-nowrap space-y-2">
+                      {pub.doi && (
+                        <a
+                          href={`https://doi.org/${pub.doi}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-xs font-semibold px-3 py-1.5 rounded-xl transition-all shadow-xs"
+                        >
+                          <span>DOI Paper</span>
+                          <ExternalLink className="w-3 h-3 opacity-80" />
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
         </div>

@@ -250,30 +250,30 @@ export default function EventsPage() {
   return (
     <div className="pb-24 relative bg-surface">
       
-      {/* Top Banner (Campus Image Background with Dark Overlay) */}
-      <div className="-mt-[116px] sm:-mt-[128px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center">
-        {/* Background Image with Dark Overlay */}
+      {/* Top Banner (Campus Image Background - Matches Homepage Hero Height) */}
+      <div className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center">
+        {/* Background Image with Top Blue Gradient Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/campus.jpg"
             alt="CUSAT Campus"
             fill
-            className="object-cover opacity-45"
+            className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#002147]/80 via-[#002147]/30 to-transparent" />
         </div>
 
-        {/* Top Left Breadcrumbs */}
-        <div className="absolute top-36 sm:top-40 left-6 sm:left-12 lg:left-16 z-20 flex items-center space-x-2 text-xl sm:text-2xl font-sans font-semibold text-slate-300">
-          <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
-          <span>&gt;</span>
-          <span className="text-white font-bold">Events</span>
-        </div>
+        {/* Hero Content (Centered Text) */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-16 sm:pt-20 lg:pt-24">
+          {/* Breadcrumbs Above Title - Enlarged */}
+          <div className="flex items-center justify-center space-x-3 text-xl sm:text-2xl lg:text-3xl font-sans font-bold text-slate-100 drop-shadow-md">
+            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
+            <span>&gt;</span>
+            <span className="text-white font-extrabold">Events</span>
+          </div>
 
-        {/* Hero Title (Centered) */}
-        <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-12">
-          <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white uppercase drop-shadow-md">
+          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight text-white uppercase drop-shadow-lg">
             Department Events
           </h1>
         </div>
@@ -289,7 +289,7 @@ export default function EventsPage() {
         {/* ------------------------------------------------------------- */}
         <div className="space-y-6">
           {/* Current Events Hero Showcase Container */}
-          <div className="relative w-full aspect-[21/9] min-h-[380px] sm:min-h-[460px] overflow-hidden bg-slate-900 group shadow-2xl">
+          <div className="relative w-full aspect-[21/9] min-h-[380px] sm:min-h-[460px] overflow-hidden rounded-2xl sm:rounded-3xl bg-slate-900 group shadow-2xl">
             {/* Main Featured Hero Image */}
             <img
               src={activeCurrentEvent.image}
@@ -297,14 +297,14 @@ export default function EventsPage() {
               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
             
-            {/* Gradient Overlay for Text Contrast */}
-            <div className="absolute inset-0 bg-gradient-to-t from-oxford/95 via-oxford/45 to-transparent" />
+            {/* Dark Gradient Overlay for Text Contrast */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
             {/* Carousel Slider Arrows */}
             <button
               type="button"
               onClick={() => setActiveTab((prev) => (prev > 0 ? prev - 1 : CURRENT_EVENTS.length - 1))}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-oxford/60 hover:bg-cyan-accent hover:text-oxford text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all z-20"
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-cyan-accent hover:text-oxford text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all z-20"
               aria-label="Previous Event"
             >
               <ChevronLeft className="w-6 h-6" />
@@ -313,7 +313,7 @@ export default function EventsPage() {
             <button
               type="button"
               onClick={() => setActiveTab((prev) => (prev < CURRENT_EVENTS.length - 1 ? prev + 1 : 0))}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-oxford/60 hover:bg-cyan-accent hover:text-oxford text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all z-20"
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-cyan-accent hover:text-oxford text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all z-20"
               aria-label="Next Event"
             >
               <ChevronRight className="w-6 h-6" />
@@ -335,11 +335,11 @@ export default function EventsPage() {
                 <span>{activeCurrentEvent.venue}</span>
               </p>
 
-              {/* Theme Blue Action Button: Know More ↗ */}
+              {/* Action Button: Know More ↗ */}
               <div className="pt-2">
                 <Link
                   href={`/events/${activeCurrentEvent.id}`}
-                  className="bg-cyan-accent hover:bg-white text-oxford font-extrabold text-xs sm:text-sm px-6 py-3 rounded-none inline-flex items-center gap-2 transition-all shadow-xl uppercase tracking-wider"
+                  className="bg-cyan-accent hover:bg-white text-oxford font-extrabold text-xs sm:text-sm px-6 py-3 rounded-xl inline-flex items-center gap-2 transition-all shadow-xl uppercase tracking-wider"
                 >
                   <span>Know more</span>
                   <ArrowUpRight className="w-4 h-4 stroke-[3]" />
@@ -405,8 +405,8 @@ export default function EventsPage() {
                 href={`/events/${item.id}`}
                 className="space-y-3 cursor-pointer group block"
               >
-                {/* Pure Image Block (Sharp edges) */}
-                <div className="relative aspect-[16/10] w-full rounded-none overflow-hidden bg-slate-900">
+                {/* Event Image Block (Rounded corners) */}
+                <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-slate-900 shadow-sm border border-slate-100">
                   <img
                     src={item.image}
                     alt={item.title}
@@ -454,13 +454,13 @@ export default function EventsPage() {
 
             {/* Modal Header with Event Image Banner */}
             <div className="space-y-3">
-              <div className="relative aspect-[16/7] w-full rounded-none overflow-hidden bg-slate-900">
+              <div className="relative aspect-[16/7] w-full rounded-2xl overflow-hidden bg-slate-900">
                 <img 
                   src={activeModalEvent.image} 
                   alt={activeModalEvent.title} 
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-oxford/90 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
                 <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between">
                   <span className="text-xs font-bold text-cyan-accent uppercase tracking-wider bg-oxford/85 px-3 py-1 rounded-full border border-white/20">
                     {activeModalEvent.category} Event

@@ -245,32 +245,32 @@ export default function ResearchLabDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-12 pb-24 relative font-sans">
-      {/* Laboratory Hero Image Banner */}
-      <div className="-mt-[116px] sm:-mt-[128px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center">
-        {/* Hero Background Image */}
+      {/* Laboratory Hero Image Banner - Matches Homepage Hero Height */}
+      <div className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center">
+        {/* Background Image with Top Blue Gradient Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
             src={heroImage}
             alt={lab.name}
             fill
-            className="object-cover opacity-45"
+            className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-black/60 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#002147]/80 via-[#002147]/30 to-transparent" />
         </div>
 
-        {/* Top Left Breadcrumbs */}
-        <div className="absolute top-36 sm:top-40 left-6 sm:left-12 lg:left-16 z-20 flex flex-wrap items-center gap-2 text-xl sm:text-2xl text-slate-300 font-semibold">
-          <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
-          <span>&gt;</span>
-          <Link href="/research" className="hover:text-cyan-accent transition-colors">Research</Link>
-          <span>&gt;</span>
-          <span className="text-cyan-accent font-bold truncate max-w-[200px] sm:max-w-none">{lab.name}</span>
-        </div>
+        {/* Hero Content (Centered Text) */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-16 sm:pt-20 lg:pt-24">
+          {/* Breadcrumbs Above Title - Enlarged */}
+          <div className="flex flex-wrap items-center justify-center gap-2 text-xl sm:text-2xl lg:text-3xl font-sans font-bold text-slate-100 drop-shadow-md">
+            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
+            <span>&gt;</span>
+            <Link href="/research" className="hover:text-cyan-accent transition-colors">Research</Link>
+            <span>&gt;</span>
+            <span className="text-white font-extrabold truncate max-w-[200px] sm:max-w-none">{lab.name}</span>
+          </div>
 
-        {/* Hero Title (Centered) */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-12">
-          <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
+          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-black text-white tracking-tight leading-tight drop-shadow-lg">
             {lab.name}
           </h1>
         </div>

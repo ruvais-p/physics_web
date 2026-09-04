@@ -172,7 +172,7 @@ export default function Hero({
   }, [index, isPlaying, next, total]);
 
   return (
-    <section className="-mt-[112px] lg:-mt-[132px] relative w-full bg-black text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px]">
+    <section className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-black text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px]">
 
       {/* Background Image Slides */}
       <div className="absolute inset-0 z-0">

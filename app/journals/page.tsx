@@ -26,7 +26,7 @@ export default function JournalsPage() {
     <div className="space-y-12 pb-20">
       
       {/* Page Header (No Hero image, clean text block) */}
-      <div className="-mt-[116px] sm:-mt-[128px] bg-slate-50 border-b border-slate-200/80 pt-36 sm:pt-44 pb-12 lg:pb-16">
+      <div className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] bg-slate-50 border-b border-slate-200/80 pt-44 sm:pt-52 pb-12 lg:pb-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4">
           <span className="inline-block text-xs font-bold uppercase tracking-wider text-cyan-accent">
             Department Publications

@@ -270,142 +270,75 @@ For further information regarding schedule or venue arrangements, please contact
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-20">
-      
-      {/* Top Header / Back Navigation Bar */}
-      <div className="bg-oxford text-white border-b border-white/10 sticky top-0 z-40 backdrop-blur-md bg-oxford/95">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-          <Link 
-            href="/events"
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-300 hover:text-cyan-accent transition-colors group"
-          >
-            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-            <span>Back to All Events</span>
-          </Link>
 
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleShare}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs text-white font-medium transition-colors"
-              title="Share event link"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>{copied ? 'Link Copied!' : 'Share'}</span>
-            </button>
-
-            {event.applyLink && (
-              <a
-                href={event.applyLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-cyan-accent text-oxford hover:bg-cyan-accent/90 text-xs font-bold transition-all shadow-md"
-              >
-                <span>Register Now</span>
-                <ExternalLink className="w-3.5 h-3.5" />
-              </a>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Hero Banner Section */}
-      <section className="relative bg-slate-900 text-white overflow-hidden">
-        {/* Background Image with Dark Overlay */}
+      {/* Hero Banner Section (Matches Homepage Hero Height) */}
+      <section className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center">
+        {/* Background Image with Top Blue Gradient Overlay */}
         <div className="absolute inset-0 z-0">
           <img
             src={event.image}
             alt={event.title}
-            className="w-full h-full object-cover opacity-35 filter blur-sm scale-105"
+            className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-slate-900/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#002147]/80 via-[#002147]/30 to-transparent" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
-          <div className="max-w-4xl space-y-5">
-            
-            <div className="flex flex-wrap items-center gap-3">
-              <Link 
-                href="/events" 
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-sans text-xs font-semibold backdrop-blur-md transition-all border border-white/10"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to Department Events</span>
-              </Link>
-
-              <span className="px-3.5 py-1 rounded-full text-xs font-bold font-sans uppercase tracking-widest bg-cyan-accent text-oxford shadow-xs">
-                {event.category}
-              </span>
-            </div>
+        {/* Hero Content (Centered Text) */}
+        <div className="relative z-10 w-full max-w-5xl mx-auto px-6 sm:px-12 lg:px-16 text-center space-y-4 pt-16 sm:pt-20 lg:pt-24">
+          {/* Breadcrumbs Above Title - Enlarged */}
+          <div className="flex items-center justify-center space-x-3 text-xl sm:text-2xl lg:text-3xl font-sans font-bold text-slate-100 drop-shadow-md">
+            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
+            <span>&gt;</span>
+            <Link href="/events" className="hover:text-cyan-accent transition-colors">Events</Link>
+            <span>&gt;</span>
+            <span className="text-white font-extrabold">Event Details</span>
           </div>
 
-          {/* Event Header Information */}
-          <div className="space-y-4 max-w-4xl">
-            <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-tight">
-              {event.title}
-            </h1>
+          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-black text-white leading-tight drop-shadow-lg">
+            {event.title}
+          </h1>
 
-            <p className="text-slate-300 font-sans text-base sm:text-lg leading-relaxed">
-              {event.desc}
-            </p>
+          <p className="text-slate-100 font-sans text-lg sm:text-xl lg:text-2xl max-w-3xl mx-auto leading-relaxed drop-shadow-sm font-medium">
+            {event.desc}
+          </p>
 
-            {/* Quick Meta Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-white/10 text-xs sm:text-sm text-slate-200">
-              <div className="flex items-center gap-2.5 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-                <Calendar className="w-5 h-5 text-cyan-accent shrink-0" />
-                <div>
-                  <span className="block font-bold text-white text-xs uppercase tracking-wider opacity-80">Date</span>
-                  <span>{event.date}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2.5 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-                <Clock className="w-5 h-5 text-cyan-accent shrink-0" />
-                <div>
-                  <span className="block font-bold text-white text-xs uppercase tracking-wider opacity-80">Time</span>
-                  <span>{event.time}</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2.5 bg-white/5 p-3 rounded-xl border border-white/10 backdrop-blur-sm">
-                <MapPin className="w-5 h-5 text-cyan-accent shrink-0" />
-                <div>
-                  <span className="block font-bold text-white text-xs uppercase tracking-wider opacity-80">Venue</span>
-                  <span className="truncate block">{event.venue}</span>
-                </div>
-              </div>
+          {/* Modern Sleek Metadata Line (No Pill Buttons) */}
+          <div className="pt-4 flex flex-wrap items-center justify-center gap-y-3 gap-x-8 text-sm sm:text-base font-sans text-white border-t border-white/20 max-w-3xl mx-auto">
+            <div className="flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-cyan-accent" />
+              <span className="font-semibold">{event.date}</span>
             </div>
-
+            <span className="hidden sm:inline text-white/40">•</span>
+            <div className="flex items-center gap-2">
+              <Clock className="w-5 h-5 text-cyan-accent" />
+              <span className="font-semibold">{event.time}</span>
+            </div>
+            <span className="hidden sm:inline text-white/40">•</span>
+            <div className="flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-cyan-accent" />
+              <span className="font-semibold">{event.venue}</span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Main Content Area */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 sm:mt-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Main Content Area (Clean Frameless Design without card containers) */}
+      <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 mt-12 sm:mt-16">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 sm:gap-16">
           
-          {/* Left Column (2/3): Event Cover Image, Details & Agenda */}
-          <div className="lg:col-span-2 space-y-8">
+          {/* Left Column (2/3): Details, Gallery & Agenda */}
+          <div className="lg:col-span-2 space-y-12">
             
-            {/* Primary Cover Image Banner */}
-            <div className="bg-white p-3 rounded-3xl border border-slate-200/80 shadow-md overflow-hidden">
-              <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-900">
-                <img 
-                  src={event.image} 
-                  alt={event.title} 
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            </div>
-
             {/* About the Event */}
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-md space-y-6">
-              <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+            <div className="space-y-6 pb-12 border-b border-slate-200">
+              <div className="flex items-center gap-3">
                 <FileText className="w-6 h-6 text-oxford" />
-                <h2 className="font-serif text-2xl font-bold text-oxford">
+                <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-oxford">
                   About the Event
                 </h2>
               </div>
 
-              <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-4 text-sm sm:text-base font-sans">
+              <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-5 text-base sm:text-lg font-sans">
                 {(event.fullDetails || event.desc).split('\n\n').map((paragraph, idx) => (
                   <p key={idx}>{paragraph}</p>
                 ))}
@@ -414,26 +347,26 @@ For further information regarding schedule or venue arrangements, please contact
 
             {/* Event Photo Gallery Section */}
             {event.galleryImages && event.galleryImages.length > 0 && (
-              <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-md space-y-6">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="space-y-6 pb-12 border-b border-slate-200">
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Images className="w-6 h-6 text-oxford" />
-                    <h2 className="font-serif text-2xl font-bold text-oxford">
+                    <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-oxford">
                       Event Photo Gallery
                     </h2>
                   </div>
-                  <span className="text-xs font-mono font-bold text-oxford bg-oxford/10 px-3 py-1 rounded-full border border-oxford/20">
+                  <span className="text-xs font-mono font-bold text-oxford bg-oxford/10 px-3.5 py-1.5 rounded-full">
                     {event.galleryImages.length} Photos
                   </span>
                 </div>
 
                 {/* Gallery Thumbnail Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   {event.galleryImages.map((img, idx) => (
                     <div
                       key={img.id}
                       onClick={() => setLightboxIndex(idx)}
-                      className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 cursor-pointer relative group shadow-xs hover:border-oxford transition-all"
+                      className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-900 border border-slate-200/80 cursor-pointer relative group shadow-sm hover:shadow-md transition-all"
                     >
                       <img
                         src={img.imagePath}
@@ -452,22 +385,22 @@ For further information regarding schedule or venue arrangements, please contact
 
             {/* Program Schedule & Agenda */}
             {event.agenda && event.agenda.length > 0 && (
-              <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-md space-y-6">
-                <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+              <div className="space-y-6">
+                <div className="flex items-center gap-3">
                   <Clock className="w-6 h-6 text-oxford" />
-                  <h2 className="font-serif text-2xl font-bold text-oxford">
+                  <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-oxford">
                     Program Schedule &amp; Agenda
                   </h2>
                 </div>
 
-                <div className="space-y-3 font-sans">
+                <div className="space-y-4 font-sans">
                   {event.agenda.map((item, index) => (
                     <div 
                       key={index}
-                      className="flex items-start gap-3.5 bg-slate-50 p-4 rounded-2xl border border-slate-100/80 hover:bg-slate-100/70 transition-colors"
+                      className="flex items-start gap-4 py-3.5 border-b border-slate-100 last:border-0"
                     >
-                      <CheckCircle2 className="w-5 h-5 text-cyan-accent shrink-0 mt-0.5" />
-                      <span className="text-xs sm:text-sm font-medium text-slate-800">{item}</span>
+                      <CheckCircle2 className="w-5 h-5 text-cyan-dark shrink-0 mt-0.5" />
+                      <span className="text-base font-medium text-slate-800">{item}</span>
                     </div>
                   ))}
                 </div>
@@ -476,59 +409,26 @@ For further information regarding schedule or venue arrangements, please contact
 
           </div>
 
-          {/* Right Column (1/3 Sidebar): Speaker Info, Registration Box & Info */}
-          <div className="space-y-6">
-            
-            {/* Registration Box */}
-            <div className="bg-oxford text-white p-6 sm:p-8 rounded-3xl shadow-xl space-y-5 border border-slate-800 font-sans">
-              <h3 className="font-serif text-xl font-bold text-white flex items-center gap-2">
-                <Bookmark className="w-5 h-5 text-cyan-accent" />
-                <span>Event Registration</span>
-              </h3>
+          {/* Right Column (1/3 Sidebar): Speaker Info & Department Contact */}
+          <div className="space-y-10 lg:pl-4">
 
-              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                Open for faculty members, research scholars, and students. Register to reserve your seat or access the online streaming link.
-              </p>
-
-              {event.applyLink ? (
-                <a
-                  href={event.applyLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-cyan-accent text-oxford font-bold text-sm hover:bg-white hover:text-oxford transition-all shadow-lg"
-                >
-                  <span>Apply / Register Now</span>
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              ) : (
-                <div className="w-full p-3 rounded-xl bg-white/10 text-center text-xs text-slate-300 font-medium">
-                  Registration open at the venue
-                </div>
-              )}
-
-              <div className="pt-3 border-t border-white/10 text-xs text-slate-400 flex items-center gap-2">
-                <Info className="w-4 h-4 text-cyan-accent shrink-0" />
-                <span>Certificates of participation will be issued to registered attendees.</span>
-              </div>
-            </div>
-
-            {/* Resource Person / Speaker Card */}
+            {/* Resource Person / Speaker */}
             {event.speaker && (
-              <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-md space-y-4">
-                <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              <div className="space-y-4 pb-8 border-b border-slate-200">
+                <div className="text-xs font-bold text-slate-400 uppercase tracking-widest font-sans">
                   Resource Person / Keynote Speaker
                 </div>
 
-                <div className="flex items-start gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-oxford shrink-0 border border-slate-200">
-                    <User className="w-6 h-6 text-oxford" />
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-oxford text-white flex items-center justify-center shrink-0 shadow-sm">
+                    <User className="w-6 h-6" />
                   </div>
-                  <div className="space-y-1">
-                    <h4 className="font-bold text-oxford text-base sm:text-lg">
+                  <div className="space-y-1 font-sans">
+                    <h4 className="font-bold text-oxford text-lg sm:text-xl">
                       {event.speaker}
                     </h4>
                     {event.speakerTitle && (
-                      <p className="text-xs text-slate-600 leading-snug">
+                      <p className="text-sm text-slate-600 leading-relaxed">
                         {event.speakerTitle}
                       </p>
                     )}
@@ -537,26 +437,26 @@ For further information regarding schedule or venue arrangements, please contact
               </div>
             )}
 
-            {/* Department Venue & Contact Card */}
-            <div className="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-md space-y-4">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            {/* Department Venue & Contact */}
+            <div className="space-y-4 font-sans">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                 <Building2 className="w-4 h-4 text-oxford" />
                 <span>Host Department</span>
               </div>
 
-              <div className="space-y-2 text-xs text-slate-600">
-                <p className="font-semibold text-oxford text-sm">Department of Physics</p>
+              <div className="space-y-1.5 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p className="font-bold text-oxford">Department of Physics</p>
                 <p>Cochin University of Science and Technology (CUSAT)</p>
                 <p>Kochi - 682022, Kerala, India</p>
               </div>
 
-              <div className="pt-3 border-t border-slate-100">
+              <div className="pt-4">
                 <Link
                   href="/events"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-oxford hover:text-cyan-accent transition-colors"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-oxford hover:text-cyan-dark transition-colors"
                 >
                   <span>Explore more department events</span>
-                  <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+                  <ArrowLeft className="w-4 h-4 rotate-180" />
                 </Link>
               </div>
             </div>

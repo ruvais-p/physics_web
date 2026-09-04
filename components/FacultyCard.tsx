@@ -32,8 +32,8 @@ export default function FacultyCard({ person, onClick }: FacultyCardProps) {
       }`}
     >
       
-      {/* Top Image: Rectangular/Square aspect-ratio, grayscale by default, colored on hover */}
-      <div className="relative w-full aspect-[4/5] sm:aspect-square overflow-hidden bg-slate-50 border border-slate-100">
+      {/* Top Image: Rectangular/Square aspect-ratio, rounded corners, grayscale by default, colored on hover */}
+      <div className="relative w-full aspect-square overflow-hidden rounded-3xl bg-slate-50 border border-slate-100/80 shadow-sm">
         <Image
           src={person.image}
           alt={person.name}
@@ -44,16 +44,16 @@ export default function FacultyCard({ person, onClick }: FacultyCardProps) {
       </div>
 
       {/* Card Details Body - Left-aligned text below the image */}
-      <div className="flex-1 flex flex-col items-start text-left font-sans">
+      <div className="flex-1 flex flex-col items-start text-left font-sans pt-1">
         {/* Name in Oxford Blue */}
-        <h3 className={`text-base sm:text-lg font-bold text-oxford transition-colors leading-snug ${
+        <h3 className={`text-lg sm:text-xl font-bold text-oxford transition-colors leading-snug ${
           isClickable ? 'group-hover:text-cyan-dark' : ''
         }`}>
           {person.name}
         </h3>
 
         {/* Designation / Qualifications or Scholar Info */}
-        <p className={`text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed ${
+        <p className={`text-sm sm:text-base text-slate-600 mt-2 leading-relaxed ${
           isLongText && !isExpanded ? 'line-clamp-3' : ''
         }`}>
           {fullText}

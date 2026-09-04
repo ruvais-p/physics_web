@@ -10,30 +10,30 @@ export default function AlumniPage() {
   return (
     <div className="pb-24 relative bg-[#000a1e] text-white min-h-screen">
       
-      {/* Top Banner (Campus Image Background with Dark Overlay) */}
-      <div className="-mt-[116px] sm:-mt-[128px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center border-b border-white/10">
-        {/* Background Image with Dark Overlay */}
+      {/* Top Banner (Campus Image Background - Matches Homepage Hero Height) */}
+      <div className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center border-b border-white/10">
+        {/* Background Image with Top Blue Gradient Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/campus.jpg"
             alt="CUSAT Campus"
             fill
-            className="object-cover opacity-35"
+            className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#002147]/80 via-[#002147]/30 to-transparent" />
         </div>
 
-        {/* Top Left Breadcrumbs */}
-        <div className="absolute top-36 sm:top-40 left-6 sm:left-12 lg:left-16 z-20 flex items-center space-x-2 text-xl sm:text-2xl font-sans font-semibold text-slate-300">
-          <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
-          <span>&gt;</span>
-          <span className="text-white font-bold">Alumni</span>
-        </div>
+        {/* Hero Content (Centered Text) */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-16 sm:pt-20 lg:pt-24">
+          {/* Breadcrumbs Above Title - Enlarged */}
+          <div className="flex items-center justify-center space-x-3 text-xl sm:text-2xl lg:text-3xl font-sans font-bold text-slate-100 drop-shadow-md">
+            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
+            <span>&gt;</span>
+            <span className="text-white font-extrabold">Alumni</span>
+          </div>
 
-        {/* Hero Title (Centered) */}
-        <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-12">
-          <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white uppercase drop-shadow-md">
+          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight text-white uppercase drop-shadow-lg">
             ALUMNI
           </h1>
         </div>

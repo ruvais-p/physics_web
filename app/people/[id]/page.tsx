@@ -4,6 +4,7 @@ import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { FACULTY_MEMBERS, SCHOLARS, FacultyMember, Scholar } from '@/lib/data';
+import FacultyCard from '@/components/FacultyCard';
 import { Mail, Phone, MapPin, BookOpen, ExternalLink, Download, User } from 'lucide-react';
 
 interface PageProps {
@@ -276,47 +277,23 @@ export default function ProfilePage({ params }: PageProps) {
 
   return (
     <div className="pb-20 relative font-sans">
-      {/* Top Banner */}
-      <div className="-mt-[116px] sm:-mt-[128px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center">
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/faculty.png"
-            alt="Faculty Banner"
-            fill
-            className="object-cover opacity-45"
-            priority
-          />
-          <div className="absolute inset-0 bg-black/60" />
-        </div>
-
-        {/* Top Left Breadcrumbs */}
-        <div className="absolute top-36 sm:top-40 left-6 sm:left-12 lg:left-16 z-20 flex items-center space-x-2 text-xl sm:text-2xl font-sans font-semibold text-slate-300">
-          <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
+      <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 pt-6 sm:pt-10 space-y-8">
+        
+        {/* Breadcrumbs */}
+        <div className="flex items-center space-x-2 text-base sm:text-lg font-sans font-semibold text-slate-500 pb-2 border-b border-slate-100">
+          <Link href="/" className="hover:text-cyan-dark transition-colors">Home</Link>
           <span>&gt;</span>
-          <Link href="/people" className="hover:text-cyan-accent transition-colors">Faculty</Link>
+          <Link href="/people" className="hover:text-cyan-dark transition-colors">Faculty</Link>
           <span>&gt;</span>
-          <span className="text-white font-bold">{person.name}</span>
+          <span className="text-oxford font-bold">{person.name}</span>
         </div>
-
-        {/* Hero Title (Centered) */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-12">
-          <h2 className="text-sm sm:text-base font-bold uppercase tracking-widest text-slate-300 font-sans">
-            {isFaculty ? 'Our Faculty' : 'Our Research Scholars'}
-          </h2>
-          <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white uppercase drop-shadow-md">
-            {isFaculty ? 'OUR FACULTY' : 'OUR SCHOLARS'}
-          </h1>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 py-10 space-y-12">
         
         {/* Top Details Block: Left Photo, Right Text (Flat, borderless) */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-center">
           
           {/* Left Column: Photo (large, rectangular, sharp, no border) */}
           <div className="md:col-span-7 shrink-0 md:-ml-8">
-            <div className="relative w-full aspect-[4/3] bg-slate-50 overflow-hidden border border-slate-100">
+            <div className="relative w-full aspect-[4/3] bg-slate-50 overflow-hidden rounded-2xl border border-slate-100 shadow-sm">
               <img
                 src={person.image || '/faculty.png'}
                 alt={person.name}
@@ -390,7 +367,7 @@ export default function ProfilePage({ params }: PageProps) {
               )}
             </div>
 
-            {/* Social & Academic Profile Badges */}
+            {/* Social & Academic Profile Badges (Blue Theme) */}
             {isFaculty && (person.socialLinks || person.customProfiles) && (
               <div className="pt-4 flex flex-wrap gap-2.5">
                 {person.socialLinks?.scholar && (
@@ -398,10 +375,10 @@ export default function ProfilePage({ params }: PageProps) {
                     href={person.socialLinks.scholar}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 text-sm font-semibold px-4 py-2 rounded border border-blue-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-600 transition-all shadow-sm"
                   >
                     <span>Google Scholar</span>
-                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                    <ExternalLink className="w-3.5 h-3.5 opacity-80" />
                   </a>
                 )}
                 {person.socialLinks?.scopus && (
@@ -409,10 +386,10 @@ export default function ProfilePage({ params }: PageProps) {
                     href={person.socialLinks.scopus}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 bg-orange-50 text-orange-700 hover:bg-orange-100 text-sm font-semibold px-4 py-2 rounded border border-orange-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-600 transition-all shadow-sm"
                   >
                     <span>Scopus</span>
-                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                    <ExternalLink className="w-3.5 h-3.5 opacity-80" />
                   </a>
                 )}
                 {person.socialLinks?.orcid && (
@@ -420,10 +397,10 @@ export default function ProfilePage({ params }: PageProps) {
                     href={person.socialLinks.orcid}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 bg-lime-50 text-lime-700 hover:bg-lime-100 text-sm font-semibold px-4 py-2 rounded border border-lime-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-600 transition-all shadow-sm"
                   >
                     <span>ORCID iD</span>
-                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                    <ExternalLink className="w-3.5 h-3.5 opacity-80" />
                   </a>
                 )}
                 {person.socialLinks?.linkedin && (
@@ -431,10 +408,10 @@ export default function ProfilePage({ params }: PageProps) {
                     href={person.socialLinks.linkedin}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 bg-sky-50 text-sky-700 hover:bg-sky-100 text-sm font-semibold px-4 py-2 rounded border border-sky-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-600 transition-all shadow-sm"
                   >
                     <span>LinkedIn</span>
-                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                    <ExternalLink className="w-3.5 h-3.5 opacity-80" />
                   </a>
                 )}
                 {person.socialLinks?.website && (
@@ -442,10 +419,10 @@ export default function ProfilePage({ params }: PageProps) {
                     href={person.socialLinks.website}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 bg-cyan-50 text-cyan-800 hover:bg-cyan-100 text-sm font-semibold px-4 py-2 rounded border border-cyan-200 transition-colors"
+                    className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-600 transition-all shadow-sm"
                   >
                     <span>Personal Website</span>
-                    <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                    <ExternalLink className="w-3.5 h-3.5 opacity-80" />
                   </a>
                 )}
                 {Array.isArray(person.customProfiles) &&
@@ -455,10 +432,10 @@ export default function ProfilePage({ params }: PageProps) {
                       href={cp.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 bg-purple-50 text-purple-700 hover:bg-purple-100 text-sm font-semibold px-4 py-2 rounded border border-purple-200 transition-colors"
+                      className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-600 transition-all shadow-sm"
                     >
                       <span>{cp.name}</span>
-                      <ExternalLink className="w-3.5 h-3.5 opacity-70" />
+                      <ExternalLink className="w-3.5 h-3.5 opacity-80" />
                     </a>
                   ))}
               </div>
@@ -533,30 +510,26 @@ export default function ProfilePage({ params }: PageProps) {
 
             {/* Supervised Scholars Tab */}
             {activeTab === 'scholars' && isFaculty && (
-              <div className="space-y-8 text-left">
-                <h3 className="text-xl sm:text-2xl font-bold text-oxford font-serif">Guided Students & Ph.D. Scholars</h3>
+              <div className="space-y-8 text-left font-sans">
+                <h3 className="text-xl sm:text-2xl font-bold text-oxford font-serif">Guided Students &amp; Ph.D. Scholars</h3>
 
                 {supervisedScholars.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {supervisedScholars.map((sch: any) => (
-                      <div key={sch.id} className="flex items-start space-x-4 p-4 border border-slate-200 rounded-xl bg-slate-50">
-                        <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-white relative">
-                          {sch.image ? (
-                            <img src={sch.image} alt={sch.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <User className="w-10 h-10 m-auto text-slate-400 mt-3" />
-                          )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {supervisedScholars.map((sch: any) => {
+                      const scholarPerson: Scholar = {
+                        id: String(sch.id || sch.name),
+                        name: sch.name,
+                        type: 'scholar',
+                        supervisor: person.name,
+                        topic: sch.description || sch.topic || '',
+                        image: sch.image || '/faculty.png',
+                      };
+                      return (
+                        <div key={sch.id || sch.name} className="h-full">
+                          <FacultyCard person={scholarPerson} />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <span className="block text-base sm:text-lg font-bold text-oxford">{sch.name}</span>
-                          {sch.description && (
-                            <p className="text-sm text-slate-600 mt-1 leading-relaxed line-clamp-3">
-                              {sch.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 ) : (
                   <p className="text-base text-slate-400 italic">No guided students or Ph.D. scholars currently listed.</p>
@@ -566,166 +539,181 @@ export default function ProfilePage({ params }: PageProps) {
 
             {/* Research Projects Tab */}
             {activeTab === 'projects' && isFaculty && (
-              <div className="space-y-8 text-left font-sans">
+              <div className="space-y-6 text-left font-sans">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl sm:text-2xl font-bold text-oxford font-serif">
-                    Funded & Sponsored Research Projects
+                    Funded &amp; Sponsored Research Projects
                   </h3>
-                  <span className="text-xs sm:text-sm font-semibold text-cyan-dark bg-cyan-50 border border-cyan-200 px-3 py-1 rounded-full">
+                  <span className="text-xs sm:text-sm font-semibold text-oxford bg-slate-100 border border-slate-200 px-3.5 py-1 rounded-full">
                     {facultyProjects.length} Projects
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {facultyProjects.map((proj: any) => (
-                    <div
-                      key={proj.id || proj.title}
-                      className="p-6 border border-slate-200 rounded-xl bg-slate-50 hover:bg-white hover:border-slate-300 hover:shadow-sm transition-all flex flex-col justify-between space-y-4"
-                    >
-                      <div className="space-y-2">
-                        <div className="flex items-start justify-between gap-3">
-                          <span className={`inline-block text-xs font-bold px-2.5 py-1 rounded uppercase tracking-wider ${
-                            proj.status === 'Ongoing'
-                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                              : 'bg-blue-100 text-blue-800 border border-blue-200'
-                          }`}>
-                            {proj.status || 'Ongoing'}
-                          </span>
-                          {proj.agency && (
-                            <span className="text-xs font-bold text-slate-700 bg-slate-200/80 px-2.5 py-1 rounded">
-                              {proj.agency}
-                            </span>
-                          )}
-                        </div>
-
-                        <h4 className="text-lg font-bold text-oxford leading-snug">
-                          {proj.title}
-                        </h4>
-
-                        {proj.description && (
-                          <p className="text-sm text-slate-600 leading-relaxed">
-                            {proj.description}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="pt-3 border-t border-slate-200 space-y-2 text-xs sm:text-sm text-slate-600">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div>
-                            <span className="font-semibold text-oxford">Role:</span> {proj.role || 'Principal Investigator'}
-                          </div>
-                          {proj.duration && (
-                            <div>
-                              <span className="font-semibold text-oxford">Duration:</span> {proj.duration}
-                            </div>
-                          )}
-                          {proj.amount && (
-                            <div>
-                              <span className="font-semibold text-oxford">Grant:</span> {proj.amount}
-                            </div>
-                          )}
-                        </div>
-
-                        {proj.otherFaculty && (
-                          <div className="text-xs text-slate-700 bg-slate-100 p-2 rounded border border-slate-200">
-                            <span className="font-semibold text-oxford">Co-Faculty / Collaborators:</span> {proj.otherFaculty}
-                          </div>
-                        )}
-
-                        {proj.externalLink && (
-                          <a
-                            href={proj.externalLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-dark hover:underline"
-                          >
-                            <span>External Project Link</span>
-                            <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                {facultyProjects.length > 0 ? (
+                  <div className="overflow-x-auto border border-slate-200 rounded-2xl bg-white shadow-xs">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-oxford text-white text-xs uppercase tracking-wider font-bold">
+                          <th className="py-4 px-5">Project Title &amp; Details</th>
+                          <th className="py-4 px-4 whitespace-nowrap">Agency &amp; Status</th>
+                          <th className="py-4 px-4 whitespace-nowrap">Role</th>
+                          <th className="py-4 px-4 whitespace-nowrap">Duration</th>
+                          <th className="py-4 px-4 whitespace-nowrap">Grant Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+                        {facultyProjects.map((proj: any, idx: number) => (
+                          <tr key={proj.id || idx} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="py-4 px-5 space-y-1.5 align-top min-w-[280px]">
+                              <div className="font-bold text-oxford text-base leading-snug">
+                                {proj.title}
+                              </div>
+                              {proj.description && (
+                                <p className="text-xs text-slate-600 leading-relaxed">
+                                  {proj.description}
+                                </p>
+                              )}
+                              {proj.otherFaculty && (
+                                <div className="text-xs text-slate-700 bg-slate-100 px-2.5 py-1 rounded border border-slate-200 inline-block">
+                                  <span className="font-semibold text-oxford">Co-Faculty:</span> {proj.otherFaculty}
+                                </div>
+                              )}
+                              {proj.externalLink && (
+                                <div>
+                                  <a
+                                    href={proj.externalLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline"
+                                  >
+                                    <span>Project Link</span>
+                                    <ExternalLink className="w-3 h-3 opacity-80" />
+                                  </a>
+                                </div>
+                              )}
+                            </td>
+                            <td className="py-4 px-4 align-top whitespace-nowrap space-y-1.5">
+                              {proj.agency && (
+                                <div className="text-xs font-bold text-slate-800 bg-slate-100 px-2.5 py-1 rounded inline-block border border-slate-200">
+                                  {proj.agency}
+                                </div>
+                              )}
+                              <div>
+                                <span className={`inline-block text-[11px] font-bold px-2.5 py-0.5 rounded uppercase tracking-wider ${
+                                  proj.status === 'Ongoing'
+                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                    : 'bg-blue-100 text-blue-800 border border-blue-200'
+                                }`}>
+                                  {proj.status || 'Ongoing'}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 align-top whitespace-nowrap text-xs font-semibold text-slate-800">
+                              {proj.role || 'Principal Investigator'}
+                            </td>
+                            <td className="py-4 px-4 align-top whitespace-nowrap text-xs text-slate-600">
+                              {proj.duration || 'N/A'}
+                            </td>
+                            <td className="py-4 px-4 align-top whitespace-nowrap text-xs font-bold text-oxford">
+                              {proj.amount || 'N/A'}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-base text-slate-400 italic">No research projects currently listed.</p>
+                )}
               </div>
             )}
 
             {/* Publications Tab */}
             {activeTab === 'publications' && isFaculty && (
-              <div className="space-y-8 text-left font-sans">
+              <div className="space-y-6 text-left font-sans">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl sm:text-2xl font-bold text-oxford font-serif">
-                    Peer-Reviewed Publications & Research Papers
+                    Peer-Reviewed Publications &amp; Research Papers
                   </h3>
-                  <span className="text-xs sm:text-sm font-semibold text-oxford bg-slate-100 border border-slate-200 px-3 py-1 rounded-full">
+                  <span className="text-xs sm:text-sm font-semibold text-oxford bg-slate-100 border border-slate-200 px-3.5 py-1 rounded-full">
                     {facultyPublications.length} Publications
                   </span>
                 </div>
 
                 {facultyPublications.length > 0 ? (
-                  <div className="space-y-4">
-                    {facultyPublications.map((pub: any) => (
-                      <div
-                        key={pub.id || pub.title}
-                        className="p-6 border border-slate-200 rounded-xl bg-slate-50 hover:bg-white hover:border-slate-300 hover:shadow-sm transition-all flex flex-col justify-between space-y-3"
-                      >
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between gap-3 flex-wrap">
-                            <span className="inline-block text-xs font-bold px-2.5 py-1 rounded uppercase tracking-wider bg-indigo-100 text-indigo-900 border border-indigo-200">
-                              {pub.category || 'Journal Article'}
-                            </span>
-                            {pub.publicationDate && (
-                              <span className="text-xs font-semibold text-slate-500">
-                                {new Date(pub.publicationDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  <div className="overflow-x-auto border border-slate-200 rounded-2xl bg-white shadow-xs">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-oxford text-white text-xs uppercase tracking-wider font-bold">
+                          <th className="py-4 px-4 text-center w-12">#</th>
+                          <th className="py-4 px-5">Paper Title &amp; Details</th>
+                          <th className="py-4 px-4 whitespace-nowrap">Category</th>
+                          <th className="py-4 px-4 whitespace-nowrap">Journal / Date</th>
+                          <th className="py-4 px-4 text-right whitespace-nowrap">Link / DOI</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+                        {facultyPublications.map((pub: any, idx: number) => (
+                          <tr key={pub.id || idx} className="hover:bg-slate-50/80 transition-colors">
+                            <td className="py-4 px-4 align-top text-center text-xs font-bold text-slate-400">
+                              {idx + 1}
+                            </td>
+                            <td className="py-4 px-5 space-y-1.5 align-top min-w-[300px]">
+                              <div className="font-bold text-oxford text-base leading-snug">
+                                {pub.title}
+                              </div>
+                              {pub.authors && (
+                                <p className="text-xs text-slate-700 font-medium">
+                                  <span className="font-bold text-oxford">Authors:</span> {pub.authors}
+                                </p>
+                              )}
+                              {pub.description && (
+                                <p className="text-xs text-slate-600 leading-relaxed">
+                                  {pub.description}
+                                </p>
+                              )}
+                            </td>
+                            <td className="py-4 px-4 align-top whitespace-nowrap">
+                              <span className="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded uppercase tracking-wider bg-indigo-100 text-indigo-900 border border-indigo-200">
+                                {pub.category || 'Journal Article'}
                               </span>
-                            )}
-                          </div>
-
-                          <h4 className="text-lg font-bold text-oxford leading-snug">
-                            {pub.title}
-                          </h4>
-
-                          {pub.authors && (
-                            <p className="text-sm text-slate-700 font-medium">
-                              <strong className="text-oxford">Authors:</strong> {pub.authors}
-                            </p>
-                          )}
-
-                          {pub.journal && (
-                            <p className="text-sm text-slate-600 italic font-serif">
-                              {pub.journal}
-                            </p>
-                          )}
-
-                          {pub.description && (
-                            <p className="text-sm text-slate-600 leading-relaxed pt-1">
-                              {pub.description}
-                            </p>
-                          )}
-                        </div>
-
-                        {(pub.externalLink || pub.doi) && (
-                          <div className="pt-3 border-t border-slate-200 flex items-center justify-between gap-3 text-xs sm:text-sm">
-                            {pub.doi && (
-                              <span className="text-xs font-mono text-slate-500">
-                                DOI: {pub.doi}
-                              </span>
-                            )}
-                            {pub.externalLink && (
-                              <a
-                                href={pub.externalLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-dark hover:underline ml-auto"
-                              >
-                                <span>View Publication / External Link</span>
-                                <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-                              </a>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                            </td>
+                            <td className="py-4 px-4 align-top whitespace-nowrap space-y-1">
+                              {pub.journal && (
+                                <p className="text-xs font-semibold text-oxford italic font-serif">
+                                  {pub.journal}
+                                </p>
+                              )}
+                              {pub.publicationDate && (
+                                <p className="text-xs text-slate-500">
+                                  {new Date(pub.publicationDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                </p>
+                              )}
+                            </td>
+                            <td className="py-4 px-4 align-top text-right whitespace-nowrap space-y-1.5">
+                              {pub.externalLink && (
+                                <div>
+                                  <a
+                                    href={pub.externalLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all shadow-xs"
+                                  >
+                                    <span>View Paper</span>
+                                    <ExternalLink className="w-3 h-3 opacity-80" />
+                                  </a>
+                                </div>
+                              )}
+                              {pub.doi && (
+                                <p className="text-[11px] font-mono text-slate-500">
+                                  DOI: {pub.doi}
+                                </p>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 ) : (
                   <p className="text-base text-slate-400 italic">No publications listed for this faculty member yet.</p>

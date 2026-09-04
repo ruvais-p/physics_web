@@ -42,21 +42,21 @@ export default function CourseCard({ course }: CourseCardProps) {
     : DEFAULT_COURSE_SCHEMES[course.id] || [];
 
   // Format title (e.g., "MSc in Physics")
-  const cleanTitle = course.level === 'MSc' 
-    ? 'MSc in Physics' 
-    : course.level === 'PhD' 
-      ? 'PhD in Physics' 
+  const cleanTitle = course.level === 'MSc'
+    ? 'MSc in Physics'
+    : course.level === 'PhD'
+      ? 'PhD in Physics'
       : 'Integrated MSc in Physics';
 
   return (
     <div id={course.id} className="scroll-mt-36 max-w-5xl mx-auto space-y-8 font-sans py-6">
-      
+
       {/* Course Title & Quick Facts Bar */}
       <div className="space-y-4">
         <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
           {cleanTitle}
         </h1>
-        
+
         {/* Quick Facts Bar */}
         <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-slate-600">
           <div className="flex items-center space-x-1.5">
@@ -68,6 +68,16 @@ export default function CourseCard({ course }: CourseCardProps) {
             <span>Annual Intake: {course.intake} Seats</span>
           </div>
         </div>
+
+        {/* Course Description Sentences */}
+        {course.description && (
+          <p className="text-slate-700 text-base sm:text-lg leading-relaxed pt-1">
+            {course.description}
+          </p>
+        )}
+
+        {/* Eligibility Details */}
+
       </div>
 
       {/* Prominent & Enlarged Curriculum Scheme Table */}
@@ -80,7 +90,7 @@ export default function CourseCard({ course }: CourseCardProps) {
             Click on any row or action button to view/download the official syllabus curriculum PDF.
           </p>
         </div>
-        
+
         <div className="overflow-hidden border border-slate-200/90 rounded-2xl shadow-md bg-white">
           <table className="min-w-full divide-y divide-slate-200 text-left font-sans text-base">
             <thead className="bg-slate-50 text-oxford font-bold uppercase tracking-wider text-xs sm:text-sm">
@@ -92,8 +102,8 @@ export default function CourseCard({ course }: CourseCardProps) {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {schemes.map((item, idx) => (
-                <tr 
-                  key={idx} 
+                <tr
+                  key={idx}
                   onClick={() => window.open(item.pdfUrl, '_blank')}
                   className="hover:bg-cyan-50/40 cursor-pointer transition-colors duration-150 group"
                 >
