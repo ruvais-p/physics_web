@@ -60,6 +60,13 @@ export interface ResearchLab {
   activeProjects: number;
 }
 
+export interface ResearchDomain {
+  id: string;
+  number: string;
+  title: string;
+  description: string;
+}
+
 export interface Facility {
   id: string;
   name: string;
@@ -881,5 +888,44 @@ export const PUBLICATIONS: Publication[] = [
     citations: 19,
     category: 'Nuclear Physics',
     abstract: 'Using the Coulomb and proximity potential model (CPPM), we systematically calculate cluster radioactivity decay half-lives for heavy isotopes of superheavy elements Z = 118, 120, and 122 with cluster emissions up to 50Ca.',
+  },
+];
+
+export const RESEARCH_DOMAINS: ResearchDomain[] = [
+  {
+    id: 'rd1',
+    number: '01',
+    title: 'Nanostructured Materials',
+    description: 'Synthesis and study of functional nanomaterials in forms such as nanoparticles, nanorods, nanoflowers, nanonails, nanofibres, nanomesh, nanopillars, and nanoshells using hydrothermal, combustion, chemical, and microwave methods.',
+  },
+  {
+    id: 'rd2',
+    number: '02',
+    title: 'Materials for Photocatalytic Water Purification',
+    description: 'Research on semiconductor-based photocatalysts for degradation of dyes, pharmaceuticals, pesticides, and other contaminants in water.',
+  },
+  {
+    id: 'rd3',
+    number: '03',
+    title: 'Energy Storage & Conversion Devices',
+    description: 'Design and fabrication of novel supercapacitors, nanodielectrics, battery electrodes, and hybrid thin-film solar cell structures for clean energy technologies.',
+  },
+  {
+    id: 'rd4',
+    number: '04',
+    title: 'Nanophotonics & Optoelectronic Systems',
+    description: 'Pioneering investigations in light-matter interactions, laser spectroscopy, nonlinear optical absorption, and integrated photothermal sensor devices.',
+  },
+  {
+    id: 'rd5',
+    number: '05',
+    title: 'Magnetic Nanomaterials & Spintronics',
+    description: 'Synthesis and characterization of soft/hard magnetic ferrites, multiferroic nanocomposites, spintronic memory junctions, and magnetic hyperthermia agents.',
+  },
+  {
+    id: 'rd6',
+    number: '06',
+    title: 'Theoretical Physics & Cosmology',
+    description: 'Mathematical modeling of early universe evolution, holographic dark energy, black hole thermodynamics, quantum transport, and superheavy nuclear decay systematics.',
   },
 ];

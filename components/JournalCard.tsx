@@ -1,5 +1,5 @@
 import { Publication } from '@/lib/data';
-import { ExternalLink, Quote } from 'lucide-react';
+import { BookOpen, ExternalLink } from 'lucide-react';
 
 interface JournalCardProps {
   publication: Publication;
@@ -7,56 +7,46 @@ interface JournalCardProps {
 
 export default function JournalCard({ publication }: JournalCardProps) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover-lift flex flex-col justify-between space-y-4">
-      <div className="space-y-3">
-        {/* Category & Year */}
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <span className="bg-surface-low text-oxford font-sans text-xs font-semibold px-2.5 py-0.5 rounded-full border border-cyan-accent/20">
-            {publication.category}
+    <div className="bg-white rounded-[2rem] p-7 sm:p-8 border border-slate-100/90 shadow-[0_10px_30px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.06)] transition-all duration-300 flex flex-col justify-between space-y-5 group">
+      <div className="space-y-4">
+        {/* Top Row: Dark Navy Year Pill & Golden Outline Book Icon */}
+        <div className="flex items-center justify-between">
+          <span className="bg-[#0B1E36] text-white text-xs font-extrabold px-3.5 py-1 rounded-md tracking-wider font-sans">
+            {publication.year}
           </span>
-          <span className="text-xs font-bold text-slate-400">
-            Year: {publication.year}
+          <BookOpen className="w-5 h-5 text-[#FDE68A] stroke-[2]" />
+        </div>
+
+        {/* Category / Journal Pill */}
+        <div>
+          <span className="inline-block bg-[#F0F4F8] text-slate-600 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider px-3.5 py-1.5 rounded-lg border border-slate-200/50 max-w-full truncate font-sans">
+            {publication.category || publication.journal}
           </span>
         </div>
 
         {/* Paper Title */}
-        <h3 className="font-serif text-lg font-bold text-oxford leading-snug">
+        <h3 className="font-extrabold text-lg sm:text-xl text-[#0B1E36] leading-snug tracking-tight font-sans group-hover:text-cyan-600 transition-colors">
           {publication.title}
         </h3>
-
-        {/* Authors */}
-        <p className="text-xs font-medium text-cyan-dark">
-          {publication.authors.join(', ')}
-        </p>
-
-        {/* Journal Name & Citation details */}
-        <div className="text-xs text-slate-600 font-sans italic bg-slate-50 p-2.5 rounded border border-slate-200/60">
-          <span className="font-semibold not-italic text-oxford">{publication.journal}</span>, {publication.volume}
-        </div>
-
-        {/* Abstract */}
-        <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
-          {publication.abstract}
-        </p>
       </div>
 
-      {/* Footer / DOI Link & Citation Count */}
-      <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-        <a
-          href={`https://doi.org/${publication.doi}`}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center space-x-1 font-semibold text-cyan-accent hover:text-cyan-dark transition-colors"
-        >
-          <span>DOI: {publication.doi}</span>
-          <ExternalLink className="w-3 h-3" />
-        </a>
-
-        <div className="flex items-center space-x-1 text-slate-500 bg-slate-100 px-2.5 py-1 rounded">
-          <Quote className="w-3 h-3 text-cyan-accent" />
-          <span className="font-semibold text-oxford">{publication.citations}</span>
-          <span className="text-[10px]">Citations</span>
-        </div>
+      {/* Authors Footer */}
+      <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-4 text-xs sm:text-sm font-medium text-slate-400 font-sans">
+        <p className="line-clamp-1">
+          <span className="font-bold text-slate-500">By:</span>{' '}
+          {publication.authors ? publication.authors.join(', ') : 'Department Researchers'}
+        </p>
+        {publication.doi && (
+          <a
+            href={`https://doi.org/${publication.doi}`}
+            target="_blank"
+            rel="noreferrer"
+            className="text-cyan-600 hover:text-cyan-700 font-bold shrink-0 inline-flex items-center gap-1 transition-colors"
+          >
+            <span>DOI</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        )}
       </div>
     </div>
   );
