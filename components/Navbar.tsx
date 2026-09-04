@@ -99,9 +99,9 @@ export default function Navbar() {
       >
         <div className="max-w-[1536px] mx-auto flex items-center justify-between">
 
-          {/* Brand Title with DOP Logo */}
-          <Link id="nav-brand-link" href="/" className="flex items-center space-x-3 group">
-            <div className="h-10 sm:h-13 w-auto text-cyan-accent group-hover:scale-105 transition-transform duration-300 drop-shadow-sm">
+          {/* Brand Logo */}
+          <Link id="nav-brand-link" href="/" className="flex items-center group" aria-label="Department of Physics Home">
+            <div className="h-10 sm:h-12 w-auto text-cyan-accent group-hover:scale-105 transition-transform duration-300 drop-shadow-sm">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 160" className="h-full w-auto fill-current text-cyan-accent">
                 <text x="5" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">D</text>
                 <g transform="translate(110, 80)">
@@ -112,12 +112,6 @@ export default function Navbar() {
                 </g>
                 <text x="150" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">P</text>
               </svg>
-            </div>
-            <div className="hidden sm:block">
-              <span className={`block font-sans text-base sm:text-lg font-bold uppercase tracking-wider leading-tight transition-colors ${shouldBeBlue ? 'text-oxford' : 'text-cyan-accent'
-                }`}>
-                DEPARTMENT OF PHYSICS
-              </span>
             </div>
           </Link>
 

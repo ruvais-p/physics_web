@@ -10,9 +10,9 @@ export default function LibraryPage() {
   return (
     <div className="pb-24 relative bg-[#000a1e] text-white min-h-screen">
       
-      {/* Top Banner (Campus Image Background with Oxford Blue Overlay) */}
-      <div className="-mt-[116px] sm:-mt-[128px] relative bg-[#000a1e] text-white overflow-hidden border-b border-white/10">
-        {/* Background Image with Dark Blue Overlay */}
+      {/* Top Banner (Campus Image Background with Dark Overlay) */}
+      <div className="-mt-[116px] sm:-mt-[128px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center border-b border-white/10">
+        {/* Background Image with Dark Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/campus.jpg"
@@ -21,21 +21,21 @@ export default function LibraryPage() {
             className="object-cover opacity-35"
             priority
           />
-          <div className="absolute inset-0 bg-[#002147]/75 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-black/60" />
         </div>
 
-        {/* Content (Centered) */}
-        <div className="relative z-10 max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 pt-40 pb-16 sm:pb-20 text-center space-y-3">
-          <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white uppercase">
+        {/* Top Left Breadcrumbs */}
+        <div className="absolute top-36 sm:top-40 left-6 sm:left-12 lg:left-16 z-20 flex items-center space-x-2 text-xl sm:text-2xl font-sans font-semibold text-slate-300">
+          <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
+          <span>&gt;</span>
+          <span className="text-white font-bold">Library</span>
+        </div>
+
+        {/* Hero Title (Centered) */}
+        <div className="relative z-10 w-full max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-12">
+          <h1 className="font-serif text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-white uppercase drop-shadow-md">
             LIBRARY
           </h1>
-          
-          {/* Centered Breadcrumbs */}
-          <div className="flex items-center justify-center space-x-2 text-xs sm:text-sm font-sans font-medium text-slate-300">
-            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
-            <span>&gt;</span>
-            <span className="text-white font-semibold">Library</span>
-          </div>
         </div>
       </div>
 

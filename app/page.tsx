@@ -122,120 +122,32 @@ export default function HomePage() {
             </p>
           </div>
         </div>
-      </section>      {/* News & Events Section */}
+      </section>      {/* Events Section */}
       <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-low/20 border-b border-surface-mid/30">
-        <div className="max-w-[1536px] mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
-            
-            {/* Left: News */}
-            <div className="lg:col-span-7 flex flex-col justify-between">
-              <div className="space-y-6">
-                <h3 className="font-serif text-3xl font-extrabold text-oxford border-b border-slate-200 pb-3">
-                  News
-                </h3>
-                
-                {/* News Cards Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* News Card 1 */}
-                  <div className="bg-white border border-slate-200/85 rounded-2xl shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between">
-                    <div>
-                      <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
-                        {/* Date Badge */}
-                        <div className="absolute top-3 left-3 z-10 bg-cyan-accent text-white font-sans font-bold text-[10px] px-2.5 py-1.5 rounded-lg flex flex-col items-center justify-center text-center shadow-md">
-                          <span className="text-sm leading-none font-bold">16</span>
-                          <span className="text-[9px] uppercase tracking-wider leading-none mt-0.5">Jul</span>
-                        </div>
-                        
-                        <img
-                          src="/cusat-building.png"
-                          alt="CUSAT Department of Physics"
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                        />
-                      </div>
-                      
-                      <div className="p-5 space-y-2">
-                        <h4 className="font-sans text-sm sm:text-base font-bold text-oxford leading-snug group-hover:text-cyan-accent transition-colors line-clamp-2">
-                          Department of Physics to Co-Develop Advanced Astro-payloads with National Space Agencies
-                        </h4>
-                        <p className="text-slate-600 text-xs sm:text-sm leading-relaxed line-clamp-3">
-                          A pioneering agreement has been reached to design and build lightweight cosmic-ray detectors and semiconductor payloads. The project will run out of our thin film and electronics laboratories.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="px-5 pb-5">
-                      <Link href="/news" className="text-xs font-bold text-cyan-accent group-hover:text-cyan-dark uppercase tracking-wider inline-flex items-center gap-0.5">
-                        Read Article &rarr;
-                      </Link>
-                    </div>
-                  </div>
-
-                  {/* News Card 2 */}
-                  <div className="bg-white border border-slate-200/85 rounded-2xl shadow-sm overflow-hidden group hover:shadow-md transition-all duration-300 flex flex-col justify-between">
-                    <div>
-                      <div className="relative aspect-[16/9] w-full overflow-hidden bg-slate-100">
-                        {/* Date Badge */}
-                        <div className="absolute top-3 left-3 z-10 bg-cyan-accent text-white font-sans font-bold text-[10px] px-2.5 py-1.5 rounded-lg flex flex-col items-center justify-center text-center shadow-md">
-                          <span className="text-sm leading-none font-bold">12</span>
-                          <span className="text-[9px] uppercase tracking-wider leading-none mt-0.5">Jul</span>
-                        </div>
-                        
-                        <img
-                          src="/eventssss.jpg"
-                          alt="Incoming Batch orientation foyer"
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                        />
-                      </div>
-                      
-                      <div className="p-5 space-y-2">
-                        <h4 className="font-sans text-sm sm:text-base font-bold text-oxford leading-snug group-hover:text-cyan-accent transition-colors line-clamp-2">
-                          Department of Physics Welcomes Incoming 2026 Batch of Postgraduates &amp; Scholars
-                        </h4>
-                        <p className="text-slate-600 text-xs sm:text-sm leading-relaxed line-clamp-3">
-                          An orientation ceremony was held at the department foyer to welcome the incoming batch of M.Sc., Integrated M.Sc., and Ph.D. scholars, showcasing the heritage and advanced lab facilities.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="px-5 pb-5">
-                      <Link href="/news" className="text-xs font-bold text-cyan-accent group-hover:text-cyan-dark uppercase tracking-wider inline-flex items-center gap-0.5">
-                        Read Article &rarr;
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-6">
-                <Link
-                  href="/news"
-                  className="inline-flex items-center text-xs sm:text-sm font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors duration-200"
-                >
-                  View More News &gt;
-                </Link>
-              </div>
+        <div className="max-w-[1536px] mx-auto space-y-10">
+          
+          {/* Section Header */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 pb-4">
+            <div>
+              <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest font-sans">
+                Department Activities
+              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight mt-1">
+                Upcoming &amp; Featured Events
+              </h2>
             </div>
-
-            {/* Right: Events */}
-            <div className="lg:col-span-5 flex flex-col justify-between">
-              <div className="space-y-6">
-                <h3 className="font-serif text-3xl font-extrabold text-oxford border-b border-slate-200 pb-3">
-                  Events
-                </h3>
-                
-                {/* Dynamic Events Stack Fetched Live from PostgreSQL DB */}
-                <HomeEvents />
-              </div>
-
-              <div className="pt-6">
-                <Link
-                  href="/events"
-                  className="inline-flex items-center text-xs sm:text-sm font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors duration-200"
-                >
-                  View More Events &gt;
-                </Link>
-              </div>
-            </div>
-
+            <Link
+              href="/events"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors duration-200 shrink-0"
+            >
+              <span>View All Events</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
           </div>
+
+          {/* Dynamic Events Cards Grid Fetched Live from PostgreSQL DB */}
+          <HomeEvents />
+
         </div>
       </section>
 

@@ -243,7 +243,7 @@ export default function FacilityDetailPage({ params }: PageProps) {
   return (
     <div className="space-y-12 pb-24 relative font-sans">
       {/* Facility Hero Image Banner */}
-      <div className="-mt-[116px] sm:-mt-[128px] relative bg-slate-900 text-white overflow-hidden min-h-[420px] sm:min-h-[500px] flex items-end">
+      <div className="-mt-[116px] sm:-mt-[128px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center">
         {/* Hero Background Image */}
         <div className="absolute inset-0 z-0">
           <Image
@@ -253,27 +253,26 @@ export default function FacilityDetailPage({ params }: PageProps) {
             className="object-cover opacity-45"
             priority
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-oxford/70 to-oxford/50 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-black/60 to-black/40" />
         </div>
 
-        {/* Hero Content */}
-        <div className="relative z-10 max-w-7xl mx-auto w-full px-6 sm:px-12 lg:px-20 pt-48 pb-12 sm:pb-16 space-y-4">
-          <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-slate-300 font-medium">
-            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
-            <span>&gt;</span>
-            <Link href="/facilities" className="hover:text-cyan-accent transition-colors">Facilities</Link>
-            <span>&gt;</span>
-            <span className="text-cyan-accent font-semibold truncate max-w-[200px] sm:max-w-none">{facility.name}</span>
-          </div>
+        {/* Top Left Breadcrumbs */}
+        <div className="absolute top-36 sm:top-40 left-6 sm:left-12 lg:left-16 z-20 flex flex-wrap items-center gap-2 text-xl sm:text-2xl text-slate-300 font-semibold">
+          <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
+          <span>&gt;</span>
+          <Link href="/facilities" className="hover:text-cyan-accent transition-colors">Facilities</Link>
+          <span>&gt;</span>
+          <span className="text-cyan-accent font-bold truncate max-w-[200px] sm:max-w-none">{facility.name}</span>
+        </div>
 
-          <div className="space-y-3">
-            <span className="inline-block bg-cyan-500/20 backdrop-blur-md text-cyan-300 border border-cyan-400/30 text-xs font-bold px-3.5 py-1 rounded-full uppercase tracking-wider">
-              Central Department Facility
-            </span>
-            <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
-              {facility.name}
-            </h1>
-          </div>
+        {/* Hero Title (Centered) */}
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-12">
+          <span className="inline-block bg-cyan-500/20 backdrop-blur-md text-cyan-300 border border-cyan-400/30 text-xs font-bold px-3.5 py-1 rounded-full uppercase tracking-wider">
+            Central Department Facility
+          </span>
+          <h1 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
+            {facility.name}
+          </h1>
         </div>
       </div>
 
