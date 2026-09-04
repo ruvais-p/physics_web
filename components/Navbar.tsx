@@ -48,7 +48,8 @@ const NAV_ITEMS: NavItem[] = [
     href: '/research',
     iconType: 'chevron',
     dropdown: [
-      { name: 'Research Laboratories', href: '/research' },
+      { name: 'Research Domains', href: '/research#domains' },
+      { name: 'Research Laboratories', href: '/research#labs' },
       { name: 'Journals & Publications', href: '/journals' },
       { name: 'Central Facilities', href: '/facilities' },
     ],

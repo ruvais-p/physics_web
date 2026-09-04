@@ -2,6 +2,8 @@ import Link from 'next/link';
 import Hero from '@/components/Hero';
 import NotificationsTicker from '@/components/NotificationsTicker';
 import HomeEvents from '@/components/HomeEvents';
+import JournalCard from '@/components/JournalCard';
+import ProjectCard from '@/components/ProjectCard';
 import { RESEARCH_LABS, PUBLICATIONS } from '@/lib/data';
 import { ChevronRight, ExternalLink, BookOpen } from 'lucide-react';
 
@@ -180,93 +182,51 @@ export default function HomePage() {
         <div className="max-w-[1536px] mx-auto space-y-10">
 
           {/* Section Title */}
-          <div className="text-center border-b border-slate-200 pb-4">
+          <div className="text-center space-y-3 border-b border-slate-200 pb-6">
+            <span className="text-xs font-extrabold text-cyan-accent uppercase tracking-widest block font-sans">
+              Funded Research Initiatives
+            </span>
             <h2 className="font-serif text-4xl sm:text-5xl font-bold text-oxford text-center">
               Spotlight Projects
             </h2>
           </div>
 
-          {/* Infinite Auto-Scrolling Row */}
-          <div className="overflow-hidden relative -mx-4 px-4 sm:mx-0 sm:px-0">
-            {/* Soft edge gradients */}
-            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-surface-low/50 via-surface-low/30 to-transparent z-10 pointer-events-none" />
-            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-surface-low/50 via-surface-low/30 to-transparent z-10 pointer-events-none" />
-
-            <div className="flex gap-8 animate-marquee-labs hover:[animation-play-state:paused] py-4">
-              {[
-                {
-                  id: 'p1',
-                  title: 'Development of Quantum Cryptography & Key Distribution for Secure Communication',
-                  desc: 'This project focuses on building quantum key distribution links over existing optical fiber channels, achieving absolute information-theoretic security using entangled photons.',
-                  image: 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=600&q=80',
-                },
-                {
-                  id: 'p2',
-                  title: 'Polyaniline-Graphene Hybrid Nanostructures for Next-Generation Supercapacitors',
-                  desc: 'An interdisciplinary project aimed at fabricating lightweight, flexible supercapacitors with high energy density and cycle life for micro-mobility energy storage.',
-                  image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&q=80',
-                },
-                {
-                  id: 'p3',
-                  title: 'Holographic Dark Energy & Gravitational Wave Signature Modeling',
-                  desc: 'Developing large-scale cosmological simulation pipelines to trace the thermodynamic constraints on dark energy and predict signature anomalies in future gravitational wave detectors.',
-                  image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&q=80',
-                },
-              ].map((proj) => (
-                <div key={`orig-${proj.id}`} className="w-[300px] sm:w-[380px] flex-shrink-0 space-y-4">
-                  <div className="aspect-[4/3] w-full relative rounded-2xl overflow-hidden shadow-sm bg-slate-100">
-                    <img
-                      src={proj.image}
-                      alt={proj.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <h3 className="font-sans text-base sm:text-lg font-bold text-oxford leading-tight">
-                    {proj.title}
-                  </h3>
-                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed text-justify font-sans">
-                    {proj.desc}
-                  </p>
-                </div>
-              ))}
-              {/* Duplicate array for seamless infinite looping */}
-              {[
-                {
-                  id: 'p1',
-                  title: 'Development of Quantum Cryptography & Key Distribution for Secure Communication',
-                  desc: 'This project focuses on building quantum key distribution links over existing optical fiber channels, achieving absolute information-theoretic security using entangled photons.',
-                  image: 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=600&q=80',
-                },
-                {
-                  id: 'p2',
-                  title: 'Polyaniline-Graphene Hybrid Nanostructures for Next-Generation Supercapacitors',
-                  desc: 'An interdisciplinary project aimed at fabricating lightweight, flexible supercapacitors with high energy density and cycle life for micro-mobility energy storage.',
-                  image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&q=80',
-                },
-                {
-                  id: 'p3',
-                  title: 'Holographic Dark Energy & Gravitational Wave Signature Modeling',
-                  desc: 'Developing large-scale cosmological simulation pipelines to trace the thermodynamic constraints on dark energy and predict signature anomalies in future gravitational wave detectors.',
-                  image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&q=80',
-                },
-              ].map((proj) => (
-                <div key={`dup-${proj.id}`} className="w-[300px] sm:w-[380px] flex-shrink-0 space-y-4">
-                  <div className="aspect-[4/3] w-full relative rounded-2xl overflow-hidden shadow-sm bg-slate-100">
-                    <img
-                      src={proj.image}
-                      alt={proj.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <h3 className="font-sans text-base sm:text-lg font-bold text-oxford leading-tight">
-                    {proj.title}
-                  </h3>
-                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed text-justify font-sans">
-                    {proj.desc}
-                  </p>
-                </div>
-              ))}
-            </div>
+          {/* Project Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto">
+            {[
+              {
+                id: 'p1',
+                title: 'Development of Quantum Cryptography & Key Distribution for Secure Communication',
+                desc: 'This project focuses on building quantum key distribution links over existing optical fiber channels, achieving absolute information-theoretic security using entangled photons.',
+                image: 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=600&q=80',
+                agency: 'DST-SERB',
+                category: 'QUANTUM CRYPTOGRAPHY',
+                investigator: 'Dr. Ramesh Babu T.',
+                funding: '₹45 Lakhs',
+              },
+              {
+                id: 'p2',
+                title: 'Polyaniline-Graphene Hybrid Nanostructures for Next-Generation Supercapacitors',
+                desc: 'An interdisciplinary project aimed at fabricating lightweight, flexible supercapacitors with high energy density and cycle life for micro-mobility energy storage.',
+                image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&q=80',
+                agency: 'KSCSTE',
+                category: 'ENERGY MATERIALS',
+                investigator: 'Dr. S. Jayalekshmi',
+                funding: '₹32 Lakhs',
+              },
+              {
+                id: 'p3',
+                title: 'Holographic Dark Energy & Gravitational Wave Signature Modeling',
+                desc: 'Developing large-scale cosmological simulation pipelines to trace thermodynamic constraints on dark energy and predict signature anomalies in future gravitational wave detectors.',
+                image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&q=80',
+                agency: 'DST-INSPIRE',
+                category: 'COSMOLOGY & GRAVITY',
+                investigator: 'Dr. Titus K. Mathew',
+                funding: '₹28 Lakhs',
+              },
+            ].map((proj) => (
+              <ProjectCard key={proj.id} project={proj} />
+            ))}
           </div>
 
         </div>
@@ -283,7 +243,7 @@ export default function HomePage() {
             </h2>
             <div className="flex justify-center">
               <Link
-                href="/research"
+                href="/journals"
                 className="inline-flex items-center gap-1 text-sm font-bold text-cyan-accent hover:text-cyan-dark transition-colors"
               >
                 <span>View All Publications &rarr;</span>
@@ -291,65 +251,11 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Publications Table */}
-          <div className="overflow-x-auto border border-slate-200/90 rounded-2xl bg-white shadow-xs">
-            <table className="w-full text-left border-collapse font-sans">
-              <thead>
-                <tr className="bg-oxford text-white text-xs uppercase tracking-wider font-bold">
-                  <th className="py-4 px-5">Paper Title &amp; Abstract</th>
-                  <th className="py-4 px-4 whitespace-nowrap">Category</th>
-                  <th className="py-4 px-4 whitespace-nowrap">Journal &amp; Year</th>
-                  <th className="py-4 px-4 text-right whitespace-nowrap">DOI / Link</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-                {PUBLICATIONS.slice(0, 5).map((pub) => (
-                  <tr key={pub.id} className="hover:bg-slate-50/80 transition-colors">
-                    <td className="py-4 px-5 space-y-1.5 align-top min-w-[320px]">
-                      <h3 className="font-bold text-oxford text-base leading-snug">
-                        {pub.title}
-                      </h3>
-                      {pub.authors && pub.authors.length > 0 && (
-                        <p className="text-xs text-slate-600 font-medium">
-                          <span className="font-semibold text-slate-900">Authors:</span> {pub.authors.join(', ')}
-                        </p>
-                      )}
-                      {pub.abstract && (
-                        <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
-                          {pub.abstract}
-                        </p>
-                      )}
-                    </td>
-                    <td className="py-4 px-4 align-top whitespace-nowrap">
-                      <span className="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider bg-indigo-50 text-indigo-800 border border-indigo-200">
-                        {pub.category}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 align-top whitespace-nowrap space-y-1">
-                      <p className="text-xs font-semibold text-oxford italic font-serif">
-                        {pub.journal}
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        Year: <span className="font-bold text-slate-700">{pub.year}</span> {pub.volume && `| ${pub.volume}`}
-                      </p>
-                    </td>
-                    <td className="py-4 px-4 align-top text-right whitespace-nowrap space-y-2">
-                      {pub.doi && (
-                        <a
-                          href={`https://doi.org/${pub.doi}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-xs font-semibold px-3 py-1.5 rounded-xl transition-all shadow-xs"
-                        >
-                          <span>DOI Paper</span>
-                          <ExternalLink className="w-3 h-3 opacity-80" />
-                        </a>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          {/* Publications Cards Grid (Matching requested design) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-6xl mx-auto">
+            {PUBLICATIONS.slice(0, 4).map((pub) => (
+              <JournalCard key={pub.id} publication={pub} />
+            ))}
           </div>
 
         </div>

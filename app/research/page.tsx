@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import LabCard, { ResearchLabItem } from '@/components/LabCard';
+import ResearchDomainsSection from '@/components/ResearchDomainsSection';
 import { RESEARCH_LABS } from '@/lib/data';
 import { RefreshCw, FlaskConical } from 'lucide-react';
 
@@ -43,14 +44,14 @@ export default function ResearchPage() {
   }, []);
 
   return (
-    <div className="space-y-12 pb-20 relative">
+    <div className="space-y-0 pb-20 relative">
       {/* Page Header (Campus image background - Matches Homepage Hero Height) */}
       <div className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center">
         {/* Background Image with Top Blue Gradient Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
             src="/physics.png"
-            alt="Research Laboratories Banner"
+            alt="Research Banner"
             fill
             className="object-cover"
             priority
@@ -60,21 +61,38 @@ export default function ResearchPage() {
 
         {/* Hero Content (Centered Text) */}
         <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-16 sm:pt-20 lg:pt-24">
-          {/* Breadcrumbs Above Title - Enlarged */}
+          {/* Breadcrumbs Above Title */}
           <div className="flex items-center justify-center space-x-3 text-xl sm:text-2xl lg:text-3xl font-sans font-bold text-slate-100 drop-shadow-md">
             <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
             <span>&gt;</span>
-            <span className="text-white font-extrabold">Research Laboratories</span>
+            <span className="text-white font-extrabold">Research</span>
           </div>
 
           <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight text-white uppercase drop-shadow-lg">
-            Research Laboratories
+            Research & Innovation
           </h1>
         </div>
       </div>
 
-      {/* Main Content Container */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 font-sans">
+      {/* 1. Research Domains Section (Matching Reference Image Style) */}
+      <div id="domains">
+        <ResearchDomainsSection />
+      </div>
+
+      {/* 2. Main Research Laboratories Section */}
+      <section id="labs" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 pt-12 font-sans border-t border-slate-200/60">
+        <div className="text-center space-y-3">
+          <span className="text-xs font-extrabold text-cyan-600 uppercase tracking-widest block">
+            State-of-the-Art Facilities
+          </span>
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#0B1E36]">
+            Research Laboratories
+          </h2>
+          <p className="text-slate-600 text-sm sm:text-base max-w-2xl mx-auto">
+            Our specialized research facilities drive groundbreaking discoveries across advanced materials, laser photonics, and quantum systems.
+          </p>
+        </div>
+
         {/* Labs Grid */}
         {loading ? (
           <div className="py-20 text-center space-y-3 text-slate-500 font-sans">
