@@ -12,7 +12,7 @@ export async function GET() {
         descriptionRecord: true,
         students: true,
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     });
 
     const formattedFaculty = facultyList.map((f) => {

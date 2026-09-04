@@ -60,6 +60,7 @@ model Faculty {
   phone              String?
   bio                String?
   isActive           Boolean             @default(true)
+  sortOrder          Int                 @default(0)
   profile            FacultyProfile?
   documents          FacultyDocument?
   descriptionRecord  FacultyDescription?
@@ -199,15 +200,15 @@ model EventImage {
 
 model Course {
   id          String             @id
-  code        String
+  code        String?            @default("")
   title       String
   level       String
   duration    String
-  intake      Int
-  fees        String
-  eligibility String             @db.Text
+  intake      Int?               @default(0)
+  fees        String?            @default("")
+  eligibility String?            @db.Text
   description String             @db.Text
-  highlights  String[]
+  highlights  String[]           @default([])
   schemes     CurriculumScheme[]
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
