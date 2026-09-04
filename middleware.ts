@@ -13,8 +13,13 @@ export async function middleware(request: NextRequest) {
     request.cookies.get('admin_token')?.value ||
     request.cookies.get('faculty_token')?.value;
 
-  // 1. Redirect legacy dashboard paths (/admin/dashboard, /faculty/dashboard) to /dashboard
-  if (pathname.startsWith('/admin/dashboard') || pathname.startsWith('/faculty/dashboard')) {
+  // 1. Redirect legacy/direct admin & faculty paths (/admin, /admin/dashboard, /faculty, /faculty/dashboard) to /dashboard
+  if (
+    pathname === '/admin' ||
+    pathname.startsWith('/admin/') ||
+    pathname === '/faculty' ||
+    pathname.startsWith('/faculty/')
+  ) {
     const dashboardUrl = new URL('/dashboard', request.url);
     return NextResponse.redirect(dashboardUrl);
   }
@@ -56,7 +61,9 @@ export const config = {
   matcher: [
     '/login',
     '/dashboard/:path*',
-    '/admin/dashboard/:path*',
-    '/faculty/dashboard/:path*',
+    '/admin',
+    '/admin/:path*',
+    '/faculty',
+    '/faculty/:path*',
   ],
 };

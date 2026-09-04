@@ -50,6 +50,8 @@ import {
   Sliders,
   Calendar,
   Wrench,
+  GripVertical,
+  ArrowUpDown,
 } from 'lucide-react';
 import AdminFacultyFullManageModal from '@/components/AdminFacultyFullManageModal';
 import EventGallerySection from '@/components/EventGallerySection';
@@ -113,6 +115,7 @@ interface FacultyItem {
   department: string | null;
   mustChangePassword: boolean;
   isActive: boolean;
+  sortOrder?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -1255,8 +1258,7 @@ export default function UnifiedDashboardPage() {
     setLoggingOut(true);
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      router.push('/login');
-      router.refresh();
+      window.location.href = '/login';
     } catch {
       setLoggingOut(false);
     }
@@ -1524,6 +1526,105 @@ export default function UnifiedDashboardPage() {
       }
     } catch (err) {
       console.error('Failed to delete faculty record:', err);
+    }
+  };
+
+  // Faculty Drag and Drop Reordering Handlers
+  const [draggedFacultyIndex, setDraggedFacultyIndex] = useState<number | null>(null);
+  const [dragOverFacultyIndex, setDragOverFacultyIndex] = useState<number | null>(null);
+  const [isReorderingFaculty, setIsReorderingFaculty] = useState(false);
+
+  const handleFacultyDragStart = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+    setDraggedFacultyIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(index));
+  };
+
+  const handleFacultyDragOver = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverFacultyIndex !== index) {
+      setDragOverFacultyIndex(index);
+    }
+  };
+
+  const handleFacultyDrop = async (e: React.DragEvent<HTMLTableRowElement>, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedFacultyIndex === null || draggedFacultyIndex === targetIndex) {
+      setDraggedFacultyIndex(null);
+      setDragOverFacultyIndex(null);
+      return;
+    }
+
+    const updatedList = [...facultyList];
+    const [draggedItem] = updatedList.splice(draggedFacultyIndex, 1);
+    updatedList.splice(targetIndex, 0, draggedItem);
+
+    const itemsToUpdate = updatedList.map((item, idx) => ({
+      id: item.id,
+      sortOrder: idx + 1,
+    }));
+
+    setFacultyList(updatedList.map((item, idx) => ({ ...item, sortOrder: idx + 1 })));
+    setDraggedFacultyIndex(null);
+    setDragOverFacultyIndex(null);
+    setIsReorderingFaculty(true);
+
+    try {
+      const res = await fetch('/api/admin/faculty/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: itemsToUpdate }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to save faculty order');
+      }
+    } catch (err) {
+      console.error('Failed to reorder faculty:', err);
+      fetchFaculty();
+    } finally {
+      setIsReorderingFaculty(false);
+    }
+  };
+
+  const handleFacultyDragEnd = () => {
+    setDraggedFacultyIndex(null);
+    setDragOverFacultyIndex(null);
+  };
+
+  const moveFaculty = async (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= facultyList.length) return;
+
+    const updatedList = [...facultyList];
+    const temp = updatedList[index];
+    updatedList[index] = updatedList[targetIndex];
+    updatedList[targetIndex] = temp;
+
+    const itemsToUpdate = updatedList.map((item, idx) => ({
+      id: item.id,
+      sortOrder: idx + 1,
+    }));
+
+    setFacultyList(updatedList.map((item, idx) => ({ ...item, sortOrder: idx + 1 })));
+    setIsReorderingFaculty(true);
+
+    try {
+      const res = await fetch('/api/admin/faculty/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: itemsToUpdate }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to save faculty order');
+      }
+    } catch (err) {
+      console.error('Failed to reorder faculty:', err);
+      fetchFaculty();
+    } finally {
+      setIsReorderingFaculty(false);
     }
   };
 
@@ -2865,7 +2966,7 @@ export default function UnifiedDashboardPage() {
                   <span>Faculty Account Management</span>
                 </h2>
                 <p className="text-slate-600 text-base mt-1">
-                  Create faculty login accounts, specify predefined passwords, and manage profiles.
+                  Create faculty login accounts, manage profiles, and drag &amp; drop rows to rearrange public display order.
                 </p>
               </div>
 
@@ -2890,15 +2991,24 @@ export default function UnifiedDashboardPage() {
               </div>
             </div>
 
-            <div className="relative">
-              <Search className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
-              <Input
-                type="text"
-                placeholder="Search faculty by name, email, or designation..."
-                value={facultySearchTerm}
-                onChange={(e) => setFacultySearchTerm(e.target.value)}
-                className="pl-11 text-base h-12"
-              />
+            {/* Drag & Drop Instruction Badge & Search */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="relative flex-1 w-full">
+                <Search className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
+                <Input
+                  type="text"
+                  placeholder="Search faculty by name, email, or designation..."
+                  value={facultySearchTerm}
+                  onChange={(e) => setFacultySearchTerm(e.target.value)}
+                  className="pl-11 text-base h-12 w-full"
+                />
+              </div>
+              {!facultySearchTerm && filteredFaculty.length > 1 && (
+                <div className="flex items-center gap-2 px-3.5 py-2 bg-indigo-50 border border-indigo-200/80 rounded-xl text-indigo-800 text-xs font-sans font-medium whitespace-nowrap shadow-xs">
+                  <GripVertical className="w-4 h-4 text-indigo-600 shrink-0" />
+                  <span>Drag rows to reorder public ranking</span>
+                </div>
+              )}
             </div>
 
             <div className="bg-transparent border-none overflow-visible shadow-none">
@@ -2916,6 +3026,7 @@ export default function UnifiedDashboardPage() {
                 <Table className="text-base">
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-32 text-base font-bold">Order</TableHead>
                       <TableHead className="text-base font-bold">Faculty Name & Title</TableHead>
                       <TableHead className="text-base font-bold">Username / Email</TableHead>
                       <TableHead className="text-base font-bold">Account Status</TableHead>
@@ -2925,88 +3036,155 @@ export default function UnifiedDashboardPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredFaculty.map((faculty) => (
-                      <TableRow key={faculty.id} className="hover:bg-slate-50/40">
-                        <TableCell className="py-4">
-                          <div className="font-bold text-slate-900">{faculty.name}</div>
-                          <div className="text-sm text-slate-500 font-sans">{faculty.designation || 'Faculty Member'}</div>
-                        </TableCell>
+                    {filteredFaculty.map((faculty, idx) => {
+                      const isDragging = draggedFacultyIndex === idx;
+                      const isDragOver = dragOverFacultyIndex === idx && draggedFacultyIndex !== idx;
 
-                        <TableCell className="font-mono text-sm text-slate-700 py-4">
-                          {faculty.email}
-                        </TableCell>
+                      return (
+                        <TableRow
+                          key={faculty.id}
+                          draggable={!facultySearchTerm}
+                          onDragStart={(e) => handleFacultyDragStart(e, idx)}
+                          onDragOver={(e) => handleFacultyDragOver(e, idx)}
+                          onDrop={(e) => handleFacultyDrop(e, idx)}
+                          onDragEnd={handleFacultyDragEnd}
+                          className={`transition-all duration-200 select-none ${
+                            isDragging
+                              ? 'opacity-30 bg-slate-200 scale-[0.99] border-2 border-dashed border-oxford'
+                              : isDragOver
+                              ? 'border-t-4 border-oxford bg-oxford/10 shadow-lg'
+                              : 'hover:bg-slate-50/60'
+                          }`}
+                        >
+                          {/* Drag Handle & Order Controls */}
+                          <TableCell className="py-4 whitespace-nowrap">
+                            <div className="flex items-center gap-2">
+                              {/* Grip Icon */}
+                              <div
+                                className={`p-1 rounded transition-colors ${
+                                  facultySearchTerm
+                                    ? 'opacity-30 cursor-not-allowed text-slate-300'
+                                    : 'cursor-grab active:cursor-grabbing text-slate-400 hover:text-oxford hover:bg-slate-200/60'
+                                }`}
+                                title={facultySearchTerm ? 'Clear search filter to reorder' : 'Drag to reorder faculty'}
+                              >
+                                <GripVertical className="w-4 h-4" />
+                              </div>
 
-                        <TableCell className="py-4">
-                          <button
-                            type="button"
-                            className="flex items-center gap-1.5 font-bold text-base hover:underline focus:outline-none cursor-pointer transition-all"
-                            onClick={() => toggleFacultyStatus(faculty)}
-                          >
-                            {faculty.isActive ? (
-                              <span className="text-emerald-600 flex items-center gap-1.5">
-                                <CheckCircle2 className="w-4 h-4" />
-                                <span>Active</span>
+                              {/* Order Badge */}
+                              <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md min-w-[32px] text-center shadow-2xs">
+                                #{idx + 1}
                               </span>
+
+                              {/* Quick Move Up/Down Buttons */}
+                              {!facultySearchTerm && (
+                                <div className="flex flex-col -space-y-0.5 ml-1">
+                                  <button
+                                    type="button"
+                                    disabled={idx === 0 || isReorderingFaculty}
+                                    onClick={() => moveFaculty(idx, 'up')}
+                                    className="text-slate-400 hover:text-oxford disabled:opacity-20 disabled:hover:text-slate-400 p-0.5 rounded transition-colors cursor-pointer"
+                                    aria-label={`Move ${faculty.name} up`}
+                                    title="Move Up"
+                                  >
+                                    <ChevronUp className="w-3.5 h-3.5" />
+                                  </button>
+                                  <button
+                                    type="button"
+                                    disabled={idx === filteredFaculty.length - 1 || isReorderingFaculty}
+                                    onClick={() => moveFaculty(idx, 'down')}
+                                    className="text-slate-400 hover:text-oxford disabled:opacity-20 disabled:hover:text-slate-400 p-0.5 rounded transition-colors cursor-pointer"
+                                    aria-label={`Move ${faculty.name} down`}
+                                    title="Move Down"
+                                  >
+                                    <ChevronDown className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+
+                          <TableCell className="py-4">
+                            <div className="font-bold text-slate-900">{faculty.name}</div>
+                            <div className="text-sm text-slate-500 font-sans">{faculty.designation || 'Faculty Member'}</div>
+                          </TableCell>
+
+                          <TableCell className="font-mono text-sm text-slate-700 py-4">
+                            {faculty.email}
+                          </TableCell>
+
+                          <TableCell className="py-4">
+                            <button
+                              type="button"
+                              className="flex items-center gap-1.5 font-bold text-base hover:underline focus:outline-none cursor-pointer transition-all"
+                              onClick={() => toggleFacultyStatus(faculty)}
+                            >
+                              {faculty.isActive ? (
+                                <span className="text-emerald-600 flex items-center gap-1.5">
+                                  <CheckCircle2 className="w-4 h-4" />
+                                  <span>Active</span>
+                                </span>
+                              ) : (
+                                <span className="text-rose-500 flex items-center gap-1.5">
+                                  <AlertCircle className="w-4 h-4" />
+                                  <span>Disabled</span>
+                                </span>
+                              )}
+                            </button>
+                          </TableCell>
+
+                          <TableCell className="py-4">
+                            {faculty.mustChangePassword ? (
+                              <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-800 font-sans font-medium text-xs">
+                                Pending Password Reset
+                              </Badge>
                             ) : (
-                              <span className="text-rose-500 flex items-center gap-1.5">
-                                <AlertCircle className="w-4 h-4" />
-                                <span>Disabled</span>
-                              </span>
+                              <Badge variant="outline" className="border-emerald-400 bg-emerald-50 text-emerald-800 font-sans font-medium text-xs">
+                                Password Set & Active
+                              </Badge>
                             )}
-                          </button>
-                        </TableCell>
+                          </TableCell>
 
-                        <TableCell className="py-4">
-                          {faculty.mustChangePassword ? (
-                            <Badge variant="outline" className="border-amber-400 bg-amber-50 text-amber-800 font-sans font-medium text-xs">
-                              Pending Password Reset
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="border-emerald-400 bg-emerald-50 text-emerald-800 font-sans font-medium text-xs">
-                              Password Set & Active
-                            </Badge>
-                          )}
-                        </TableCell>
+                          <TableCell className="text-base text-slate-600 whitespace-nowrap font-mono py-4">
+                            {new Date(faculty.createdAt).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric',
+                            })}
+                          </TableCell>
 
-                        <TableCell className="text-base text-slate-600 whitespace-nowrap font-mono py-4">
-                          {new Date(faculty.createdAt).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                          })}
-                        </TableCell>
-
-                        <TableCell className="text-right space-x-2 whitespace-nowrap py-4">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setFullManageFacultyId(faculty.id)}
-                            className="bg-oxford/5 border-oxford/20 text-oxford hover:bg-oxford hover:text-white transition-all text-xs font-semibold px-3 py-1.5"
-                          >
-                            <Edit3 className="w-3.5 h-3.5 mr-1" />
-                            <span>Manage Profile</span>
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            size="icon"
-                            onClick={() => openFacultyModal(faculty)}
-                            className="h-9 w-9 text-slate-600 hover:text-slate-900"
-                            title="Edit Account Credentials"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="icon"
-                            onClick={() => handleDeleteFaculty(faculty.id)}
-                            className="h-9 w-9"
-                            title="Delete Faculty Account"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                          <TableCell className="text-right space-x-2 whitespace-nowrap py-4">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setFullManageFacultyId(faculty.id)}
+                              className="bg-oxford/5 border-oxford/20 text-oxford hover:bg-oxford hover:text-white transition-all text-xs font-semibold px-3 py-1.5 cursor-pointer"
+                            >
+                              <Edit3 className="w-3.5 h-3.5 mr-1" />
+                              <span>Manage Profile</span>
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="icon"
+                              onClick={() => openFacultyModal(faculty)}
+                              className="h-9 w-9 text-slate-600 hover:text-slate-900 cursor-pointer"
+                              title="Edit Account Credentials"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              onClick={() => handleDeleteFaculty(faculty.id)}
+                              className="h-9 w-9 cursor-pointer"
+                              title="Delete Faculty Account"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               )}

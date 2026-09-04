@@ -28,10 +28,11 @@ export async function GET() {
         department: true,
         mustChangePassword: true,
         isActive: true,
+        sortOrder: true,
         createdAt: true,
         updatedAt: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     });
 
     return NextResponse.json(facultyMembers);
@@ -77,6 +78,13 @@ export async function POST(request: Request) {
     // Hash predefined password
     const hashedPassword = await hashPassword(password);
 
+    // Compute next sortOrder
+    const maxFaculty = await prisma.faculty.findFirst({
+      orderBy: { sortOrder: 'desc' },
+      select: { sortOrder: true },
+    });
+    const nextSortOrder = (maxFaculty?.sortOrder ?? 0) + 1;
+
     // Create faculty record
     const newFaculty = await prisma.faculty.create({
       data: {
@@ -86,6 +94,7 @@ export async function POST(request: Request) {
         mustChangePassword: true,
         designation: designation?.trim() || 'Faculty Member',
         department: department?.trim() || 'Department of Physics',
+        sortOrder: nextSortOrder,
       },
       select: {
         id: true,
@@ -95,6 +104,7 @@ export async function POST(request: Request) {
         department: true,
         mustChangePassword: true,
         isActive: true,
+        sortOrder: true,
         createdAt: true,
       },
     });

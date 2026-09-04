@@ -26,9 +26,9 @@ export interface Scholar {
   name: string;
   supervisor: string;
   topic: string;
-  fellowship: string;
-  joiningYear: number;
-  email: string;
+  fellowship?: string;
+  joiningYear?: number;
+  email?: string;
   image: string;
   type: 'scholar';
 }
@@ -36,8 +36,8 @@ export interface Scholar {
 export interface Course {
   id: string;
   title: string;
-  code: string;
-  level: 'MSc' | 'PhD' | 'Integrated MSc';
+  code?: string;
+  level: string;
   duration: string;
   intake: number;
   eligibility: string;

@@ -33,15 +33,17 @@ function UnifiedLoginForm() {
         throw new Error(data.error || 'Login failed. Please check your credentials.');
       }
 
-      // Priority redirect: `from` param from URL, or backend default (`redirectTo`)
+      // Priority redirect: `from` param from URL (if valid and not /login), or backend default (`redirectTo`)
       const fromParam = searchParams.get('from');
-      const targetDestination = fromParam || data.redirectTo || '/';
-      
-      router.push(targetDestination);
-      router.refresh();
+      const targetDestination =
+        fromParam && !fromParam.startsWith('/login')
+          ? fromParam
+          : data.redirectTo || '/dashboard';
+
+      // Perform a full navigation so all auth cookies are attached and the dashboard initializes cleanly
+      window.location.href = targetDestination;
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred while signing in.');
-    } finally {
       setLoading(false);
     }
   };
