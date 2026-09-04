@@ -208,11 +208,16 @@ export default function Hero({
 
 
 
-      {/* Main Slide Content Layer */}
-      <div className="relative z-20 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-48 sm:pt-56 lg:pt-64 pb-32 sm:pb-38 lg:pb-42 flex flex-col justify-end min-h-[630px] sm:min-h-[720px] lg:min-h-[810px] xl:min-h-[850px]">
-        <div className="max-w-3xl space-y-6">
+      {/* Main Slide Content Layer (Anchored to Bottom-Left) */}
+      <div className="relative z-20 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-40 sm:pt-48 lg:pt-56 pb-6 sm:pb-8 lg:pb-10 flex flex-col justify-end text-left items-start min-h-[630px] sm:min-h-[720px] lg:min-h-[810px] xl:min-h-[850px]">
+        <div className="max-w-3xl space-y-5 text-left">
 
-
+          {/* Optional Badge / Breadcrumbs (Clean Unboxed Text) */}
+          {currentSlide.badge && (
+            <div className="text-xs sm:text-sm font-bold tracking-widest text-cyan-accent uppercase drop-shadow-md">
+              <span>{currentSlide.badge}</span>
+            </div>
+          )}
 
           {/* Headline */}
           <h1

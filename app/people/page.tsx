@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import Hero from '@/components/Hero';
 import FacultyCard from '@/components/FacultyCard';
 import { FACULTY_MEMBERS, SCHOLARS, FacultyMember, Scholar } from '@/lib/data';
 
@@ -54,48 +55,82 @@ export default function PeoplePage() {
     loadPublicPeople();
   }, []);
 
+  // Filter HOD vs standard Faculty members
+  const hodList = facultyList.filter((f) => {
+    const des = (f.designation || '').toLowerCase();
+    return des.includes('head') || des.includes('hod');
+  });
+
+  let actualHodList = hodList;
+  let otherFacultyList = facultyList.filter((f) => {
+    const des = (f.designation || '').toLowerCase();
+    return !des.includes('head') && !des.includes('hod');
+  });
+
+  // Fallback if no explicit HOD title was matched
+  if (actualHodList.length === 0 && facultyList.length > 0) {
+    const pradeep = facultyList.find((f) => f.name.toLowerCase().includes('pradeep'));
+    if (pradeep) {
+      actualHodList = [pradeep];
+      otherFacultyList = facultyList.filter((f) => f.id !== pradeep.id);
+    } else {
+      actualHodList = [facultyList[0]];
+      otherFacultyList = facultyList.slice(1);
+    }
+  }
+
   return (
     <div className="pb-20 relative">
-      {/* Page Header (Campus image background - Matches Homepage Hero Height) */}
-      <div className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center">
-        {/* Background Image with Top Blue Gradient Overlay */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/faculty.png"
-            alt="Faculty Banner"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#002147]/80 via-[#002147]/30 to-transparent" />
-        </div>
-
-        {/* Hero Content (Centered Text) */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-16 sm:pt-20 lg:pt-24">
-          {/* Breadcrumbs Above Title - Enlarged */}
-          <div className="flex items-center justify-center space-x-3 text-xl sm:text-2xl lg:text-3xl font-sans font-bold text-slate-100 drop-shadow-md">
-            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
-            <span>&gt;</span>
-            <span className="text-white font-extrabold">Faculty Members</span>
-          </div>
-
-          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight text-white uppercase drop-shadow-lg">
-            Faculty Members
-          </h1>
-        </div>
-      </div>
+      {/* Hero Header matching main homepage design */}
+      <Hero
+        title="FACULTY & SCHOLARS"
+        badge="HOME > PEOPLE"
+        subtitle="Meet our Head of Department, distinguished professors, principal investigators, and doctoral research scholars."
+        bgImage="/faculty.png"
+      />
 
       {loading ? (
         <div className="max-w-6xl mx-auto px-6 py-16 flex flex-col items-center justify-center space-y-3">
           <div className="w-10 h-10 border-3 border-oxford border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm font-medium text-slate-500 font-sans">Loading Faculty Members...</span>
+          <span className="text-sm font-medium text-slate-500 font-sans">Loading Department People...</span>
         </div>
       ) : (
-        <div className="space-y-16 pt-10">
-          {/* Faculty Members Section */}
-          <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 space-y-6">
+        <div className="space-y-20 pt-10">
+          {/* 1. Head of Department Section */}
+          {actualHodList.length > 0 && (
+            <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 space-y-8">
+              <div className="text-center">
+                <span className="text-xs font-mono font-bold uppercase tracking-widest text-cyan-dark bg-cyan-50 px-3.5 py-1.5 rounded-full border border-cyan-200/60 inline-block mb-3">
+                  Department Leadership
+                </span>
+                <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
+                  Head of Department
+                </h2>
+              </div>
+              <div className="flex justify-center font-sans">
+                <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg">
+                  {actualHodList.map((person) => (
+                    <Link key={person.id} href={`/people/${person.id}`} className="block h-full">
+                      <FacultyCard person={person} />
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* 2. Faculty Members Section */}
+          <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 space-y-8">
+            <div className="text-center">
+              <span className="text-xs font-mono font-bold uppercase tracking-widest text-cyan-dark bg-cyan-50 px-3.5 py-1.5 rounded-full border border-cyan-200/60 inline-block mb-3">
+                Academic Staff
+              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
+                Faculty Members
+              </h2>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 sm:gap-12 lg:gap-14 font-sans">
-              {facultyList.map((person) => (
+              {otherFacultyList.map((person) => (
                 <Link key={person.id} href={`/people/${person.id}`} className="block h-full">
                   <FacultyCard person={person} />
                 </Link>
@@ -103,9 +138,12 @@ export default function PeoplePage() {
             </div>
           </section>
 
-          {/* Research Scholars Section */}
-          <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 space-y-8 pt-6">
-            <div className="text-center py-6 sm:py-8">
+          {/* 3. Research Scholars Section */}
+          <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 space-y-8">
+            <div className="text-center">
+              <span className="text-xs font-mono font-bold uppercase tracking-widest text-cyan-dark bg-cyan-50 px-3.5 py-1.5 rounded-full border border-cyan-200/60 inline-block mb-3">
+                Doctoral Candidates
+              </span>
               <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
                 Research Scholars
               </h2>

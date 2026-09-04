@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import Hero from '@/components/Hero';
 import FacilityCard, { FacilityItem } from '@/components/FacilityCard';
 import { FACILITIES } from '@/lib/data';
 import { RefreshCw, Wrench, FileText, Clock } from 'lucide-react';
@@ -58,34 +59,13 @@ export default function FacilitiesPage() {
 
   return (
     <div className="space-y-12 pb-20 relative font-sans">
-      {/* Page Header (Campus image background - Matches Homepage Hero Height) */}
-      <div className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center">
-        {/* Background Image with Top Blue Gradient Overlay */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/physics.png"
-            alt="Central Facilities Banner"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#002147]/80 via-[#002147]/30 to-transparent" />
-        </div>
-
-        {/* Hero Content (Centered Text) */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-16 sm:pt-20 lg:pt-24">
-          {/* Breadcrumbs Above Title - Enlarged */}
-          <div className="flex items-center justify-center space-x-3 text-xl sm:text-2xl lg:text-3xl font-sans font-bold text-slate-100 drop-shadow-md">
-            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
-            <span>&gt;</span>
-            <span className="text-white font-extrabold">Facilities</span>
-          </div>
-
-          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight text-white uppercase drop-shadow-lg">
-            Central Research Facilities
-          </h1>
-        </div>
-      </div>
+      {/* Hero Header matching main homepage design */}
+      <Hero
+        title="CENTRAL FACILITIES"
+        badge="HOME > FACILITIES"
+        subtitle="Equipped with FE-SEM, XRD Diffractometer, Confocal Raman Spectrometer, and VSM Magnetometers."
+        bgImage="/physics.png"
+      />
 
       {/* Main Content Container */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">

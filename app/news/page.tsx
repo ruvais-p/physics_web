@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import Hero from '@/components/Hero';
 
 export const metadata = {
   title: 'Department News',
@@ -64,34 +65,13 @@ export default function NewsPage() {
   return (
     <div className="pb-24 relative">
       
-      {/* Top Banner (Campus Image Background - Matches Homepage Hero Height) */}
-      <div className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center">
-        {/* Background Image with Top Blue Gradient Overlay */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/campus.jpg"
-            alt="CUSAT Campus"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#002147]/80 via-[#002147]/30 to-transparent" />
-        </div>
-
-        {/* Hero Content (Centered Text) */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-16 sm:pt-20 lg:pt-24">
-          {/* Breadcrumbs Above Title - Enlarged */}
-          <div className="flex items-center justify-center space-x-3 text-xl sm:text-2xl lg:text-3xl font-sans font-bold text-slate-100 drop-shadow-md">
-            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
-            <span>&gt;</span>
-            <span className="text-white font-extrabold">News</span>
-          </div>
-
-          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight text-white uppercase drop-shadow-lg">
-            News &amp; Updates
-          </h1>
-        </div>
-      </div>
+      {/* Hero Header matching main homepage design */}
+      <Hero
+        title="NEWS & ANNOUNCEMENTS"
+        badge="HOME > NEWS"
+        subtitle="Latest updates on academic breakthroughs, infrastructure upgrades, student achievements, and scientific research."
+        bgImage="/campus.jpg"
+      />
 
       {/* Main Content Area */}
       <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-16">
