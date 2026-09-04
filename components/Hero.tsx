@@ -172,7 +172,7 @@ export default function Hero({
   }, [index, isPlaying, next, total]);
 
   return (
-    <section className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-black text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px]">
+    <section className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-black text-white overflow-hidden min-h-[675px] sm:min-h-[775px] lg:min-h-[865px] xl:min-h-[900px] 2xl:min-h-[970px]">
 
       {/* Background Image Slides */}
       <div className="absolute inset-0 z-0">
@@ -209,7 +209,7 @@ export default function Hero({
 
 
       {/* Main Slide Content Layer */}
-      <div className="relative z-20 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-40 sm:pt-48 lg:pt-52 pb-32 sm:pb-36 flex flex-col justify-end min-h-[560px] sm:min-h-[660px]">
+      <div className="relative z-20 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-48 sm:pt-56 lg:pt-64 pb-32 sm:pb-38 lg:pb-42 flex flex-col justify-end min-h-[630px] sm:min-h-[720px] lg:min-h-[810px] xl:min-h-[850px]">
         <div className="max-w-3xl space-y-6">
 
 

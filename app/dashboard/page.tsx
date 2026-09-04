@@ -429,7 +429,7 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // ADMIN DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'events' | 'notifications' | 'faculty' | 'curriculum' | 'labs'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'events' | 'notifications' | 'faculty' | 'curriculum' | 'labs' | 'facilities'>('dashboard');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -895,7 +895,7 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // FACULTY DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'projects' | 'publications' | 'hero' | 'events' | 'curriculum' | 'labs'>('overview');
+  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'projects' | 'publications' | 'hero' | 'events' | 'curriculum' | 'labs' | 'facilities'>('overview');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -3744,6 +3744,17 @@ export default function UnifiedDashboardPage() {
                   <span>Research Laboratories</span>
                 </div>
               </TabsTrigger>
+
+              {/* Option 8: Central Facilities Management */}
+              <TabsTrigger
+                value="facilities"
+                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
+              >
+                <div className="flex items-center gap-3">
+                  <Wrench className="w-4 h-4" />
+                  <span>Central Facilities</span>
+                </div>
+              </TabsTrigger>
             </TabsList>
           </div>
         </div>
@@ -4632,6 +4643,11 @@ export default function UnifiedDashboardPage() {
         {/* FACULTY RESEARCH LABS TAB */}
         <TabsContent value="labs" className="space-y-10 animate-fadeIn mt-0">
           <ResearchLabManagementSection />
+        </TabsContent>
+
+        {/* FACULTY FACILITIES TAB */}
+        <TabsContent value="facilities" className="space-y-10 animate-fadeIn mt-0">
+          <FacilityManagementSection />
         </TabsContent>
       </main>
 

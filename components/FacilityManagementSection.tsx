@@ -66,13 +66,13 @@ export default function FacilityManagementSection() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [facsRes, facultyRes] = await Promise.all([
+      const [facilitiesRes, facultyRes] = await Promise.all([
         fetch('/api/facilities'),
         fetch('/api/public/faculty'),
       ]);
 
-      if (facsRes.ok) {
-        const data = await facsRes.json();
+      if (facilitiesRes.ok) {
+        const data = await facilitiesRes.json();
         setFacilities(data || []);
       }
 
@@ -96,7 +96,7 @@ export default function FacilityManagementSection() {
     setEditingFacility(null);
     setFormData({
       name: '',
-      description: '# Facility Overview\n\nEnter technical specs, equipment details, and sample analysis guidelines using Markdown...',
+      description: '# Facility Specifications\n\nEnter instrumentation specifications, operating guidelines, user booking procedures, and capabilities using Markdown...',
       imageFile: null,
       imageUrl: '',
       selectedFacultyIds: [],
@@ -180,7 +180,7 @@ export default function FacilityManagementSection() {
         return;
       }
 
-      setSuccessMsg(isEdit ? 'Facility updated successfully!' : 'New facility created successfully!');
+      setSuccessMsg(isEdit ? 'Central facility updated successfully!' : 'New central facility added!');
       setIsModalOpen(false);
       await fetchData();
 
@@ -201,7 +201,7 @@ export default function FacilityManagementSection() {
         method: 'DELETE',
       });
       if (res.ok) {
-        setSuccessMsg('Facility deleted successfully.');
+        setSuccessMsg('Facility record deleted successfully.');
         setDeletingId(null);
         await fetchData();
         setTimeout(() => setSuccessMsg(null), 4000);
@@ -219,16 +219,16 @@ export default function FacilityManagementSection() {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <Card className="bg-slate-900 border-slate-800 text-white shadow-xl overflow-hidden relative">
+      <Card className="bg-slate-900 border-slate-800 text-white shadow-xl overflow-hidden relative font-sans">
         <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
         <CardHeader className="relative z-10 sm:flex-row sm:items-center sm:justify-between pb-4">
           <div className="space-y-1">
             <CardTitle className="text-xl sm:text-2xl font-serif font-bold text-white flex items-center gap-2.5">
               <Wrench className="w-6 h-6 text-cyan-400" />
-              Department Facilities Management
+              Central Instrumentation Facilities Management
             </CardTitle>
-            <CardDescription className="text-slate-400 text-xs sm:text-sm">
-              Manage analytical instruments, Markdown descriptions, hero images, and associated faculty members.
+            <CardDescription className="text-slate-400 text-xs sm:text-sm font-sans">
+              Add, update, or remove central research instrumentation facilities, technical specifications, hero images, and faculty in-charge assignments.
             </CardDescription>
           </div>
           <div className="mt-4 sm:mt-0 flex items-center gap-2">
@@ -255,19 +255,19 @@ export default function FacilityManagementSection() {
 
       {/* Success Notification */}
       {successMsg && (
-        <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center gap-2 text-emerald-400 text-xs sm:text-sm">
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center gap-2 text-emerald-400 text-xs sm:text-sm font-sans">
           <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {/* Facilities Table Card */}
-      <Card className="bg-slate-900/90 border-slate-800 text-white shadow-xl">
+      <Card className="bg-slate-900/90 border-slate-800 text-white shadow-xl font-sans">
         <CardHeader className="pb-3 border-b border-slate-800/80">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base font-bold text-slate-200 flex items-center gap-2">
-              <span>Central Facilities</span>
-              <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 text-xs">
+              <span>Department Facilities</span>
+              <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 text-xs font-mono">
                 {facilities.length} Facilities
               </Badge>
             </CardTitle>
@@ -277,12 +277,12 @@ export default function FacilityManagementSection() {
           {loading ? (
             <div className="p-12 text-center text-slate-400 space-y-3">
               <RefreshCw className="w-7 h-7 animate-spin mx-auto text-cyan-400" />
-              <p className="text-xs">Loading facilities...</p>
+              <p className="text-xs">Loading central facilities...</p>
             </div>
           ) : facilities.length === 0 ? (
             <div className="p-12 text-center text-slate-400 space-y-3">
               <Wrench className="w-10 h-10 mx-auto text-slate-600" />
-              <p className="text-sm font-semibold text-slate-300">No Facilities found</p>
+              <p className="text-sm font-semibold text-slate-300">No Facilities recorded yet</p>
               <Button
                 onClick={openAddModal}
                 size="sm"
@@ -295,31 +295,31 @@ export default function FacilityManagementSection() {
             <table className="w-full text-left border-collapse text-xs sm:text-sm">
               <thead className="bg-slate-950/60 text-slate-400 uppercase font-semibold text-[11px] border-b border-slate-800">
                 <tr>
-                  <th className="px-6 py-3.5">Hero Image</th>
+                  <th className="px-6 py-3.5">Facility Image</th>
                   <th className="px-6 py-3.5">Facility Name</th>
-                  <th className="px-6 py-3.5">Associated Faculty</th>
+                  <th className="px-6 py-3.5">Faculty In-Charge / Team</th>
                   <th className="px-6 py-3.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
-                {facilities.map((fac) => (
-                  <tr key={fac.id} className="hover:bg-slate-800/40 transition-colors">
+                {facilities.map((facItem) => (
+                  <tr key={facItem.id} className="hover:bg-slate-800/40 transition-colors">
                     <td className="px-6 py-4">
                       <div className="w-16 h-11 rounded-lg bg-slate-950 overflow-hidden border border-slate-700/60 relative">
                         <img
-                          src={fac.image || 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80'}
-                          alt={fac.name}
+                          src={facItem.image || 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&q=80'}
+                          alt={facItem.name}
                           className="w-full h-full object-cover"
                         />
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="font-bold text-white text-sm sm:text-base">{fac.name}</div>
+                      <div className="font-bold text-white text-sm sm:text-base font-serif">{facItem.name}</div>
                     </td>
                     <td className="px-6 py-4">
-                      {fac.faculties && fac.faculties.length > 0 ? (
+                      {facItem.faculties && facItem.faculties.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
-                          {fac.faculties.map((f) => (
+                          {facItem.faculties.map((f) => (
                             <span
                               key={f.id}
                               className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"
@@ -334,15 +334,15 @@ export default function FacilityManagementSection() {
                     </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       <a
-                        href={`/facilities/${fac.id}`}
+                        href="/facilities"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all"
                       >
-                        <Eye className="w-3.5 h-3.5" /> View Page
+                        <Eye className="w-3.5 h-3.5" /> View Public Page
                       </a>
                       <Button
-                        onClick={() => openEditModal(fac)}
+                        onClick={() => openEditModal(facItem)}
                         variant="ghost"
                         size="sm"
                         className="h-8 px-2.5 text-slate-300 hover:text-white hover:bg-slate-800"
@@ -350,7 +350,7 @@ export default function FacilityManagementSection() {
                         <Edit className="w-3.5 h-3.5 mr-1" /> Edit
                       </Button>
                       <Button
-                        onClick={() => setDeletingId(fac.id)}
+                        onClick={() => setDeletingId(facItem.id)}
                         variant="ghost"
                         size="sm"
                         className="h-8 px-2.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
@@ -368,11 +368,11 @@ export default function FacilityManagementSection() {
 
       {/* Add / Edit Facility Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-2xl max-h-[90vh] overflow-y-auto font-sans">
           <DialogHeader>
             <DialogTitle className="text-lg font-serif font-bold text-white flex items-center gap-2">
               <Wrench className="w-5 h-5 text-cyan-400" />
-              {editingFacility ? 'Edit Facility' : 'Add New Facility'}
+              {editingFacility ? 'Edit Central Facility' : 'Add New Central Facility'}
             </DialogTitle>
           </DialogHeader>
 
@@ -390,7 +390,7 @@ export default function FacilityManagementSection() {
               </label>
               <Input
                 type="text"
-                placeholder="e.g. X-Ray Powder Diffractometer (XRD)"
+                placeholder="e.g. Vibrating Sample Magnetometer (VSM) System"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 className="bg-slate-950 border-slate-800 text-slate-100 text-xs sm:text-sm font-serif"
@@ -400,7 +400,7 @@ export default function FacilityManagementSection() {
             {/* Cover / Hero Image Upload */}
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Hero Image File OR Image URL
+                Facility Image File OR Image URL
               </label>
               <div className="space-y-2">
                 <Input
@@ -415,7 +415,7 @@ export default function FacilityManagementSection() {
                   }}
                   className="bg-slate-950 border-slate-800 text-slate-300 text-xs file:bg-cyan-500 file:text-white file:border-0 file:rounded-md file:px-3 file:py-1 file:mr-3 file:cursor-pointer hover:file:bg-cyan-600"
                 />
-                <div className="text-[11px] text-slate-400 text-center font-bold font-sans">OR</div>
+                <div className="text-[11px] text-slate-400 text-center font-bold">OR</div>
                 <Input
                   type="text"
                   placeholder="https://images.unsplash.com/..."
@@ -430,7 +430,7 @@ export default function FacilityManagementSection() {
 
               {imagePreview && (
                 <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800 mt-2">
-                  <img src={imagePreview} alt="Hero Preview" className="w-full h-full object-cover" />
+                  <img src={imagePreview} alt="Facility Preview" className="w-full h-full object-cover" />
                 </div>
               )}
             </div>
@@ -438,11 +438,11 @@ export default function FacilityManagementSection() {
             {/* Markdown Description */}
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Full Description (Markdown Supported) <span className="text-rose-400">*</span>
+                Technical Description & Operating Specifications (Markdown Supported) <span className="text-rose-400">*</span>
               </label>
               <textarea
                 rows={8}
-                placeholder="Write facility specifications, manufacturer details, guidelines using Markdown..."
+                placeholder="Write facility specifications, measurement ranges, operating guidelines, and booking info using Markdown..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-100 font-mono focus:outline-none focus:ring-2 focus:ring-cyan-500 leading-relaxed"
@@ -452,7 +452,7 @@ export default function FacilityManagementSection() {
             {/* Associated Faculty Members (Many-to-Many Multi Select) */}
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Associated Faculty Members (Many-to-Many Relationship)
+                Faculty In-Charge / Associated Faculty (Many-to-Many Relationship)
               </label>
               <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl max-h-40 overflow-y-auto space-y-1.5">
                 {facultyList.length === 0 ? (
@@ -513,7 +513,7 @@ export default function FacilityManagementSection() {
 
       {/* Delete Confirmation Modal */}
       <Dialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
-        <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-sm">
+        <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-sm font-sans">
           <DialogHeader>
             <DialogTitle className="text-base font-bold text-white flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-rose-500" />
@@ -521,7 +521,7 @@ export default function FacilityManagementSection() {
             </DialogTitle>
           </DialogHeader>
           <p className="text-xs text-slate-300 leading-relaxed">
-            Are you sure you want to delete this facility record?
+            Are you sure you want to delete this central facility record?
           </p>
           <DialogFooter className="pt-3 border-t border-slate-800">
             <Button
