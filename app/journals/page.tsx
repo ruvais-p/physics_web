@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import JournalCard from '@/components/JournalCard';
+import Hero from '@/components/Hero';
 import { PUBLICATIONS } from '@/lib/data';
 import { Search } from 'lucide-react';
 
@@ -25,20 +26,13 @@ export default function JournalsPage() {
   return (
     <div className="space-y-12 pb-20">
       
-      {/* Page Header (No Hero image, clean text block) */}
-      <div className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] bg-slate-50 border-b border-slate-200/80 pt-44 sm:pt-52 pb-12 lg:pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4 pt-4">
-          <span className="inline-block text-xs font-bold uppercase tracking-wider text-cyan-accent">
-            Department Publications
-          </span>
-          <h1 className="font-serif text-4xl sm:text-5xl font-extrabold text-oxford">
-            Peer-Reviewed Journals & Publications
-          </h1>
-          <p className="text-base sm:text-lg text-slate-600 max-w-3xl leading-relaxed font-sans">
-            Exploring ground-breaking papers authored by our faculty and research scholars in Physical Review, ACS, Nature Physics, and EPJ.
-          </p>
-        </div>
-      </div>
+      {/* Hero Header matching main homepage design */}
+      <Hero
+        title="PUBLICATIONS & JOURNALS"
+        badge="HOME > JOURNALS"
+        subtitle="Exploring ground-breaking papers authored by our faculty and research scholars in Physical Review, ACS, Nature Physics, and EPJ."
+        bgImage="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1920&auto=format&fit=crop"
+      />
 
       {/* Filter & Search Bar */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 font-sans">

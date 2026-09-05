@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Atom, MapPin, Mail, Phone, ExternalLink } from 'lucide-react';
+import { MapPin, Mail, Phone, ExternalLink } from 'lucide-react';
 
 export default function Footer() {
   return (
@@ -9,16 +9,29 @@ export default function Footer() {
 
           {/* Column 1: Brand & Philosophy */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-lg bg-cyan-accent flex items-center justify-center text-oxford-dark shadow">
-                <Atom className="w-6 h-6" />
-              </div>
-              <span className="font-serif text-xl font-bold text-white tracking-tight">
+            <div>
+              {/* DOP Atom Logo (Unboxed) */}
+              <Link href="/" className="inline-block text-cyan-accent hover:opacity-90 transition-opacity" aria-label="DOP Home">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 160" className="h-12 w-auto fill-current text-cyan-accent">
+                  <text x="5" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">D</text>
+                  <g transform="translate(110, 80)">
+                    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="3" fill="none" />
+                    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="3" fill="none" transform="rotate(60)" />
+                    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="3" fill="none" transform="rotate(-60)" />
+                    <circle cx="0" cy="0" r="16" fill="currentColor" />
+                  </g>
+                  <text x="150" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">P</text>
+                </svg>
+              </Link>
+            </div>
+            <div>
+              <h3 className="font-serif text-xl font-bold text-white tracking-tight">
                 Department of Physics
-              </span>
+              </h3>
+              <p className="text-xs text-cyan-accent font-semibold">Cochin University of Science and Technology</p>
             </div>
             <p className="text-sm text-slate-400 leading-relaxed text-justify">
-              Cochin University of Science and Technology (CUSAT). Advancing fundamental physics, materials science, quantum technology, and photonics since 1963.
+              Advancing fundamental physics, materials science, quantum technology, and photonics since 1963.
             </p>
             <div className="pt-2 flex flex-wrap gap-2 text-xs text-slate-400">
               <span className="bg-white/10 text-cyan-accent px-2 py-1 rounded font-semibold">NAAC A+</span>

@@ -143,8 +143,7 @@ function parseInlineMarkdown(text: string): React.ReactNode {
   const elements: React.ReactNode[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null;
-
-  const keyPrefix = Math.random().toString(36).substring(2, 7);
+  let keyIndex = 0;
 
   while ((match = regex.exec(text)) !== null) {
     if (match.index > lastIndex) {
@@ -152,11 +151,11 @@ function parseInlineMarkdown(text: string): React.ReactNode {
     }
 
     if (match[1]) {
-      elements.push(<strong key={`${keyPrefix}_b_${match.index}`} className="font-bold text-slate-900">{match[2]}</strong>);
+      elements.push(<strong key={`b_${keyIndex++}`} className="font-bold text-slate-900">{match[2]}</strong>);
     } else if (match[3]) {
-      elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-800">{match[4]}</em>);
+      elements.push(<em key={`i_${keyIndex++}`} className="italic text-slate-800">{match[4]}</em>);
     } else if (match[5]) {
-      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-100 text-cyan-800 px-1.5 py-0.5 rounded font-mono text-xs border border-slate-200">{match[6]}</code>);
+      elements.push(<code key={`c_${keyIndex++}`} className="bg-slate-100 text-cyan-800 px-1.5 py-0.5 rounded font-mono text-xs border border-slate-200">{match[6]}</code>);
     }
 
     lastIndex = regex.lastIndex;
@@ -166,7 +165,7 @@ function parseInlineMarkdown(text: string): React.ReactNode {
     elements.push(text.substring(lastIndex));
   }
 
-  return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
+  return elements.length === 1 ? elements[0] : <React.Fragment key={`frag_${keyIndex}`}>{elements}</React.Fragment>;
 }
 
 export default function FacilityDetailPage({ params }: PageProps) {

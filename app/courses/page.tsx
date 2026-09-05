@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import Hero from '@/components/Hero';
 import CourseCard, { CourseWithSchemes } from '@/components/CourseCard';
 import { COURSES } from '@/lib/data';
 
@@ -66,36 +67,13 @@ export default function CoursesPage() {
 
   return (
     <div className="space-y-12 pb-20 relative font-sans">
-      {/* Page Header (Campus image background - Matches Homepage Hero Height) */}
-      <div className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center">
-        {/* Background Image with Top Blue Gradient Overlay */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="/campus.jpg"
-            alt="Academic Programs Banner"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#002147]/80 via-[#002147]/30 to-transparent" />
-        </div>
-
-        {/* Hero Content (Centered Text) */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-16 sm:pt-20 lg:pt-24">
-          {/* Breadcrumbs Above Title - Enlarged */}
-          <div className="flex items-center justify-center space-x-3 text-xl sm:text-2xl lg:text-3xl font-sans font-bold text-slate-100 drop-shadow-md">
-            <Link href="/" className="hover:text-cyan-accent transition-colors">
-              Home
-            </Link>
-            <span>&gt;</span>
-            <span className="text-white font-extrabold">Academic Programs</span>
-          </div>
-
-          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-black tracking-tight text-white uppercase drop-shadow-lg">
-            Academic Programs
-          </h1>
-        </div>
-      </div>
+      {/* Hero Header matching main homepage design */}
+      <Hero
+        title="ACADEMIC PROGRAMS"
+        badge="HOME > COURSES"
+        subtitle="Choice-Based Credit System (CBCS) offering M.Sc., Ph.D., and 5-Year Integrated M.Sc. degree programs."
+        bgImage="/campus.jpg"
+      />
 
       {/* Course Selector Bar - Styled like the glassmorphic navbar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center pt-6">

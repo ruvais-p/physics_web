@@ -43,8 +43,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${leagueSpartan.variable} ${inter.variable}`}>
-      <body className="min-h-screen flex flex-col bg-surface-canvas text-on-surface font-sans antialiased">
+    <html lang="en" className={`${leagueSpartan.variable} ${inter.variable}`} suppressHydrationWarning>
+      <body
+        className="min-h-screen flex flex-col bg-surface-canvas text-on-surface font-sans antialiased"
+        suppressHydrationWarning
+      >
         <LayoutWrapper>{children}</LayoutWrapper>
       </body>
     </html>
