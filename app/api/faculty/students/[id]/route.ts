@@ -4,14 +4,13 @@ import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
 import { verifyFacultyToken } from '@/lib/auth';
+import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
-
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
 const STUDENTS_DIR = path.join(process.cwd(), 'public', 'uploads', 'faculty', 'students');
 
 async function deletePhysicalFile(relativeWebPath: string | null) {
-  if (!relativeWebPath) return;
+  if (!relativeWebPath || relativeWebPath.includes('faculty.png')) return;
   try {
     const cleanPath = relativeWebPath.replace(/^\//, '');
     const absolutePath = path.join(process.cwd(), 'public', cleanPath);
@@ -75,7 +74,7 @@ export async function PUT(
 
     // Handle New Image Upload
     if (imageFile && imageFile.size > 0) {
-      if (!ALLOWED_IMAGE_TYPES.includes(imageFile.type)) {
+      if (!isAllowedImageType(imageFile.type) && !isAllowedImageType(imageFile.name)) {
         return NextResponse.json(
           { error: 'Invalid student image format. Supported formats are JPG, PNG, and WebP.' },
           { status: 400 }
@@ -84,30 +83,25 @@ export async function PUT(
 
       if (imageFile.size > MAX_IMAGE_SIZE) {
         return NextResponse.json(
-          { error: 'Student image file size exceeds the 5MB limit.' },
+          { error: 'Student image file size exceeds the 10MB limit.' },
           { status: 400 }
         );
       }
 
-      let ext = '.jpg';
-      if (imageFile.type === 'image/png') ext = '.png';
-      else if (imageFile.type === 'image/webp') ext = '.webp';
-
-      const timestamp = Date.now();
-      const fileName = `student_${payload.id}_${timestamp}${ext}`;
-      const filePath = path.join(STUDENTS_DIR, fileName);
-
-      await fs.mkdir(STUDENTS_DIR, { recursive: true });
-      const bytes = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      await fs.writeFile(filePath, buffer);
+      // Convert image to WebP and save
+      const { relativePath } = await saveImageAsWebp(
+        imageFile,
+        STUDENTS_DIR,
+        `student_${payload.id}`,
+        { quality: 85, maxWidth: 1200 }
+      );
 
       // Remove old image if replacing
       if (existingStudent.image) {
         await deletePhysicalFile(existingStudent.image);
       }
 
-      updatedImagePath = `/uploads/faculty/students/${fileName}`;
+      updatedImagePath = relativePath;
     }
 
     const updatedStudent = await prisma.facultyStudent.update({

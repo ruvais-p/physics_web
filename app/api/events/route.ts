@@ -4,6 +4,7 @@ import { verifyAuthToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
 import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
+import { saveImageAsWebp } from '@/lib/image';
 
 async function checkAuth() {
   const cookieStore = await cookies();
@@ -59,14 +60,13 @@ export async function POST(request: Request) {
       const imageUrlInput = (formData.get('imageUrl') as string || '').trim();
 
       if (imageFile && imageFile.size > 0) {
-        const bytes = await imageFile.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const ext = path.extname(imageFile.name) || '.jpg';
-        const filename = `event_${Date.now()}_${Math.random().toString(36).substring(2, 7)}${ext}`;
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, filename), buffer);
-        imagePath = `/uploads/${filename}`;
+        const { relativePath } = await saveImageAsWebp(
+          imageFile,
+          path.join(process.cwd(), 'public', 'uploads'),
+          'event',
+          { quality: 85, maxWidth: 1920 }
+        );
+        imagePath = relativePath;
       } else if (imageUrlInput) {
         imagePath = imageUrlInput;
       }

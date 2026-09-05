@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
-import { writeFile } from 'fs/promises';
-import path from 'path';
+import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 
 async function checkAuth() {
   const cookieStore = await cookies();
@@ -64,15 +63,17 @@ export async function POST(request: Request) {
       const imageUrlInput = (formData.get('imageUrl') as string || '').trim();
 
       if (imageFile && imageFile.size > 0) {
-        const bytes = await imageFile.arrayBuffer();
-        const buffer = Buffer.from(bytes);
+        if (!isAllowedImageType(imageFile.type || imageFile.name)) {
+          return NextResponse.json({ error: 'Unsupported image format' }, { status: 400 });
+        }
 
-        const ext = path.extname(imageFile.name) || '.jpg';
-        const filename = `dept_${Date.now()}_${Math.random().toString(36).substring(2, 7)}${ext}`;
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-        await writeFile(path.join(uploadDir, filename), buffer);
-
-        imagePath = `/uploads/${filename}`;
+        const { relativePath } = await saveImageAsWebp(
+          imageFile,
+          'public/uploads',
+          'dept',
+          { quality: 85, maxWidth: 2560 }
+        );
+        imagePath = relativePath;
       } else if (imageUrlInput) {
         imagePath = imageUrlInput;
       }

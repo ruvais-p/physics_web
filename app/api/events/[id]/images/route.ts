@@ -2,8 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
+import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 
 async function checkAuth() {
   const cookieStore = await cookies();
@@ -98,23 +97,27 @@ export async function POST(request: Request, { params }: Params) {
         );
       }
 
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-      await mkdir(uploadDir, { recursive: true });
+      const uploadDir = 'public/uploads/events';
 
-      // Save uploaded files
+      // Save uploaded files as WebP
       for (const file of files) {
         if (file && file.size > 0) {
-          // File size validation: 5MB
-          if (file.size > 5 * 1024 * 1024) {
-            return NextResponse.json({ error: `File ${file.name} exceeds maximum 5MB size limit.` }, { status: 400 });
+          // File size validation: 10MB
+          if (file.size > 10 * 1024 * 1024) {
+            return NextResponse.json({ error: `File ${file.name} exceeds maximum 10MB size limit.` }, { status: 400 });
           }
 
-          const bytes = await file.arrayBuffer();
-          const buffer = Buffer.from(bytes);
-          const ext = path.extname(file.name) || '.jpg';
-          const filename = `gallery_${eventId}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}${ext}`;
-          await writeFile(path.join(uploadDir, filename), buffer);
-          newImagePaths.push(`/uploads/${filename}`);
+          if (!isAllowedImageType(file.type || file.name)) {
+            return NextResponse.json({ error: `File ${file.name} is not a supported image format.` }, { status: 400 });
+          }
+
+          const { relativePath } = await saveImageAsWebp(
+            file,
+            uploadDir,
+            `gallery_${eventId}`,
+            { quality: 85, maxWidth: 1920 }
+          );
+          newImagePaths.push(relativePath);
         }
       }
 

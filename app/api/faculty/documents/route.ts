@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
 import { verifyFacultyToken } from '@/lib/auth';
+import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -104,7 +105,7 @@ export async function POST(request: Request) {
 
     // Process Profile Image Upload
     if (imageFile && imageFile.size > 0) {
-      if (!ALLOWED_IMAGE_TYPES.includes(imageFile.type)) {
+      if (!isAllowedImageType(imageFile.type) && !isAllowedImageType(imageFile.name)) {
         return NextResponse.json(
           { error: 'Invalid image format. Supported formats are JPG, PNG, and WebP.' },
           { status: 400 }
@@ -113,30 +114,24 @@ export async function POST(request: Request) {
 
       if (imageFile.size > MAX_IMAGE_SIZE) {
         return NextResponse.json(
-          { error: 'Profile image size exceeds maximum allowed limit of 5 MB.' },
+          { error: 'Profile image size exceeds maximum allowed limit of 10 MB.' },
           { status: 400 }
         );
       }
 
-      // Determine extension
-      let ext = '.jpg';
-      if (imageFile.type === 'image/png') ext = '.png';
-      else if (imageFile.type === 'image/webp') ext = '.webp';
-
-      const fileName = `img_${payload.id}_${timestamp}${ext}`;
-      const filePath = path.join(IMAGES_DIR, fileName);
-
-      // Save buffer to disk
-      const bytes = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      await fs.writeFile(filePath, buffer);
+      const { relativePath } = await saveImageAsWebp(
+        imageFile,
+        IMAGES_DIR,
+        `img_${payload.id}`,
+        { quality: 85, maxWidth: 1200 }
+      );
 
       // Remove previous physical image file if replacing
       if (existingDoc?.image) {
         await deletePhysicalFile(existingDoc.image);
       }
 
-      newImagePath = `/uploads/faculty/images/${fileName}`;
+      newImagePath = relativePath;
     }
 
     // Process CV Upload

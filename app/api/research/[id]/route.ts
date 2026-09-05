@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminToken, verifyFacultyToken, verifyAuthToken } from '@/lib/auth';
+import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -108,7 +109,7 @@ export async function PUT(
     }
 
     if (imageFile && imageFile.size > 0) {
-      if (!ALLOWED_IMAGE_TYPES.includes(imageFile.type)) {
+      if (!isAllowedImageType(imageFile.type) && !isAllowedImageType(imageFile.name)) {
         return NextResponse.json(
           { error: 'Invalid image format. Supported formats are JPG, PNG, and WebP.' },
           { status: 400 }
@@ -122,17 +123,14 @@ export async function PUT(
         );
       }
 
-      let ext = '.jpg';
-      if (imageFile.type === 'image/png') ext = '.png';
-      else if (imageFile.type === 'image/webp') ext = '.webp';
+      const { relativePath } = await saveImageAsWebp(
+        imageFile,
+        LAB_IMAGES_DIR,
+        `lab_${id}`,
+        { quality: 85, maxWidth: 1920 }
+      );
 
-      const fileName = `lab_${id}_${Date.now()}${ext}`;
-      const filePath = path.join(LAB_IMAGES_DIR, fileName);
-
-      const bytes = await imageFile.arrayBuffer();
-      await fs.writeFile(filePath, Buffer.from(bytes));
-
-      newImagePath = `/uploads/research-labs/${fileName}`;
+      newImagePath = relativePath;
     }
 
     let facultyConnectDisconnect: any = {};

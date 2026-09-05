@@ -2,8 +2,9 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { verifyAuthToken } from '@/lib/auth';
 import { cookies } from 'next/headers';
-import { writeFile, mkdir, unlink } from 'fs/promises';
+import { unlink } from 'fs/promises';
 import path from 'path';
+import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 
 async function checkAuth() {
   const cookieStore = await cookies();
@@ -52,17 +53,21 @@ export async function PUT(request: Request, { params }: Params) {
       const imageUrlInput = (formData.get('imageUrl') as string || '').trim();
 
       if (file && file.size > 0) {
-        if (file.size > 5 * 1024 * 1024) {
-          return NextResponse.json({ error: 'File size exceeds 5MB limit' }, { status: 400 });
+        if (file.size > 10 * 1024 * 1024) {
+          return NextResponse.json({ error: 'File size exceeds 10MB limit' }, { status: 400 });
         }
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        const ext = path.extname(file.name) || '.jpg';
-        const filename = `gallery_${existingImage.eventId}_${Date.now()}_${Math.random().toString(36).substring(2, 7)}${ext}`;
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-        await mkdir(uploadDir, { recursive: true });
-        await writeFile(path.join(uploadDir, filename), buffer);
-        newImagePath = `/uploads/${filename}`;
+
+        if (!isAllowedImageType(file.type || file.name)) {
+          return NextResponse.json({ error: 'Unsupported image format' }, { status: 400 });
+        }
+
+        const { relativePath } = await saveImageAsWebp(
+          file,
+          'public/uploads/events',
+          `gallery_${existingImage.eventId}`,
+          { quality: 85, maxWidth: 1920 }
+        );
+        newImagePath = relativePath;
       } else if (imageUrlInput) {
         newImagePath = imageUrlInput;
       }

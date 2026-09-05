@@ -656,13 +656,22 @@ export default function UnifiedDashboardPage() {
         body: formData,
       });
 
-      const data = await res.json();
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        const text = await res.text().catch(() => '');
+        throw new Error(res.ok ? 'Failed to parse response from server.' : `Server error (${res.status}): ${text.substring(0, 100)}`);
+      }
 
       if (!res.ok) {
         throw new Error(data.error || 'Failed to save About Us content.');
       }
 
-      setAboutImagePath(data.data.image || aboutImagePath);
+      if (data.data?.image) {
+        setAboutImagePath(data.data.image);
+        setAboutImagePreviewUrl(data.data.image);
+      }
       setSelectedAboutImageFile(null);
       setAboutSuccess('About Us page content and department hero image updated successfully!');
       setTimeout(() => setAboutSuccess(null), 4000);

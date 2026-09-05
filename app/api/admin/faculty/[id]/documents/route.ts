@@ -4,6 +4,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminToken } from '@/lib/auth';
+import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -71,10 +72,9 @@ export async function POST(
 
     let newImagePath: string | null = existingDoc?.image || null;
     let newCvPath: string | null = existingDoc?.cv || null;
-    const timestamp = Date.now();
-
+    // Process Profile Image Upload
     if (imageFile && imageFile.size > 0) {
-      if (!ALLOWED_IMAGE_TYPES.includes(imageFile.type)) {
+      if (!isAllowedImageType(imageFile.type) && !isAllowedImageType(imageFile.name)) {
         return NextResponse.json(
           { error: 'Invalid image format. Supported formats are JPG, PNG, and WebP.' },
           { status: 400 }
@@ -83,27 +83,23 @@ export async function POST(
 
       if (imageFile.size > MAX_IMAGE_SIZE) {
         return NextResponse.json(
-          { error: 'Profile image size exceeds maximum limit of 5 MB.' },
+          { error: 'Profile image size exceeds maximum limit of 10 MB.' },
           { status: 400 }
         );
       }
 
-      let ext = '.jpg';
-      if (imageFile.type === 'image/png') ext = '.png';
-      else if (imageFile.type === 'image/webp') ext = '.webp';
-
-      const fileName = `img_${facultyId}_${timestamp}${ext}`;
-      const filePath = path.join(IMAGES_DIR, fileName);
-
-      const bytes = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      await fs.writeFile(filePath, buffer);
+      const { relativePath } = await saveImageAsWebp(
+        imageFile,
+        IMAGES_DIR,
+        `img_${facultyId}`,
+        { quality: 85, maxWidth: 1200 }
+      );
 
       if (existingDoc?.image) {
         await deletePhysicalFile(existingDoc.image);
       }
 
-      newImagePath = `/uploads/faculty/images/${fileName}`;
+      newImagePath = relativePath;
     }
 
     if (cvFile && cvFile.size > 0) {
@@ -121,7 +117,7 @@ export async function POST(
         );
       }
 
-      const fileName = `cv_${facultyId}_${timestamp}.pdf`;
+      const fileName = `cv_${facultyId}_${Date.now()}.pdf`;
       const filePath = path.join(CVS_DIR, fileName);
 
       const bytes = await cvFile.arrayBuffer();

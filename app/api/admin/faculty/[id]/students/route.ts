@@ -1,13 +1,11 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import path from 'path';
-import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminToken } from '@/lib/auth';
+import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
-
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
 const STUDENTS_DIR = path.join(process.cwd(), 'public', 'uploads', 'faculty', 'students');
 
 async function authenticateAdmin() {
@@ -35,8 +33,6 @@ export async function POST(
       return NextResponse.json({ error: 'Faculty record not found' }, { status: 404 });
     }
 
-    await fs.mkdir(STUDENTS_DIR, { recursive: true });
-
     const formData = await request.formData();
     const name = formData.get('name') as string | null;
     const description = formData.get('description') as string | null;
@@ -49,7 +45,7 @@ export async function POST(
     let imagePath: string | null = null;
 
     if (imageFile && imageFile.size > 0) {
-      if (!ALLOWED_IMAGE_TYPES.includes(imageFile.type)) {
+      if (!isAllowedImageType(imageFile.type) && !isAllowedImageType(imageFile.name)) {
         return NextResponse.json(
           { error: 'Invalid student image format. Supported formats are JPG, PNG, and WebP.' },
           { status: 400 }
@@ -58,24 +54,19 @@ export async function POST(
 
       if (imageFile.size > MAX_IMAGE_SIZE) {
         return NextResponse.json(
-          { error: 'Student image file size exceeds the 5MB limit.' },
+          { error: 'Student image file size exceeds the 10MB limit.' },
           { status: 400 }
         );
       }
 
-      let ext = '.jpg';
-      if (imageFile.type === 'image/png') ext = '.png';
-      else if (imageFile.type === 'image/webp') ext = '.webp';
-
-      const timestamp = Date.now();
-      const fileName = `student_${facultyId}_${timestamp}${ext}`;
-      const filePath = path.join(STUDENTS_DIR, fileName);
-
-      const bytes = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      await fs.writeFile(filePath, buffer);
-
-      imagePath = `/uploads/faculty/students/${fileName}`;
+      // Convert image to WebP and save
+      const { relativePath } = await saveImageAsWebp(
+        imageFile,
+        STUDENTS_DIR,
+        `student_${facultyId}`,
+        { quality: 85, maxWidth: 1200 }
+      );
+      imagePath = relativePath;
     }
 
     const newStudent = await prisma.facultyStudent.create({
