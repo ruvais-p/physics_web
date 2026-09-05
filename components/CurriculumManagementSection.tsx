@@ -22,6 +22,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/components/ui/table';
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -343,71 +351,71 @@ export default function CurriculumManagementSection() {
 
   return (
     <div className="space-y-8 font-sans">
-      {/* Top Header Card */}
-      <Card className="bg-slate-900 border-slate-800 text-white shadow-xl overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        <CardHeader className="relative z-10 sm:flex-row sm:items-center sm:justify-between pb-4">
-          <div className="space-y-1">
-            <CardTitle className="text-xl sm:text-2xl font-serif font-bold text-white flex items-center gap-2.5">
-              <BookOpen className="w-6 h-6 text-cyan-400" />
-              <span>Academic Courses &amp; Curriculum Management</span>
-            </CardTitle>
-            <CardDescription className="text-slate-400 text-xs sm:text-sm">
-              Add and edit course titles, descriptions, eligibility criteria, and upload official syllabus &amp; regulation PDFs.
-            </CardDescription>
-          </div>
-          <div className="mt-4 sm:mt-0 flex items-center gap-2 flex-wrap">
-            <Button
-              onClick={fetchCoursesAndSchemes}
-              variant="outline"
-              size="sm"
-              className="border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white cursor-pointer"
-            >
-              <RefreshCw className={`w-4 h-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-            <Button
-              onClick={openAddCourseModal}
-              size="sm"
-              className="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold shadow-md cursor-pointer"
-            >
-              <Plus className="w-4 h-4 mr-1.5" />
-              Add New Course
-            </Button>
-          </div>
-        </CardHeader>
+      {/* Top Header Card / Action Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-transparent py-2 rounded-none shadow-none">
+        <div>
+          <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+            <BookOpen className="w-7 h-7 text-oxford" />
+            <span>Academic Courses & Curriculum</span>
+            <Badge variant="outline" className="ml-2 font-mono text-xs border-oxford text-oxford">
+              {courses.length} Courses
+            </Badge>
+          </h2>
+          <p className="text-slate-600 text-base mt-1">
+            Add and edit course titles, descriptions, eligibility criteria, and upload official syllabus & regulation PDFs.
+          </p>
+        </div>
 
-        <CardContent className="relative z-10 pt-0">
-          {/* Success Notification Alert */}
-          {successMsg && (
-            <div className="mb-4 p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center gap-2.5 text-emerald-400 text-xs sm:text-sm animate-fadeIn">
-              <CheckCircle2 className="w-4.5 h-4.5 shrink-0" />
-              <span>{successMsg}</span>
-            </div>
-          )}
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={fetchCoursesAndSchemes}
+            className="h-11 w-11 text-slate-700 hover:text-slate-950"
+            title="Refresh List"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button
+            variant="default"
+            onClick={openAddCourseModal}
+            className="flex items-center gap-2 py-3 px-5 font-semibold rounded-xl shadow-xs transition-all text-base cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New Course</span>
+          </Button>
+        </div>
+      </div>
 
-          {/* Dynamic Course Switcher Tabs */}
-          <div className="flex flex-wrap items-center gap-2 border-b border-slate-800 pb-3 pt-1">
-            {courses.map((course) => {
-              const isActive = selectedCourseId === course.id;
-              return (
-                <button
-                  key={course.id}
-                  onClick={() => setSelectedCourseId(course.id)}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer ${
-                    isActive
-                      ? 'bg-cyan-500 text-white shadow-lg shadow-cyan-500/20'
-                      : 'bg-slate-800/80 text-slate-400 hover:bg-slate-800 hover:text-slate-200'
-                  }`}
-                >
-                  <Layers className="w-4 h-4" />
-                  <span>{course.title || course.id}</span>
-                </button>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Success Notification Alert */}
+      {successMsg && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2.5 text-emerald-800 text-sm font-semibold animate-fadeIn">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <span>{successMsg}</span>
+        </div>
+      )}
+
+      {/* Dynamic Course Switcher Tabs */}
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3 pt-1">
+        {courses.map((course) => {
+          const isActive = selectedCourseId === course.id;
+          return (
+            <button
+              key={course.id}
+              type="button"
+              onClick={() => setSelectedCourseId(course.id)}
+              className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer ${
+                isActive
+                  ? 'bg-oxford text-white shadow-xs'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+              }`}
+            >
+              <Layers className="w-4 h-4" />
+              <span>{course.title || course.id}</span>
+            </button>
+          );
+        })}
+      </div>
 
       {/* Course Overview & Description Card */}
       {currentCourse && (
@@ -483,40 +491,41 @@ export default function CurriculumManagementSection() {
       )}
 
       {/* Curriculum Schemes & Syllabus Table */}
-      <Card className="bg-slate-900/95 border-slate-800 text-white shadow-xl">
-        <CardHeader className="pb-3 border-b border-slate-800/80 sm:flex-row sm:items-center sm:justify-between">
+      <Card className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+        <CardHeader className="p-6 pb-4 border-b border-slate-100 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
-            <CardTitle className="text-base sm:text-lg font-bold text-slate-100 flex items-center gap-2">
-              <FileCheck2 className="w-5 h-5 text-cyan-400" />
+            <CardTitle className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
+              <FileCheck2 className="w-5 h-5 text-oxford" />
               <span>Curriculum Schemes &amp; Syllabus PDFs</span>
-              <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 text-xs ml-1">
+              <Badge variant="outline" className="border-oxford/30 text-oxford text-xs ml-1 font-mono">
                 {currentCourse?.schemes?.length || 0} Entries
               </Badge>
             </CardTitle>
-            <CardDescription className="text-slate-400 text-xs">
+            <CardDescription className="text-slate-500 text-xs sm:text-sm">
               Upload, link, and organize the regulation schemes and syllabus PDFs for {currentCourse?.title || selectedCourseId}.
             </CardDescription>
           </div>
           <Button
+            variant="default"
             onClick={openAddSchemeModal}
             size="sm"
-            className="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold shadow-sm cursor-pointer mt-3 sm:mt-0"
+            className="mt-3 sm:mt-0 flex items-center gap-1.5 py-2.5 px-4 text-xs font-semibold rounded-xl cursor-pointer"
           >
-            <Plus className="w-4 h-4 mr-1.5" />
+            <Plus className="w-4 h-4 mr-1" />
             Add Scheme / Syllabus PDF
           </Button>
         </CardHeader>
 
         <CardContent className="p-0 overflow-x-auto">
           {loading ? (
-            <div className="p-12 text-center text-slate-400 space-y-3">
-              <RefreshCw className="w-7 h-7 animate-spin mx-auto text-cyan-400" />
+            <div className="p-12 text-center text-slate-500 space-y-3">
+              <RefreshCw className="w-7 h-7 animate-spin mx-auto text-oxford" />
               <p className="text-xs">Loading curriculum schemes...</p>
             </div>
           ) : !currentCourse?.schemes || currentCourse.schemes.length === 0 ? (
-            <div className="p-12 text-center text-slate-400 space-y-3">
-              <FileText className="w-10 h-10 mx-auto text-slate-600" />
-              <p className="text-sm font-semibold text-slate-300">No Curriculum Schemes added yet</p>
+            <div className="p-12 text-center text-slate-500 space-y-3">
+              <FileText className="w-10 h-10 mx-auto text-slate-400" />
+              <p className="text-sm font-semibold text-slate-800">No Curriculum Schemes added yet</p>
               <p className="text-xs text-slate-500">
                 Click "Add Scheme / Syllabus PDF" to attach regulation schemes or syllabus documents.
               </p>
@@ -524,43 +533,43 @@ export default function CurriculumManagementSection() {
                 onClick={openAddSchemeModal}
                 variant="outline"
                 size="sm"
-                className="mt-2 border-slate-700 bg-slate-800 text-slate-300 hover:text-white"
+                className="mt-2 text-xs"
               >
                 <Plus className="w-3.5 h-3.5 mr-1" /> Add First Scheme
               </Button>
             </div>
           ) : (
-            <table className="w-full text-left text-xs sm:text-sm divide-y divide-slate-800">
-              <thead className="bg-slate-950/60 text-slate-400 font-mono text-[11px] uppercase tracking-wider">
-                <tr>
-                  <th className="px-6 py-4">Sort</th>
-                  <th className="px-6 py-4">Year / Level</th>
-                  <th className="px-6 py-4">Curriculum Scheme Title</th>
-                  <th className="px-6 py-4">Syllabus PDF Document</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+            <Table className="text-sm">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="font-bold w-16">Sort</TableHead>
+                  <TableHead className="font-bold">Year / Level</TableHead>
+                  <TableHead className="font-bold">Curriculum Scheme Title</TableHead>
+                  <TableHead className="font-bold">Syllabus PDF Document</TableHead>
+                  <TableHead className="text-right font-bold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {currentCourse.schemes.map((schemeItem, idx) => (
-                  <tr key={schemeItem.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="px-6 py-4 font-mono text-slate-500 font-bold">
+                  <TableRow key={schemeItem.id} className="hover:bg-slate-50/40">
+                    <TableCell className="font-mono text-slate-500 font-bold py-4">
                       #{schemeItem.sortOrder ?? idx + 1}
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-white">
+                    </TableCell>
+                    <TableCell className="font-semibold text-slate-900 py-4">
                       {schemeItem.year}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-cyan-950/80 text-cyan-300 border border-cyan-800/60">
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-sky-50 text-cyan-700 border border-sky-200">
                         {schemeItem.scheme}
                       </span>
-                    </td>
-                    <td className="px-6 py-4">
+                    </TableCell>
+                    <TableCell className="py-4">
                       {schemeItem.pdfUrl ? (
                         <a
                           href={schemeItem.pdfUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 font-medium hover:underline max-w-[200px] truncate"
+                          className="inline-flex items-center gap-1.5 text-cyan-accent hover:underline font-medium max-w-[200px] truncate"
                           title={schemeItem.pdfUrl}
                         >
                           <FileText className="w-4 h-4 shrink-0" />
@@ -568,33 +577,33 @@ export default function CurriculumManagementSection() {
                           <ExternalLink className="w-3 h-3 shrink-0 opacity-70" />
                         </a>
                       ) : (
-                        <span className="text-slate-500 italic">No PDF attached</span>
+                        <span className="text-slate-400 italic">No PDF attached</span>
                       )}
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                    </TableCell>
+                    <TableCell className="text-right space-x-2 whitespace-nowrap py-4">
                       <Button
                         variant="secondary"
                         size="icon"
                         onClick={() => openEditSchemeModal(schemeItem)}
-                        className="h-8 w-8 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white cursor-pointer"
+                        className="h-9 w-9 text-slate-600 hover:text-slate-900"
                         title="Edit Scheme"
                       >
-                        <Edit className="w-3.5 h-3.5" />
+                        <Edit className="w-4 h-4" />
                       </Button>
                       <Button
                         variant="destructive"
                         size="icon"
                         onClick={() => setDeletingSchemeId(schemeItem.id)}
-                        className="h-8 w-8 bg-rose-600/20 hover:bg-rose-600 text-rose-300 hover:text-white border border-rose-500/30 cursor-pointer"
+                        className="h-9 w-9"
                         title="Delete Scheme"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Trash2 className="w-4 h-4" />
                       </Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>

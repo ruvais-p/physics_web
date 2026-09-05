@@ -30,7 +30,6 @@ import {
   Globe,
   BookOpen,
   Share2,
-  Sparkles,
   Upload,
   FileCheck,
   FilePlus,
@@ -52,6 +51,12 @@ import {
   Wrench,
   GripVertical,
   ArrowUpDown,
+  Mail,
+  Building2,
+  Check,
+  Award,
+  Info,
+  ArrowRight,
 } from 'lucide-react';
 import AdminFacultyFullManageModal from '@/components/AdminFacultyFullManageModal';
 import EventGallerySection from '@/components/EventGallerySection';
@@ -159,64 +164,64 @@ const PREDEFINED_PLATFORMS: PredefinedPlatform[] = [
     key: 'google_scholar',
     label: 'Google Scholar',
     placeholder: 'https://scholar.google.com/citations?user=...',
-    badgeBg: 'bg-blue-500/10 border-blue-500/30',
-    badgeText: 'text-blue-400',
+    badgeBg: 'bg-blue-50 border-blue-200',
+    badgeText: 'text-blue-700',
   },
   {
     key: 'scopus',
     label: 'Scopus',
     placeholder: 'https://www.scopus.com/authid/detail.uri?authorId=...',
-    badgeBg: 'bg-[#FF6C00]/10 border-[#FF6C00]/30',
-    badgeText: 'text-[#FF8C33]',
+    badgeBg: 'bg-amber-50 border-amber-200',
+    badgeText: 'text-amber-700',
   },
   {
     key: 'orcid',
     label: 'ORCID',
     placeholder: 'https://orcid.org/0000-0000-0000-0000',
-    badgeBg: 'bg-[#A6CE39]/10 border-[#A6CE39]/30',
-    badgeText: 'text-[#BBE049]',
+    badgeBg: 'bg-lime-50 border-lime-200',
+    badgeText: 'text-lime-800',
   },
   {
     key: 'moodle',
     label: 'Moodle',
     placeholder: 'https://moodle.cusat.ac.in/...',
-    badgeBg: 'bg-[#F26522]/10 border-[#F26522]/30',
-    badgeText: 'text-[#FF7F42]',
+    badgeBg: 'bg-orange-50 border-orange-200',
+    badgeText: 'text-orange-700',
   },
   {
     key: 'iqac_profile',
     label: 'IQAC Profile',
     placeholder: 'https://iqac.cusat.ac.in/faculty/...',
-    badgeBg: 'bg-emerald-500/10 border-emerald-500/30',
-    badgeText: 'text-emerald-400',
+    badgeBg: 'bg-emerald-50 border-emerald-200',
+    badgeText: 'text-emerald-700',
   },
   {
     key: 'iris',
     label: 'IRIS',
     placeholder: 'https://iris.cusat.ac.in/profile/...',
-    badgeBg: 'bg-purple-500/10 border-purple-500/30',
-    badgeText: 'text-purple-300',
+    badgeBg: 'bg-purple-50 border-purple-200',
+    badgeText: 'text-purple-700',
   },
   {
     key: 'youtube',
     label: 'YouTube Channel',
     placeholder: 'https://youtube.com/@channel',
-    badgeBg: 'bg-red-500/10 border-red-500/30',
-    badgeText: 'text-red-400',
+    badgeBg: 'bg-red-50 border-red-200',
+    badgeText: 'text-red-700',
   },
   {
     key: 'personal_website',
     label: 'Personal Website',
     placeholder: 'https://www.mywebsite.com',
-    badgeBg: 'bg-cyan-500/10 border-cyan-500/30',
-    badgeText: 'text-cyan-400',
+    badgeBg: 'bg-cyan-50 border-cyan-200',
+    badgeText: 'text-cyan-700',
   },
   {
     key: 'linkedin',
     label: 'LinkedIn',
     placeholder: 'https://linkedin.com/in/username',
-    badgeBg: 'bg-sky-500/10 border-sky-500/30',
-    badgeText: 'text-sky-400',
+    badgeBg: 'bg-sky-50 border-sky-200',
+    badgeText: 'text-sky-700',
   },
 ];
 
@@ -252,10 +257,10 @@ interface ProjectItem {
   faculty?: { id: string; name: string; email: string } | null;
 }
 
-// Markdown Parser Helper Function for Faculty Description
+// Markdown Parser Helper Function for Faculty Description & About Us
 function renderMarkdown(md: string) {
   if (!md || !md.trim()) {
-    return <p className="text-xs text-slate-500 italic">No professional description added yet.</p>;
+    return <p className="text-sm text-slate-500 italic">No professional description added yet.</p>;
   }
 
   const lines = md.split('\n');
@@ -266,7 +271,7 @@ function renderMarkdown(md: string) {
     if (currentList) {
       if (currentList.type === 'ul') {
         elements.push(
-          <ul key={`ul_${elements.length}`} className="list-disc ml-5 space-y-1.5 my-2 text-xs text-slate-300">
+          <ul key={`ul_${elements.length}`} className="list-disc ml-5 space-y-1.5 my-2 text-sm text-slate-800">
             {currentList.items.map((item, idx) => (
               <li key={idx}>{parseInlineMarkdown(item)}</li>
             ))}
@@ -274,7 +279,7 @@ function renderMarkdown(md: string) {
         );
       } else {
         elements.push(
-          <ol key={`ol_${elements.length}`} className="list-decimal ml-5 space-y-1.5 my-2 text-xs text-slate-300">
+          <ol key={`ol_${elements.length}`} className="list-decimal ml-5 space-y-1.5 my-2 text-sm text-slate-800">
             {currentList.items.map((item, idx) => (
               <li key={idx}>{parseInlineMarkdown(item)}</li>
             ))}
@@ -317,33 +322,41 @@ function renderMarkdown(md: string) {
       return;
     }
 
-    if (trimmed.startsWith('# ')) {
+    if (trimmed.startsWith('---') || trimmed.startsWith('***')) {
+      elements.push(<hr key={index} className="my-4 border-slate-200" />);
+    } else if (trimmed.startsWith('# ')) {
       elements.push(
-        <h2 key={index} className="text-xl font-bold font-serif text-white mt-4 mb-2 border-b border-slate-700/60 pb-1">
+        <h2 key={index} className="text-2xl font-bold font-serif text-slate-900 mt-5 mb-2 border-b border-slate-200 pb-1.5">
           {parseInlineMarkdown(trimmed.slice(2))}
         </h2>
       );
     } else if (trimmed.startsWith('## ')) {
       elements.push(
-        <h3 key={index} className="text-lg font-bold font-serif text-indigo-300 mt-3 mb-1.5">
+        <h3 key={index} className="text-xl font-bold font-serif text-oxford mt-4 mb-2">
           {parseInlineMarkdown(trimmed.slice(3))}
         </h3>
       );
     } else if (trimmed.startsWith('### ')) {
       elements.push(
-        <h4 key={index} className="text-sm font-semibold uppercase tracking-wider text-cyan-400 mt-2.5 mb-1">
+        <h4 key={index} className="text-base font-bold text-cyan-800 mt-3 mb-1 font-sans">
           {parseInlineMarkdown(trimmed.slice(4))}
         </h4>
       );
+    } else if (trimmed.startsWith('#### ')) {
+      elements.push(
+        <h5 key={index} className="text-sm font-semibold text-slate-800 mt-2 mb-1">
+          {parseInlineMarkdown(trimmed.slice(5))}
+        </h5>
+      );
     } else if (trimmed.startsWith('> ')) {
       elements.push(
-        <blockquote key={index} className="border-l-2 border-indigo-400 pl-3 py-1.5 text-slate-300 italic text-xs my-2 bg-indigo-500/10 rounded-r-lg">
+        <blockquote key={index} className="border-l-4 border-oxford pl-4 py-2 text-slate-700 italic text-sm my-2.5 bg-slate-100/80 rounded-r-lg">
           {parseInlineMarkdown(trimmed.slice(2))}
         </blockquote>
       );
     } else {
       elements.push(
-        <p key={index} className="text-xs text-slate-300 leading-relaxed my-1">
+        <p key={index} className="text-sm text-slate-800 leading-relaxed my-1.5">
           {parseInlineMarkdown(trimmed)}
         </p>
       );
@@ -351,7 +364,7 @@ function renderMarkdown(md: string) {
   });
 
   flushList();
-  return <div className="space-y-1 font-sans">{elements}</div>;
+  return <div className="space-y-1 font-sans text-slate-800">{elements}</div>;
 }
 
 function parseInlineMarkdown(text: string): React.ReactNode {
@@ -365,9 +378,9 @@ function parseInlineMarkdown(text: string): React.ReactNode {
       const [, before, label, url, after] = linkMatch;
       if (before) parts.push(parseFormatting(before, keyIdx++));
       parts.push(
-        <a key={keyIdx++} href={url} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline font-medium inline-flex items-center gap-0.5">
+        <a key={keyIdx++} href={url} target="_blank" rel="noopener noreferrer" className="text-oxford hover:text-cyan-700 underline font-semibold inline-flex items-center gap-1">
           <span>{label}</span>
-          <ExternalLink className="w-3 h-3 opacity-70" />
+          <ExternalLink className="w-3.5 h-3.5 opacity-80" />
         </a>
       );
       remaining = after;
@@ -393,11 +406,11 @@ function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
     }
 
     if (match[1]) {
-      elements.push(<strong key={`${keyPrefix}_b_${match.index}`} className="font-bold text-white">{match[2]}</strong>);
+      elements.push(<strong key={`${keyPrefix}_b_${match.index}`} className="font-bold text-slate-900">{match[2]}</strong>);
     } else if (match[3]) {
-      elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-200">{match[4]}</em>);
+      elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-700">{match[4]}</em>);
     } else if (match[5]) {
-      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-800 text-indigo-300 px-1.5 py-0.5 rounded font-mono text-[11px]">{match[6]}</code>);
+      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-200 text-oxford px-1.5 py-0.5 rounded font-mono text-xs font-semibold">{match[6]}</code>);
     }
 
     lastIndex = regex.lastIndex;
@@ -2178,141 +2191,139 @@ export default function UnifiedDashboardPage() {
     return (
       <Tabs value={adminTab} onValueChange={(val) => setAdminTab(val as any)} className="min-h-screen bg-[#faf7f2] text-slate-900 flex flex-col md:flex-row font-serif selection:bg-oxford selection:text-white">
         {/* Left Sidebar */}
-        <aside className="w-full md:w-72 bg-oxford border-r border-[#001833] text-white flex flex-col justify-between shrink-0 min-h-screen p-6 shadow-xl sticky top-0 z-40">
-          <div className="space-y-8">
-            {/* Portal Branding Header */}
-            <div className="flex items-center gap-3 border-b border-white/10 pb-6">
-              <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent shrink-0 shadow-inner">
-                <ShieldCheck className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-lg font-bold text-white font-serif leading-tight">Admin Portal</h1>
-                  <Badge className="bg-cyan-accent text-oxford font-sans font-bold uppercase tracking-wide text-[9px] px-1.5 py-0.5 rounded">
-                    CMS
-                  </Badge>
-                </div>
-                <p className="text-xs text-indigo-200 truncate max-w-[160px]" title={currentUser?.email}>{currentUser?.email || 'System Admin'}</p>
-              </div>
+        <aside className="w-full md:w-80 lg:w-[320px] bg-oxford border-none text-white flex flex-col justify-between shrink-0 h-auto md:h-screen md:sticky md:top-0 p-4 sm:p-5 lg:p-6 shadow-2xl z-40 overflow-hidden">
+          {/* Portal Branding Header */}
+          <div className="shrink-0 flex items-center gap-3.5 px-2 pt-1 pb-5 border-b border-white/10">
+            <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent shrink-0 shadow-inner">
+              <ShieldCheck className="w-6 h-6" />
             </div>
-
-            {/* Navigation List */}
-            <div className="space-y-2">
-              <p className="text-[10px] font-sans font-bold text-indigo-300 uppercase tracking-widest px-3 mb-2">Main Navigation</p>
-              <TabsList className="flex flex-col h-auto bg-transparent p-0 space-y-1.5 w-full">
-                <TabsTrigger
-                  value="dashboard"
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <LayoutDashboard className="w-4 h-4" />
-                    <span>Overview</span>
-                  </div>
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="about"
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <FileText className="w-4 h-4" />
-                    <span>About Us</span>
-                  </div>
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="hero"
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <Sliders className="w-4 h-4" />
-                    <span>Hero Carousel</span>
-                  </div>
-                  <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
-                    {heroSlides.length}/10
-                  </Badge>
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="events"
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <Calendar className="w-4 h-4" />
-                    <span>Events Management</span>
-                  </div>
-                  <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
-                    {eventsList.length}
-                  </Badge>
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="notifications"
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <Bell className="w-4 h-4" />
-                    <span>Notifications</span>
-                  </div>
-                  <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
-                    {notifications.length}
-                  </Badge>
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="faculty"
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <Users className="w-4 h-4" />
-                    <span>Faculty Accounts</span>
-                  </div>
-                  <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
-                    {facultyList.length}
-                  </Badge>
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="curriculum"
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <BookOpen className="w-4 h-4" />
-                    <span>Curriculum & Regulations</span>
-                  </div>
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="labs"
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <FlaskConical className="w-4 h-4" />
-                    <span>Research Laboratories</span>
-                  </div>
-                </TabsTrigger>
-
-                <TabsTrigger
-                  value="facilities"
-                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-                >
-                  <div className="flex items-center gap-3">
-                    <Wrench className="w-4 h-4" />
-                    <span>Facilities Management</span>
-                  </div>
-                </TabsTrigger>
-              </TabsList>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-bold text-white font-serif leading-tight">Admin Portal</h1>
+                <Badge className="bg-cyan-accent text-oxford font-sans font-bold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded-md">
+                  CMS
+                </Badge>
+              </div>
+              <p className="text-xs text-indigo-200/90 truncate mt-0.5" title={currentUser?.email}>{currentUser?.email || 'System Admin'}</p>
             </div>
           </div>
 
+          {/* Navigation List */}
+          <div className="flex-1 overflow-y-auto overflow-x-hidden my-3 pr-1 space-y-2">
+            <p className="text-[11px] font-sans font-bold text-indigo-300 uppercase tracking-widest px-2 mb-2 sticky top-0 bg-oxford py-1 z-10">Main Navigation</p>
+            <TabsList className="flex flex-col h-auto bg-transparent p-0 space-y-1.5 w-full border-none rounded-none shadow-none">
+              <TabsTrigger
+                value="dashboard"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Overview</span>
+                </div>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="about"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <FileText className="w-4 h-4" />
+                  <span>About Us</span>
+                </div>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="hero"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <Sliders className="w-4 h-4" />
+                  <span>Hero Carousel</span>
+                </div>
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                  {heroSlides.length}/10
+                </Badge>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="events"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <Calendar className="w-4 h-4" />
+                  <span>Events Management</span>
+                </div>
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                  {eventsList.length}
+                </Badge>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="notifications"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <Bell className="w-4 h-4" />
+                  <span>Notifications</span>
+                </div>
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                  {notifications.length}
+                </Badge>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="faculty"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <Users className="w-4 h-4" />
+                  <span>Faculty Accounts</span>
+                </div>
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                  {facultyList.length}
+                </Badge>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="curriculum"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <BookOpen className="w-4 h-4" />
+                  <span>Curriculum & Regulations</span>
+                </div>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="labs"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <FlaskConical className="w-4 h-4" />
+                  <span>Research Laboratories</span>
+                </div>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="facilities"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <Wrench className="w-4 h-4" />
+                  <span>Facilities Management</span>
+                </div>
+              </TabsTrigger>
+            </TabsList>
+          </div>
+
           {/* Sidebar Footer / Logout */}
-          <div className="pt-6 border-t border-white/10 space-y-3">
+          <div className="shrink-0 pt-4 border-t border-white/10 space-y-3">
             <Button
               variant="destructive"
               size="default"
               onClick={handleLogout}
               disabled={loggingOut}
-              className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-500 border-none text-white transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
+              className="w-full py-3 px-4 rounded-xl text-sm font-semibold bg-rose-600 hover:bg-rose-500 border-none text-white transition-all cursor-pointer flex items-center justify-center gap-2 shadow-md hover:shadow-rose-900/30"
             >
               <LogOut className="w-4 h-4" />
               <span>{loggingOut ? 'Logging out...' : 'Logout Session'}</span>
@@ -2333,24 +2344,24 @@ export default function UnifiedDashboardPage() {
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {/* Module 1: About Us */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center">
-                      <FileText className="w-6 h-6" />
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <FileText className="w-5 h-5" />
                     </div>
                   </div>
                   <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">About Us Page</CardTitle>
-                  <CardDescription className="text-base text-slate-600 leading-normal">
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
                     Manage department history, research text (Markdown), and top hero background banner image.
                   </CardDescription>
                 </CardContent>
                 <Button
                   variant="default"
                   onClick={() => setAdminTab('about')}
-                  className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <FileText className="w-4 h-4" />
                   <span>Manage About Us</span>
@@ -2361,77 +2372,172 @@ export default function UnifiedDashboardPage() {
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center">
-                      <Sliders className="w-6 h-6" />
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <Sliders className="w-5 h-5" />
                     </div>
-                    <span className="text-3xl font-extrabold text-amber-700">
+                    <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">
                       {heroSlides.length}/10
                     </span>
                   </div>
                   <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Hero Carousel</CardTitle>
-                  <CardDescription className="text-base text-slate-600 leading-normal">
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
                     Manage home page background slides with titles, descriptions, visibility toggles, and reordering.
                   </CardDescription>
                 </CardContent>
                 <Button
                   variant="default"
                   onClick={() => setAdminTab('hero')}
-                  className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <Sliders className="w-4 h-4" />
                   <span>Manage Hero</span>
                 </Button>
               </Card>
 
-              {/* Module 3: Notifications */}
+              {/* Module 3: Events Management */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-xl bg-cyan-accent/10 text-cyan-accent border border-cyan-accent/20 flex items-center justify-center">
-                      <Bell className="w-6 h-6" />
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <Calendar className="w-5 h-5" />
                     </div>
-                    <span className="text-3xl font-extrabold text-cyan-accent">
+                    <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">
+                      {eventsList.length}
+                    </span>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Events Management</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Publish department events, schedules, locations, and multi-photo event highlight galleries.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('events')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span>Manage Events</span>
+                </Button>
+              </Card>
+
+              {/* Module 4: Notifications */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <Bell className="w-5 h-5" />
+                    </div>
+                    <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">
                       {notifications.length}
                     </span>
                   </div>
                   <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Notifications</CardTitle>
-                  <CardDescription className="text-base text-slate-600 leading-normal">
-                    Post announcements and urgent student alerts to the marquee ticker.
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Post announcements and urgent student alerts broadcasted to the home page marquee ticker.
                   </CardDescription>
                 </CardContent>
                 <Button
                   variant="default"
                   onClick={() => setAdminTab('notifications')}
-                  className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Bell className="w-4 h-4" />
                   <span>Notifications</span>
                 </Button>
               </Card>
 
-              {/* Module 4: Faculty Accounts */}
+              {/* Module 5: Faculty Accounts */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
-                    <div className="w-12 h-12 rounded-xl bg-oxford/10 text-oxford border border-oxford/20 flex items-center justify-center">
-                      <Users className="w-6 h-6" />
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <Users className="w-5 h-5" />
                     </div>
-                    <span className="text-3xl font-extrabold text-oxford">
+                    <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">
                       {facultyList.length}
                     </span>
                   </div>
                   <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Faculty Accounts</CardTitle>
-                  <CardDescription className="text-base text-slate-600 leading-normal">
-                    Create faculty logins and monitor account status.
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Create faculty logins, manage profile details, and monitor account status.
                   </CardDescription>
                 </CardContent>
                 <Button
                   variant="default"
                   onClick={() => setAdminTab('faculty')}
-                  className="w-full py-3 px-4 rounded-xl text-base font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <UserPlus className="w-4 h-4" />
                   <span>Faculty Accounts</span>
+                </Button>
+              </Card>
+
+              {/* Module 6: Curriculum & Regulations */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <BookOpen className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Curriculum & Regulations</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Manage academic courses, degree levels, syllabus outlines, and regulation scheme PDF uploads.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('curriculum')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <BookOpen className="w-4 h-4" />
+                  <span>Curriculum & Schemes</span>
+                </Button>
+              </Card>
+
+              {/* Module 7: Research Laboratories */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <FlaskConical className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Research Laboratories</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Create research laboratory entries, research objectives, hero images, and associated faculty.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('labs')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <FlaskConical className="w-4 h-4" />
+                  <span>Research Labs</span>
+                </Button>
+              </Card>
+
+              {/* Module 8: Facilities Management */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <Wrench className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Facilities Management</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Manage central instrumentation facilities, technical specifications, and faculty in-charge assignments.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('facilities')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <Wrench className="w-4 h-4" />
+                  <span>Central Facilities</span>
                 </Button>
               </Card>
             </div>
@@ -2464,9 +2570,8 @@ export default function UnifiedDashboardPage() {
                   variant="default"
                   onClick={handleSaveAboutUs}
                   disabled={savingAbout}
-                  className="flex items-center gap-2 py-3 px-6 font-semibold rounded-xl shadow-xs transition-all text-base cursor-pointer"
+                  className="py-3 px-6 font-semibold rounded-xl shadow-xs transition-all text-base cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4" />
                   <span>{savingAbout ? 'Saving Changes...' : 'Save About Us Page'}</span>
                 </Button>
               </div>
@@ -2535,15 +2640,12 @@ export default function UnifiedDashboardPage() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-700 block font-sans">Current Hero Banner Preview</label>
-                  <div className="w-full h-40 rounded-2xl border border-slate-200 bg-slate-900 overflow-hidden relative shadow-inner">
+                  <div className="w-full h-40 rounded-2xl border border-slate-200 bg-slate-100 overflow-hidden relative shadow-inner">
                     <img
                       src={aboutImagePreviewUrl || '/campus.jpg'}
                       alt="Department Banner Preview"
-                      className="w-full h-full object-cover opacity-60"
+                      className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-oxford/75 mix-blend-multiply flex items-center justify-center">
-                      <span className="text-white font-serif font-bold text-2xl tracking-widest uppercase">ABOUT</span>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -3796,163 +3898,161 @@ export default function UnifiedDashboardPage() {
   return (
     <Tabs value={facultyTab} onValueChange={(val) => setFacultyTab(val as any)} className="min-h-screen bg-[#faf7f2] text-slate-900 flex flex-col md:flex-row font-sans selection:bg-oxford selection:text-white">
       {/* Left Sidebar */}
-      <aside className="w-full md:w-72 bg-oxford border-r border-[#001833] text-white flex flex-col justify-between shrink-0 min-h-screen p-6 pb-12 shadow-xl sticky top-0 z-40 font-sans">
-        <div className="space-y-8">
-          {/* Portal Branding Header */}
-          <div className="flex items-center gap-3 border-b border-white/10 pb-6">
-            <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent shrink-0 shadow-inner">
-              <Atom className="w-6 h-6 animate-pulse" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold text-white font-serif leading-tight">Faculty Portal</h1>
-                <Badge className="bg-cyan-accent text-oxford font-sans font-bold uppercase tracking-wide text-[9px] px-1.5 py-0.5 rounded">
-                  Faculty
-                </Badge>
-              </div>
-              <p className="text-xs text-indigo-200 truncate max-w-[160px]" title={currentUser?.name}>{currentUser?.name || 'Faculty Member'}</p>
-            </div>
+      <aside className="w-full md:w-80 lg:w-[320px] bg-oxford border-none text-white flex flex-col justify-between shrink-0 h-auto md:h-screen md:sticky md:top-0 p-4 sm:p-5 lg:p-6 shadow-2xl z-40 font-sans overflow-hidden">
+        {/* Portal Branding Header */}
+        <div className="shrink-0 flex items-center gap-3.5 px-2 pt-1 pb-5 border-b border-white/10">
+          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent shrink-0 shadow-inner">
+            <Atom className="w-6 h-6 animate-pulse" />
           </div>
-
-          {/* Navigation List (4 Options) */}
-          <div className="space-y-2">
-            <p className="text-[10px] font-sans font-bold text-indigo-300 uppercase tracking-widest px-3 mb-2">Faculty Menu</p>
-            <TabsList className="flex flex-col h-auto bg-transparent p-0 space-y-1.5 w-full">
-              {/* Option 1: Overview */}
-              <TabsTrigger
-                value="overview"
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <LayoutDashboard className="w-4 h-4" />
-                  <span>Overview</span>
-                </div>
-              </TabsTrigger>
-
-              {/* Option 2: Profile (contact, cv, photo, bio) */}
-              <TabsTrigger
-                value="profile"
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <User className="w-4 h-4" />
-                  <span>Profile & Details</span>
-                </div>
-              </TabsTrigger>
-
-              {/* Option 3: Research Scholars Page */}
-              <TabsTrigger
-                value="scholars"
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <GraduationCap className="w-4 h-4" />
-                  <span>Research Scholars</span>
-                </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
-                  {studentsList.length}
-                </Badge>
-              </TabsTrigger>
-
-              {/* Option: Research Projects Page */}
-              <TabsTrigger
-                value="projects"
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <FlaskConical className="w-4 h-4" />
-                  <span>Research Projects</span>
-                </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
-                  {projectsList.length}
-                </Badge>
-              </TabsTrigger>
-
-              {/* Option: Publications Page */}
-              <TabsTrigger
-                value="publications"
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <BookOpen className="w-4 h-4" />
-                  <span>Publications</span>
-                </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
-                  {publicationsList.length}
-                </Badge>
-              </TabsTrigger>
-
-              {/* Option 4: Hero Section Page */}
-              <TabsTrigger
-                value="hero"
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <Sliders className="w-4 h-4" />
-                  <span>Hero Section</span>
-                </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
-                  {heroSlides.length}/10
-                </Badge>
-              </TabsTrigger>
-
-              {/* Option 5: Events Management Page */}
-              <TabsTrigger
-                value="events"
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <Calendar className="w-4 h-4" />
-                  <span>Events Management</span>
-                </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent px-2 py-0.5">
-                  {eventsList.length}
-                </Badge>
-              </TabsTrigger>
-
-              {/* Option 6: Curriculum & Regulations Management */}
-              <TabsTrigger
-                value="curriculum"
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <BookOpen className="w-4 h-4" />
-                  <span>Curriculum & Regulations</span>
-                </div>
-              </TabsTrigger>
-
-              {/* Option 7: Research Laboratories Management */}
-              <TabsTrigger
-                value="labs"
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <FlaskConical className="w-4 h-4" />
-                  <span>Research Laboratories</span>
-                </div>
-              </TabsTrigger>
-
-              {/* Option 8: Central Facilities Management */}
-              <TabsTrigger
-                value="facilities"
-                className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford shadow-xs"
-              >
-                <div className="flex items-center gap-3">
-                  <Wrench className="w-4 h-4" />
-                  <span>Central Facilities</span>
-                </div>
-              </TabsTrigger>
-            </TabsList>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold text-white font-serif leading-tight">Faculty Portal</h1>
+              <Badge className="bg-cyan-accent text-oxford font-sans font-bold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded-md">
+                Faculty
+              </Badge>
+            </div>
+            <p className="text-xs text-indigo-200/90 truncate mt-0.5" title={currentUser?.name}>{currentUser?.name || 'Faculty Member'}</p>
           </div>
         </div>
 
+        {/* Navigation List (4 Options) */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden my-3 pr-1 space-y-2">
+          <p className="text-[11px] font-sans font-bold text-indigo-300 uppercase tracking-widest px-2 mb-2 sticky top-0 bg-oxford py-1 z-10">Faculty Menu</p>
+          <TabsList className="flex flex-col h-auto bg-transparent p-0 space-y-1.5 w-full border-none rounded-none shadow-none">
+            {/* Option 1: Overview */}
+            <TabsTrigger
+              value="overview"
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+            >
+              <div className="flex items-center gap-3.5">
+                <LayoutDashboard className="w-4 h-4" />
+                <span>Overview</span>
+              </div>
+            </TabsTrigger>
+
+            {/* Option 2: Profile (contact, cv, photo, bio) */}
+            <TabsTrigger
+              value="profile"
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+            >
+              <div className="flex items-center gap-3.5">
+                <User className="w-4 h-4" />
+                <span>Profile & Details</span>
+              </div>
+            </TabsTrigger>
+
+            {/* Option 3: Research Scholars Page */}
+            <TabsTrigger
+              value="scholars"
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+            >
+              <div className="flex items-center gap-3.5">
+                <GraduationCap className="w-4 h-4" />
+                <span>Research Scholars</span>
+              </div>
+              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                {studentsList.length}
+              </Badge>
+            </TabsTrigger>
+
+            {/* Option: Research Projects Page */}
+            <TabsTrigger
+              value="projects"
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+            >
+              <div className="flex items-center gap-3.5">
+                <FlaskConical className="w-4 h-4" />
+                <span>Research Projects</span>
+              </div>
+              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                {projectsList.length}
+              </Badge>
+            </TabsTrigger>
+
+            {/* Option: Publications Page */}
+            <TabsTrigger
+              value="publications"
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+            >
+              <div className="flex items-center gap-3.5">
+                <BookOpen className="w-4 h-4" />
+                <span>Publications</span>
+              </div>
+              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                {publicationsList.length}
+              </Badge>
+            </TabsTrigger>
+
+            {/* Option 4: Hero Section Page */}
+            <TabsTrigger
+              value="hero"
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+            >
+              <div className="flex items-center gap-3.5">
+                <Sliders className="w-4 h-4" />
+                <span>Hero Section</span>
+              </div>
+              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                {heroSlides.length}/10
+              </Badge>
+            </TabsTrigger>
+
+            {/* Option 5: Events Management Page */}
+            <TabsTrigger
+              value="events"
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+            >
+              <div className="flex items-center gap-3.5">
+                <Calendar className="w-4 h-4" />
+                <span>Events Management</span>
+              </div>
+              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                {eventsList.length}
+              </Badge>
+            </TabsTrigger>
+
+            {/* Option 6: Curriculum & Regulations Management */}
+            <TabsTrigger
+              value="curriculum"
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+            >
+              <div className="flex items-center gap-3.5">
+                <BookOpen className="w-4 h-4" />
+                <span>Curriculum & Regulations</span>
+              </div>
+            </TabsTrigger>
+
+            {/* Option 7: Research Laboratories Management */}
+            <TabsTrigger
+              value="labs"
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+            >
+              <div className="flex items-center gap-3.5">
+                <FlaskConical className="w-4 h-4" />
+                <span>Research Laboratories</span>
+              </div>
+            </TabsTrigger>
+
+            {/* Option 8: Central Facilities Management */}
+            <TabsTrigger
+              value="facilities"
+              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+            >
+              <div className="flex items-center gap-3.5">
+                <Wrench className="w-4 h-4" />
+                <span>Central Facilities</span>
+              </div>
+            </TabsTrigger>
+          </TabsList>
+        </div>
+
         {/* Sidebar Footer / Account Actions */}
-        <div className="pt-6 border-t border-white/10 space-y-2.5">
+        <div className="shrink-0 pt-4 border-t border-white/10 space-y-2.5">
           <Button
             variant="outline"
             size="default"
             onClick={() => setShowPasswordModal(true)}
-            className="w-full bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center gap-2 text-xs font-semibold rounded-xl py-2.5"
+            className="w-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center gap-2 text-xs font-semibold rounded-xl py-3 cursor-pointer shadow-xs transition-all"
           >
             <KeyRound className="w-3.5 h-3.5 text-cyan-accent" />
             <span>Change Password</span>
@@ -3963,7 +4063,7 @@ export default function UnifiedDashboardPage() {
             size="default"
             onClick={handleLogout}
             disabled={loggingOut}
-            className="w-full py-2.5 px-4 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-500 border-none text-white transition-all cursor-pointer flex items-center justify-center gap-2 shadow-sm"
+            className="w-full py-3 px-4 rounded-xl text-xs font-semibold bg-rose-600 hover:bg-rose-500 border-none text-white transition-all cursor-pointer flex items-center justify-center gap-2 shadow-md hover:shadow-rose-900/30"
           >
             <LogOut className="w-3.5 h-3.5" />
             <span>{loggingOut ? 'Logging out...' : 'Logout Session'}</span>
@@ -3986,115 +4086,216 @@ export default function UnifiedDashboardPage() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Profile Overview Card */}
-            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
-                <div className="w-12 h-12 rounded-xl bg-cyan-50 text-cyan-700 border border-cyan-200 flex items-center justify-center">
-                  <User className="w-6 h-6" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {/* Module 1: Profile & Details */}
+            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+              <CardContent className="p-0 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                    <User className="w-5 h-5" />
+                  </div>
                 </div>
                 <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Profile & Details</CardTitle>
                 <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
-                  Update contact numbers, social/academic links, upload profile photo & CV, and format your research bio.
+                  Update contact numbers, social/academic links, upload profile photo & CV, and format research biography.
                 </CardDescription>
-              </div>
-              <Button onClick={() => setFacultyTab('profile')} className="w-full font-semibold">
+              </CardContent>
+              <Button
+                variant="default"
+                onClick={() => setFacultyTab('profile')}
+                className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+              >
+                <User className="w-4 h-4" />
                 <span>Manage Profile</span>
               </Button>
             </Card>
 
-            {/* Research Scholars Card */}
-            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
+            {/* Module 2: Research Scholars */}
+            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+              <CardContent className="p-0 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-oxford/10 text-oxford border border-oxford/20 flex items-center justify-center">
-                    <GraduationCap className="w-6 h-6" />
+                  <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                    <GraduationCap className="w-5 h-5" />
                   </div>
-                  <span className="text-3xl font-extrabold text-oxford">{studentsList.length}</span>
+                  <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">{studentsList.length}</span>
                 </div>
                 <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Research Scholars</CardTitle>
                 <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
-                  Add, edit, or remove Ph.D., M.Phil, and Master research scholars under your guidance.
+                  Add, edit, or remove Ph.D., M.Phil, and Master research scholars under your active supervision.
                 </CardDescription>
-              </div>
-              <Button onClick={() => setFacultyTab('scholars')} className="w-full font-semibold">
+              </CardContent>
+              <Button
+                variant="default"
+                onClick={() => setFacultyTab('scholars')}
+                className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+              >
+                <GraduationCap className="w-4 h-4" />
                 <span>Manage Scholars</span>
               </Button>
             </Card>
 
-            {/* Research Projects Card */}
-            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
+            {/* Module 3: Research Projects */}
+            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+              <CardContent className="p-0 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center">
-                    <FlaskConical className="w-6 h-6" />
+                  <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                    <FlaskConical className="w-5 h-5" />
                   </div>
-                  <span className="text-3xl font-extrabold text-emerald-700">{projectsList.length}</span>
+                  <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">{projectsList.length}</span>
                 </div>
                 <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Research Projects</CardTitle>
                 <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
-                  Manage sponsored and funded research projects, collaborator faculty, funding agency, dates, and links.
+                  Manage sponsored and funded research projects, collaborator faculty, funding agency, and dates.
                 </CardDescription>
-              </div>
-              <Button onClick={() => setFacultyTab('projects')} className="w-full font-semibold">
+              </CardContent>
+              <Button
+                variant="default"
+                onClick={() => setFacultyTab('projects')}
+                className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+              >
+                <FlaskConical className="w-4 h-4" />
                 <span>Manage Projects</span>
               </Button>
             </Card>
 
-            {/* Publications Card */}
-            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
+            {/* Module 4: Publications */}
+            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+              <CardContent className="p-0 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center justify-center">
-                    <BookOpen className="w-6 h-6" />
+                  <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                    <BookOpen className="w-5 h-5" />
                   </div>
-                  <span className="text-3xl font-extrabold text-indigo-700">{publicationsList.length}</span>
+                  <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">{publicationsList.length}</span>
                 </div>
                 <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Publications</CardTitle>
                 <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
-                  Manage journal articles, conference papers, publication dates, and external links / DOIs.
+                  Manage journal articles, conference papers, publication dates, and external links or DOIs.
                 </CardDescription>
-              </div>
-              <Button onClick={() => setFacultyTab('publications')} className="w-full font-semibold">
+              </CardContent>
+              <Button
+                variant="default"
+                onClick={() => setFacultyTab('publications')}
+                className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+              >
+                <BookOpen className="w-4 h-4" />
                 <span>Manage Publications</span>
               </Button>
             </Card>
 
-            {/* Events Management Card */}
-            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
+            {/* Module 5: Hero Section */}
+            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+              <CardContent className="p-0 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 flex items-center justify-center">
-                    <Calendar className="w-6 h-6" />
+                  <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                    <Sliders className="w-5 h-5" />
                   </div>
-                  <span className="text-3xl font-extrabold text-purple-700">{eventsList.length}</span>
+                  <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">{heroSlides.length}/10</span>
+                </div>
+                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Hero Section</CardTitle>
+                <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
+                  Upload home page hero slides, reorder slides, and toggle banner visibility on the public site.
+                </CardDescription>
+              </CardContent>
+              <Button
+                variant="default"
+                onClick={() => setFacultyTab('hero')}
+                className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+              >
+                <Sliders className="w-4 h-4" />
+                <span>Manage Hero</span>
+              </Button>
+            </Card>
+
+            {/* Module 6: Events Management */}
+            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+              <CardContent className="p-0 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                    <Calendar className="w-5 h-5" />
+                  </div>
+                  <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">{eventsList.length}</span>
                 </div>
                 <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Events Management</CardTitle>
                 <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
                   Publish, edit, or remove department seminars, workshops, and endowment lectures.
                 </CardDescription>
-              </div>
-              <Button onClick={() => setFacultyTab('events')} className="w-full font-semibold">
+              </CardContent>
+              <Button
+                variant="default"
+                onClick={() => setFacultyTab('events')}
+                className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+              >
+                <Calendar className="w-4 h-4" />
                 <span>Manage Events</span>
               </Button>
             </Card>
 
-            {/* Hero Section Card */}
-            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs flex flex-col justify-between space-y-4">
-              <div className="space-y-3">
+            {/* Module 7: Curriculum & Regulations */}
+            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+              <CardContent className="p-0 space-y-3">
                 <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 border border-amber-200 flex items-center justify-center">
-                    <Sliders className="w-6 h-6" />
+                  <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                    <BookOpen className="w-5 h-5" />
                   </div>
-                  <span className="text-3xl font-extrabold text-amber-700">{heroSlides.length}/10</span>
                 </div>
-                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Hero Section</CardTitle>
+                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Curriculum & Regulations</CardTitle>
                 <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
-                  Upload home page hero slides, reorder slides, and toggle visibility on the public site.
+                  Manage academic programs, degree levels, syllabus outlines, and regulation scheme PDF uploads.
                 </CardDescription>
-              </div>
-              <Button onClick={() => setFacultyTab('hero')} className="w-full font-semibold">
-                <span>Manage Hero Carousel</span>
+              </CardContent>
+              <Button
+                variant="default"
+                onClick={() => setFacultyTab('curriculum')}
+                className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>Curriculum & Schemes</span>
+              </Button>
+            </Card>
+
+            {/* Module 8: Research Laboratories */}
+            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+              <CardContent className="p-0 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                    <FlaskConical className="w-5 h-5" />
+                  </div>
+                </div>
+                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Research Laboratories</CardTitle>
+                <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
+                  Manage departmental laboratory profiles, research themes, facility photos, and faculty members.
+                </CardDescription>
+              </CardContent>
+              <Button
+                variant="default"
+                onClick={() => setFacultyTab('labs')}
+                className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+              >
+                <FlaskConical className="w-4 h-4" />
+                <span>Research Labs</span>
+              </Button>
+            </Card>
+
+            {/* Module 9: Central Facilities */}
+            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+              <CardContent className="p-0 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                    <Wrench className="w-5 h-5" />
+                  </div>
+                </div>
+                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Central Facilities</CardTitle>
+                <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
+                  Manage advanced analytical equipment, instrumentation facilities, user charges, and in-charge faculty.
+                </CardDescription>
+              </CardContent>
+              <Button
+                variant="default"
+                onClick={() => setFacultyTab('facilities')}
+                className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+              >
+                <Wrench className="w-4 h-4" />
+                <span>Central Facilities</span>
               </Button>
             </Card>
           </div>
@@ -4102,99 +4303,270 @@ export default function UnifiedDashboardPage() {
 
         {/* OPTION 2: PROFILE TAB (Contact, Photo, CV, Bio) */}
         <TabsContent value="profile" className="space-y-8 animate-fadeIn mt-0">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
-            <div>
-              <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
-                <User className="w-7 h-7 text-oxford" />
-                <span>Profile & Details Management</span>
-              </h2>
-              <p className="text-slate-600 text-sm mt-1 font-sans">
-                Manage contact info, academic profiles, profile photo, CV document, and Markdown biography.
+          {/* Top Title */}
+          <div className="border-b border-slate-200 pb-4">
+            <h2 className="text-2xl sm:text-3xl font-bold font-serif text-slate-900 flex items-center gap-2.5">
+              <User className="w-7 h-7 text-oxford shrink-0" />
+              <span>Faculty Profile & Identity Management</span>
+            </h2>
+            <p className="text-slate-600 text-sm mt-1 font-sans">
+              Manage your public faculty profile, academic credentials, research network links, curriculum vitae, and biography.
+            </p>
+          </div>
+
+          {/* FACULTY HERO CARD */}
+          <Card className="bg-gradient-to-br from-white via-slate-50/50 to-cyan-50/20 rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 relative overflow-hidden">
+            {/* Subtle decorative background glow */}
+            <div className="absolute -top-24 -right-24 w-72 h-72 bg-cyan-100/40 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-oxford/5 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6 lg:gap-8 justify-between">
+              {/* Left: Avatar + Identity */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6">
+                {/* Avatar with interactive hover overlay */}
+                <div className="relative group shrink-0">
+                  <div
+                    onClick={() => setIsDocModalOpen(true)}
+                    className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl bg-white border-2 border-slate-200/90 shadow-md overflow-hidden flex items-center justify-center cursor-pointer transition-all duration-300 group-hover:border-oxford group-hover:shadow-lg relative"
+                    title="Click to update profile photo"
+                  >
+                    {imagePath ? (
+                      <img
+                        src={imagePath}
+                        alt={currentUser?.name || 'Faculty Avatar'}
+                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-oxford to-slate-800 flex items-center justify-center text-white">
+                        <User className="w-12 h-12 text-slate-300" />
+                      </div>
+                    )}
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-oxford/70 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col items-center justify-center gap-1 text-[11px] font-sans font-medium">
+                      <Upload className="w-4 h-4" />
+                      <span>Change</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Identity Info */}
+                <div className="space-y-2.5">
+                  <h1 className="text-2xl sm:text-3xl font-bold font-serif text-slate-900 tracking-tight">
+                    {currentUser?.name || 'Faculty Member'}
+                  </h1>
+
+                  <div className="flex flex-wrap items-center gap-2 font-sans">
+                    <span className="px-3 py-1 rounded-lg text-xs font-bold bg-oxford/10 text-oxford border border-oxford/20">
+                      {currentUser?.designation || 'Faculty Member'}
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
+                      <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                      <span>{currentUser?.department || 'Department of Physics'}</span>
+                    </span>
+                  </div>
+
+                  {/* Contact Badges Row */}
+                  <div className="flex flex-wrap items-center gap-2.5 pt-1 font-sans text-xs">
+                    {currentUser?.email && (
+                      <a
+                        href={`mailto:${currentUser.email}`}
+                        className="inline-flex items-center gap-1.5 text-slate-600 hover:text-oxford hover:underline bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs transition-colors"
+                      >
+                        <Mail className="w-3.5 h-3.5 text-oxford" />
+                        <span>{currentUser.email}</span>
+                      </a>
+                    )}
+                    <button
+                      onClick={() => setIsProfilesModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 text-slate-600 hover:text-oxford bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs transition-colors cursor-pointer"
+                    >
+                      <Phone className="w-3.5 h-3.5 text-cyan-700" />
+                      <span>{phone || 'Add Phone Number'}</span>
+                    </button>
+                    {cvPath ? (
+                      <a
+                        href={cvPath}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 text-cyan-800 bg-cyan-50/80 hover:bg-cyan-100/80 px-2.5 py-1 rounded-lg border border-cyan-200 shadow-2xs font-semibold transition-colors"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-cyan-700" />
+                        <span>Official CV (PDF)</span>
+                        <ExternalLink className="w-3 h-3 opacity-70" />
+                      </a>
+                    ) : (
+                      <button
+                        onClick={() => setIsDocModalOpen(true)}
+                        className="inline-flex items-center gap-1.5 text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 shadow-2xs transition-colors cursor-pointer"
+                      >
+                        <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
+                        <span>CV not uploaded</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Quick Action Controls */}
+              <div className="flex md:flex-col items-center sm:items-stretch gap-2.5 w-full md:w-auto shrink-0 pt-2 md:pt-0">
+                <Button
+                  onClick={() => setIsDescModalOpen(true)}
+                  className="w-full justify-center bg-oxford hover:bg-oxford-dark text-white shadow-xs font-sans text-xs font-bold py-2.5 h-auto rounded-xl cursor-pointer"
+                >
+                  <Edit3 className="w-3.5 h-3.5 mr-1.5" />
+                  <span>Edit Biography</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDocModalOpen(true)}
+                  className="w-full justify-center border-slate-300 text-slate-700 hover:bg-slate-100 font-sans text-xs font-semibold py-2.5 h-auto rounded-xl cursor-pointer"
+                >
+                  <Upload className="w-3.5 h-3.5 mr-1.5 text-oxford" />
+                  <span>Update Photo & CV</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setIsProfilesModalOpen(true)}
+                  className="w-full justify-center border-slate-300 text-slate-700 hover:bg-slate-100 font-sans text-xs font-semibold py-2.5 h-auto rounded-xl cursor-pointer"
+                >
+                  <Globe className="w-3.5 h-3.5 mr-1.5 text-cyan-700" />
+                  <span>Manage Links</span>
+                </Button>
+              </div>
+            </div>
+          </Card>
+
+          {/* QUICK HIGHLIGHTS / METRICS STRIP */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div
+              onClick={() => setFacultyTab('scholars')}
+              className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-oxford/50 hover:shadow-sm transition-all duration-200 cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-slate-500 font-sans uppercase tracking-wider">Guided Scholars</span>
+                <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 group-hover:bg-oxford group-hover:text-white group-hover:border-oxford transition-all">
+                  <GraduationCap className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">
+                {studentsList.length}
+              </div>
+              <p className="text-xs text-slate-500 font-sans mt-1 flex items-center gap-1 group-hover:text-oxford">
+                <span>Supervised researchers</span>
+                <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => setIsProfilesModalOpen(true)} className="flex items-center gap-2">
-                <Globe className="w-4 h-4" />
-                <span>Contact & Links</span>
-              </Button>
-              <Button variant="outline" onClick={() => setIsDocModalOpen(true)} className="flex items-center gap-2">
-                <Upload className="w-4 h-4" />
-                <span>Photo & CV</span>
-              </Button>
-              <Button variant="default" onClick={() => setIsDescModalOpen(true)} className="flex items-center gap-2">
-                <Edit3 className="w-4 h-4" />
-                <span>Edit Bio</span>
-              </Button>
+
+            <div
+              onClick={() => setFacultyTab('projects')}
+              className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-oxford/50 hover:shadow-sm transition-all duration-200 cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-slate-500 font-sans uppercase tracking-wider">Research Projects</span>
+                <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 group-hover:bg-oxford group-hover:text-white group-hover:border-oxford transition-all">
+                  <FlaskConical className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">
+                {projectsList.length}
+              </div>
+              <p className="text-xs text-slate-500 font-sans mt-1 flex items-center gap-1 group-hover:text-oxford">
+                <span>Funded grants & projects</span>
+                <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </p>
+            </div>
+
+            <div
+              onClick={() => setFacultyTab('publications')}
+              className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-oxford/50 hover:shadow-sm transition-all duration-200 cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-slate-500 font-sans uppercase tracking-wider">Publications</span>
+                <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 group-hover:bg-oxford group-hover:text-white group-hover:border-oxford transition-all">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">
+                {publicationsList.length}
+              </div>
+              <p className="text-xs text-slate-500 font-sans mt-1 flex items-center gap-1 group-hover:text-oxford">
+                <span>Articles & book chapters</span>
+                <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </p>
+            </div>
+
+            <div
+              onClick={() => setIsProfilesModalOpen(true)}
+              className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-oxford/50 hover:shadow-sm transition-all duration-200 cursor-pointer group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-bold text-slate-500 font-sans uppercase tracking-wider">Linked Profiles</span>
+                <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 group-hover:bg-oxford group-hover:text-white group-hover:border-oxford transition-all">
+                  <Globe className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">
+                {selectedPlatforms.size + otherProfiles.filter((op) => op.name && op.url).length}
+              </div>
+              <p className="text-xs text-slate-500 font-sans mt-1 flex items-center gap-1 group-hover:text-oxford">
+                <span>Academic & web networks</span>
+                <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="space-y-8">
-              {/* Photo & CV Documents */}
+          {/* TWO COLUMN DEEP DIVE SECTION */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* LEFT COLUMN: Links, Documents & Department Info (4 of 12 cols) */}
+            <div className="lg:col-span-4 space-y-6">
+              {/* Card 1: Academic & Digital Profiles */}
               <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                <h3 className="text-lg font-bold font-serif text-slate-900 flex items-center gap-2">
-                  <FileCheck className="w-5 h-5 text-cyan-700" />
-                  <span>Documents & Media</span>
-                </h3>
-
-                <div className="flex items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                  <div className="w-16 h-16 rounded-xl bg-white border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center text-slate-500">
-                    {imagePath ? (
-                      <img src={imagePath} alt={currentUser?.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <User className="w-8 h-8" />
-                    )}
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-sm font-bold text-slate-900">Profile Photo</p>
-                    <p className="text-xs text-slate-500 font-sans">
-                      {imagePath ? 'Uploaded & Active' : 'No photo uploaded'}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center justify-between">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
                   <div className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-oxford" />
-                    <span className="text-sm text-slate-800 font-medium font-sans">Curriculum Vitae (PDF)</span>
+                    <div className="w-8 h-8 rounded-lg bg-oxford/10 flex items-center justify-center text-oxford">
+                      <Globe className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold font-serif text-slate-900">
+                        Academic Networks
+                      </h3>
+                      <p className="text-[11px] text-slate-500 font-sans">
+                        {selectedPlatforms.size + otherProfiles.filter((o) => o.name && o.url).length} profiles configured
+                      </p>
+                    </div>
                   </div>
-                  {cvPath ? (
-                    <a
-                      href={cvPath}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-cyan-accent hover:underline flex items-center gap-1 font-semibold font-sans"
-                    >
-                      <span>View CV</span>
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  ) : (
-                    <span className="text-xs text-slate-400 italic font-sans">Not uploaded</span>
-                  )}
-                </div>
-
-                <Button onClick={() => setIsDocModalOpen(true)} variant="outline" className="w-full text-xs font-semibold">
-                  <Upload className="w-3.5 h-3.5 mr-1" />
-                  <span>Upload / Replace Photo & CV</span>
-                </Button>
-              </Card>
-
-              {/* Public Profiles Card */}
-              <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-bold font-serif text-slate-900 flex items-center gap-2">
-                    <Globe className="w-5 h-5 text-oxford" />
-                    <span>Public Profiles ({selectedPlatforms.size})</span>
-                  </h3>
-                  <Button variant="outline" size="sm" onClick={() => setIsProfilesModalOpen(true)} className="h-8 text-xs font-semibold">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsProfilesModalOpen(true)}
+                    className="h-7 text-xs font-semibold px-2.5 rounded-lg border-slate-300 hover:border-oxford cursor-pointer"
+                  >
                     Edit
                   </Button>
                 </div>
 
-                {selectedPlatforms.size === 0 && otherProfiles.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic font-sans">No academic links configured yet.</p>
+                {selectedPlatforms.size === 0 && otherProfiles.filter((o) => o.name && o.url).length === 0 ? (
+                  <div className="text-center py-6 px-4 bg-slate-50/80 rounded-xl border border-dashed border-slate-200 space-y-3">
+                    <Globe className="w-8 h-8 text-slate-400 mx-auto" />
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold text-slate-700 font-sans">No Academic Profiles Linked</p>
+                      <p className="text-[11px] text-slate-500 font-sans">
+                        Connect your Google Scholar, ORCID, and Scopus profiles so visitors can discover your publications.
+                      </p>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setIsProfilesModalOpen(true)}
+                      className="text-xs font-semibold h-8 bg-white cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5 mr-1 text-oxford" />
+                      <span>Add Profiles</span>
+                    </Button>
+                  </div>
                 ) : (
-                  <div className="flex flex-wrap gap-2 pt-1 font-sans">
+                  <div className="space-y-2 pt-1 font-sans">
+                    {/* Predefined Platforms */}
                     {Array.from(selectedPlatforms).map((key) => {
                       const platform = PREDEFINED_PLATFORMS.find((p) => p.key === key);
                       if (!platform || !platformUrls[key]) return null;
@@ -4204,34 +4576,129 @@ export default function UnifiedDashboardPage() {
                           href={platformUrls[key]}
                           target="_blank"
                           rel="noreferrer"
-                          className="text-xs px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 font-semibold text-oxford flex items-center gap-1.5 shadow-xs hover:border-oxford transition-all"
+                          className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-oxford/60 hover:shadow-xs transition-all group"
                         >
-                          <span>{platform.label}</span>
-                          <ExternalLink className="w-3 h-3 text-cyan-700" />
+                          <div className="flex items-center gap-2.5 min-w-0">
+                            <span className={`w-2 h-2 rounded-full shrink-0 ${
+                              key === 'google_scholar' ? 'bg-blue-500' :
+                              key === 'orcid' ? 'bg-[#A6CE39]' :
+                              key === 'scopus' ? 'bg-[#FF6C00]' :
+                              key === 'iqac_profile' ? 'bg-emerald-500' :
+                              key === 'iris' ? 'bg-purple-500' :
+                              key === 'linkedin' ? 'bg-sky-600' : 'bg-oxford'
+                            }`} />
+                            <div className="truncate">
+                              <p className="text-xs font-bold text-slate-900 group-hover:text-oxford transition-colors">
+                                {platform.label}
+                              </p>
+                              <p className="text-[11px] text-slate-400 font-mono truncate max-w-[180px]">
+                                {platformUrls[key]}
+                              </p>
+                            </div>
+                          </div>
+                          <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-oxford transition-colors shrink-0 ml-2" />
                         </a>
                       );
                     })}
+
+                    {/* Custom Profiles */}
+                    {otherProfiles.filter((op) => op.name && op.url).map((op) => (
+                      <a
+                        key={op.id}
+                        href={op.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-oxford/60 hover:shadow-xs transition-all group"
+                      >
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span className="w-2 h-2 rounded-full bg-cyan-600 shrink-0" />
+                          <div className="truncate">
+                            <p className="text-xs font-bold text-slate-900 group-hover:text-oxford transition-colors">
+                              {op.name}
+                            </p>
+                            <p className="text-[11px] text-slate-400 font-mono truncate max-w-[180px]">
+                              {op.url}
+                            </p>
+                          </div>
+                        </div>
+                        <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-oxford transition-colors shrink-0 ml-2" />
+                      </a>
+                    ))}
                   </div>
                 )}
               </Card>
             </div>
 
-            {/* Markdown Description */}
-            <div className="lg:col-span-2 space-y-4">
-              <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                  <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-cyan-accent" />
-                    <span>Professional Overview & Research Biography</span>
-                  </h3>
-                  <Button variant="outline" size="sm" onClick={() => setIsDescModalOpen(true)} className="h-8 text-xs font-semibold">
-                    <Edit3 className="w-3.5 h-3.5 mr-1" />
+            {/* RIGHT COLUMN: Professional Overview & Research Biography (8 of 12 cols) */}
+            <div className="lg:col-span-8 space-y-6">
+              <Card className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-5">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-oxford/10 flex items-center justify-center text-oxford shrink-0">
+                      <FileText className="w-5 h-5 text-oxford" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg sm:text-xl font-bold font-serif text-slate-900">
+                          Professional Overview & Research Biography
+                        </h3>
+                        <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-sans bg-slate-100 text-slate-600 border border-slate-200">
+                          <Code className="w-3 h-3 text-slate-500" />
+                          <span>Markdown</span>
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 font-sans mt-0.5">
+                        Displayed on your public faculty page for prospective scholars, collaborators, and visitors.
+                      </p>
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={() => setIsDescModalOpen(true)}
+                    className="bg-oxford hover:bg-oxford-dark text-white text-xs font-semibold h-8 px-3.5 rounded-xl shrink-0 shadow-2xs cursor-pointer"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 mr-1.5" />
                     <span>Edit Bio</span>
                   </Button>
                 </div>
 
-                <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 text-sm text-slate-800 leading-relaxed font-sans min-h-[300px]">
-                  {renderMarkdown(markdownContent)}
+                {/* Info Callout */}
+                <div className="bg-slate-50/80 border border-slate-200/80 rounded-xl p-3.5 text-xs text-slate-600 font-sans flex items-start gap-2.5">
+                  <Info className="w-4 h-4 text-cyan-700 shrink-0 mt-0.5" />
+                  <p className="leading-relaxed">
+                    You can include your academic qualifications, research interests, laboratory activities, awards, and course details. The text editor supports Markdown formatting including headers, lists, links, and bold styling.
+                  </p>
+                </div>
+
+                {/* Rendered Bio Display Container */}
+                <div className="bg-slate-50/40 rounded-2xl border border-slate-200/90 p-6 sm:p-8 min-h-[380px]">
+                  {markdownContent && markdownContent.trim() ? (
+                    <div className="prose max-w-none font-sans leading-relaxed">
+                      {renderMarkdown(markdownContent)}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-16 text-center space-y-4">
+                      <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center text-slate-400">
+                        <FileText className="w-8 h-8 text-slate-400" />
+                      </div>
+                      <div className="space-y-1.5 max-w-md">
+                        <h4 className="text-base font-bold font-serif text-slate-800">
+                          No Professional Biography Added Yet
+                        </h4>
+                        <p className="text-xs text-slate-500 font-sans leading-relaxed">
+                          Introduce yourself, highlight your research areas, academic credentials, honors, and research projects to visitors and prospective students.
+                        </p>
+                      </div>
+                      <Button
+                        onClick={() => setIsDescModalOpen(true)}
+                        className="bg-oxford hover:bg-oxford-dark text-white font-sans text-xs font-semibold px-4 py-2 rounded-xl cursor-pointer"
+                      >
+                        <Edit3 className="w-3.5 h-3.5 mr-1.5" />
+                        <span>Write Biography</span>
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </Card>
             </div>
@@ -4906,7 +5373,7 @@ export default function UnifiedDashboardPage() {
 
       {/* Profiles Modal */}
       <Dialog open={isProfilesModalOpen} onOpenChange={setIsProfilesModalOpen}>
-        <DialogContent className="max-w-xl bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-xl bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[88vh] overflow-y-auto">
           <DialogHeader className="border-b border-slate-100 pb-4">
             <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
               <Globe className="w-5 h-5 text-oxford" />
@@ -4914,32 +5381,44 @@ export default function UnifiedDashboardPage() {
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSaveProfiles} className="space-y-5 pt-4">
+          <form onSubmit={handleSaveProfiles} className="space-y-5 pt-4 font-sans">
             {profilesError && (
-              <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+              <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
                 {profilesError}
               </div>
             )}
             {profilesSuccess && (
-              <div className="p-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
-                {profilesSuccess}
+              <div className="p-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{profilesSuccess}</span>
               </div>
             )}
 
+            {/* Phone */}
             <div className="space-y-1.5">
-              <label className="text-sm font-bold text-slate-700">Office Phone / Contact Number</label>
-              <Input
-                type="text"
-                placeholder="+91 484 2575500"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full text-base font-mono"
-              />
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Office Phone / Contact Number</label>
+              <div className="relative">
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Input
+                  type="text"
+                  placeholder="+91 484 2575500"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full pl-10 text-sm font-mono rounded-xl"
+                />
+              </div>
             </div>
 
-            <div className="space-y-3">
-              <label className="text-sm font-bold text-slate-700 block">Select Academic Platforms</label>
-              <div className="grid grid-cols-2 gap-2">
+            {/* Predefined Platforms */}
+            <div className="space-y-3 pt-2 border-t border-slate-100">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Academic & Scholarly Networks</label>
+                <span className="text-[11px] text-slate-500">{selectedPlatforms.size} active</span>
+              </div>
+              <p className="text-xs text-slate-500">
+                Click a platform to enable/disable it, then paste your public profile URL below.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {PREDEFINED_PLATFORMS.map((p) => {
                   const isSel = selectedPlatforms.has(p.key);
                   return (
@@ -4947,13 +5426,14 @@ export default function UnifiedDashboardPage() {
                       key={p.key}
                       type="button"
                       onClick={() => togglePlatform(p.key)}
-                      className={`p-3 rounded-xl border text-left text-xs transition-all font-sans font-medium ${
+                      className={`p-2.5 rounded-xl border text-left text-xs transition-all flex items-center justify-between font-medium cursor-pointer ${
                         isSel
-                          ? 'bg-oxford/10 border-oxford text-oxford font-bold'
-                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
+                          ? 'bg-oxford/10 border-oxford text-oxford font-bold shadow-2xs'
+                          : 'bg-slate-50/80 border-slate-200 text-slate-700 hover:border-slate-300'
                       }`}
                     >
-                      {p.label}
+                      <span className="truncate">{p.label}</span>
+                      {isSel && <Check className="w-3.5 h-3.5 text-oxford shrink-0 ml-1 stroke-[3]" />}
                     </button>
                   );
                 })}
@@ -4964,25 +5444,88 @@ export default function UnifiedDashboardPage() {
                 if (!platform) return null;
                 return (
                   <div key={key} className="space-y-1 pt-1">
-                    <label className="text-xs font-bold text-slate-700">{platform.label} URL</label>
+                    <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                      <span>{platform.label} URL</span>
+                      <button
+                        type="button"
+                        onClick={() => togglePlatform(key)}
+                        className="text-[11px] text-rose-600 hover:underline font-normal cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    </label>
                     <Input
                       type="url"
                       placeholder={platform.placeholder}
                       value={platformUrls[key] || ''}
                       onChange={(e) => handleUrlChange(key, e.target.value)}
-                      className="w-full text-sm font-mono"
+                      className="w-full text-xs font-mono rounded-xl"
                     />
                   </div>
                 );
               })}
             </div>
 
+            {/* Custom Other Links */}
+            <div className="space-y-3 pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Custom Profiles & Websites</label>
+                  <p className="text-xs text-slate-500">Add other links like ResearchGate, GitHub, personal blogs, or lab pages.</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addCustomProfile}
+                  className="h-7 text-xs font-semibold px-2.5 rounded-lg border-slate-300 text-oxford cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" />
+                  <span>Add Link</span>
+                </Button>
+              </div>
+
+              {otherProfiles.length > 0 && (
+                <div className="space-y-2.5 pt-1">
+                  {otherProfiles.map((item) => (
+                    <div key={item.id} className="p-3 bg-slate-50/80 rounded-xl border border-slate-200 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="text"
+                          placeholder="Platform / Label (e.g. ResearchGate)"
+                          value={item.name}
+                          onChange={(e) => updateCustomProfile(item.id, 'name', e.target.value)}
+                          className="w-1/2 text-xs rounded-lg bg-white"
+                        />
+                        <Input
+                          type="url"
+                          placeholder="https://..."
+                          value={item.url}
+                          onChange={(e) => updateCustomProfile(item.id, 'url', e.target.value)}
+                          className="w-1/2 text-xs font-mono rounded-lg bg-white"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeCustomProfile(item.id)}
+                          className="h-8 w-8 p-0 text-slate-400 hover:text-rose-600 shrink-0 cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
-              <Button variant="outline" type="button" onClick={() => setIsProfilesModalOpen(false)} className="px-4">
+              <Button variant="outline" type="button" onClick={() => setIsProfilesModalOpen(false)} className="px-4 cursor-pointer">
                 Cancel
               </Button>
-              <Button type="submit" disabled={savingProfiles} className="px-5 font-semibold">
-                {savingProfiles ? 'Saving...' : 'Save Profiles'}
+              <Button type="submit" disabled={savingProfiles} className="px-5 font-semibold bg-oxford hover:bg-oxford-dark text-white cursor-pointer">
+                {savingProfiles ? 'Saving...' : 'Save Profiles & Links'}
               </Button>
             </DialogFooter>
           </form>
@@ -4991,7 +5534,7 @@ export default function UnifiedDashboardPage() {
 
       {/* Document Upload Modal */}
       <Dialog open={isDocModalOpen} onOpenChange={setIsDocModalOpen}>
-        <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900">
+        <DialogContent className="max-w-lg bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900">
           <DialogHeader className="border-b border-slate-100 pb-4">
             <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
               <Upload className="w-5 h-5 text-oxford" />
@@ -4999,43 +5542,106 @@ export default function UnifiedDashboardPage() {
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSaveDocuments} className="space-y-4 pt-4">
+          <form onSubmit={handleSaveDocuments} className="space-y-5 pt-4 font-sans">
             {docError && (
-              <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+              <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
                 {docError}
               </div>
             )}
             {docSuccess && (
-              <div className="p-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
-                {docSuccess}
+              <div className="p-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{docSuccess}</span>
               </div>
             )}
 
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Profile Photo (JPG, PNG, WebP &lt; 5MB)</label>
+            {/* Profile Photo Section */}
+            <div className="space-y-2 p-4 bg-slate-50/80 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Profile Photo (JPG, PNG, WebP &lt; 5MB)</label>
+                {imagePath && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteDocument('image')}
+                    className="text-[11px] text-rose-600 hover:underline font-medium cursor-pointer"
+                  >
+                    Delete current
+                  </button>
+                )}
+              </div>
+
+              {(imagePreviewUrl || imagePath) && (
+                <div className="flex items-center gap-3 p-2 bg-white rounded-xl border border-slate-200">
+                  <div className="w-12 h-12 rounded-lg overflow-hidden border border-slate-200 shrink-0">
+                    <img src={imagePreviewUrl || imagePath!} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                  <div className="text-xs">
+                    <p className="font-bold text-slate-800">{selectedImageFile ? 'New photo selected' : 'Current photo'}</p>
+                    <p className="text-slate-500">{selectedImageFile ? selectedImageFile.name : 'Active on profile'}</p>
+                  </div>
+                </div>
+              )}
+
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 onChange={handleImageFileSelect}
-                className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford/10 file:text-oxford hover:file:bg-oxford/20 cursor-pointer"
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">CV Document (PDF &lt; 10MB)</label>
+            {/* CV Document Section */}
+            <div className="space-y-2 p-4 bg-slate-50/80 rounded-2xl border border-slate-200">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Curriculum Vitae (PDF &lt; 10MB)</label>
+                {cvPath && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteDocument('cv')}
+                    className="text-[11px] text-rose-600 hover:underline font-medium cursor-pointer"
+                  >
+                    Delete current
+                  </button>
+                )}
+              </div>
+
+              {cvPath && (
+                <div className="flex items-center justify-between p-2 bg-white rounded-xl border border-slate-200 text-xs">
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-oxford" />
+                    <span className="font-medium text-slate-800">Current CV document is active</span>
+                  </div>
+                  <a
+                    href={cvPath}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-cyan-800 hover:underline font-semibold flex items-center gap-1"
+                  >
+                    <span>View</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+
+              {selectedCvFile && (
+                <div className="p-2 bg-white rounded-xl border border-cyan-200 text-xs text-cyan-800 font-medium">
+                  Selected new file: {selectedCvFile.name}
+                </div>
+              )}
+
               <input
                 type="file"
                 accept="application/pdf"
                 onChange={handleCvFileSelect}
-                className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford/10 file:text-oxford hover:file:bg-oxford/20 cursor-pointer"
               />
             </div>
 
             <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
-              <Button variant="outline" type="button" onClick={() => setIsDocModalOpen(false)} className="px-4">
+              <Button variant="outline" type="button" onClick={() => setIsDocModalOpen(false)} className="px-4 cursor-pointer">
                 Cancel
               </Button>
-              <Button type="submit" disabled={uploadingDocs} className="px-5 font-semibold">
+              <Button type="submit" disabled={uploadingDocs} className="px-5 font-semibold bg-oxford hover:bg-oxford-dark text-white cursor-pointer">
                 {uploadingDocs ? 'Uploading...' : 'Save Documents'}
               </Button>
             </DialogFooter>
@@ -5045,70 +5651,145 @@ export default function UnifiedDashboardPage() {
 
       {/* Description Markdown Modal */}
       <Dialog open={isDescModalOpen} onOpenChange={setIsDescModalOpen}>
-        <DialogContent className="max-w-3xl bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[88vh] overflow-y-auto">
           <DialogHeader className="border-b border-slate-100 pb-4 flex items-center justify-between">
             <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
               <Edit3 className="w-5 h-5 text-oxford" />
-              <span>Edit Professional Overview (Markdown)</span>
+              <span>Edit Professional Overview & Research Biography</span>
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSaveDescription} className="space-y-4 pt-3">
+          <form onSubmit={handleSaveDescription} className="space-y-4 pt-3 font-sans">
             {descError && (
-              <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+              <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-xl">
                 {descError}
               </div>
             )}
             {descSuccess && (
-              <div className="p-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg">
-                {descSuccess}
+              <div className="p-3 text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>{descSuccess}</span>
               </div>
             )}
 
-            <div className="flex items-center gap-2 border-b border-slate-200 pb-2 font-sans">
-              <button
-                type="button"
-                onClick={() => setDescActiveTab('write')}
-                className={`text-xs px-3 py-1.5 rounded-lg font-semibold cursor-pointer ${
-                  descActiveTab === 'write' ? 'bg-oxford text-white' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Write
-              </button>
-              <button
-                type="button"
-                onClick={() => setDescActiveTab('preview')}
-                className={`text-xs px-3 py-1.5 rounded-lg font-semibold cursor-pointer ${
-                  descActiveTab === 'preview' ? 'bg-oxford text-white' : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                Preview
-              </button>
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setDescActiveTab('write')}
+                  className={`text-xs px-3.5 py-1.5 rounded-lg font-semibold cursor-pointer transition-all ${
+                    descActiveTab === 'write' ? 'bg-oxford text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 bg-slate-100'
+                  }`}
+                >
+                  Write Markdown
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDescActiveTab('preview')}
+                  className={`text-xs px-3.5 py-1.5 rounded-lg font-semibold cursor-pointer transition-all ${
+                    descActiveTab === 'preview' ? 'bg-oxford text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900 bg-slate-100'
+                  }`}
+                >
+                  Live Preview
+                </button>
+              </div>
+
+              <span className="text-[11px] text-slate-400 font-mono">
+                {markdownContent.length} characters
+              </span>
             </div>
 
             {descActiveTab === 'write' ? (
               <div className="space-y-2">
+                {/* Markdown Formatting Quick Bar */}
+                <div className="flex flex-wrap items-center gap-1 bg-slate-100/80 p-1.5 rounded-xl border border-slate-200/80 text-xs">
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdownSyntax('## ', '')}
+                    className="px-2 py-1 rounded bg-white hover:bg-slate-200 font-bold text-slate-700 border border-slate-200 cursor-pointer"
+                    title="Heading 2"
+                  >
+                    H2
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdownSyntax('### ', '')}
+                    className="px-2 py-1 rounded bg-white hover:bg-slate-200 font-bold text-slate-700 border border-slate-200 cursor-pointer"
+                    title="Heading 3"
+                  >
+                    H3
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdownSyntax('**', '**')}
+                    className="px-2 py-1 rounded bg-white hover:bg-slate-200 font-bold text-slate-700 border border-slate-200 cursor-pointer"
+                    title="Bold"
+                  >
+                    B
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdownSyntax('*', '*')}
+                    className="px-2 py-1 rounded bg-white hover:bg-slate-200 italic text-slate-700 border border-slate-200 cursor-pointer"
+                    title="Italic"
+                  >
+                    I
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdownSyntax('- ', '')}
+                    className="px-2 py-1 rounded bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 cursor-pointer"
+                    title="Bullet list"
+                  >
+                    • List
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdownSyntax('> ', '')}
+                    className="px-2 py-1 rounded bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 cursor-pointer"
+                    title="Blockquote"
+                  >
+                    “ Quote
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdownSyntax('`', '`')}
+                    className="px-2 py-1 rounded bg-white hover:bg-slate-200 font-mono text-slate-700 border border-slate-200 cursor-pointer"
+                    title="Inline Code"
+                  >
+                    &lt;/&gt;
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => insertMarkdownSyntax('[', '](https://...)')}
+                    className="px-2 py-1 rounded bg-white hover:bg-slate-200 text-slate-700 border border-slate-200 cursor-pointer"
+                    title="Web Link"
+                  >
+                    🔗 Link
+                  </button>
+                </div>
+
                 <textarea
                   id="markdown-editor-textarea"
-                  rows={12}
+                  rows={13}
                   value={markdownContent}
                   onChange={(e) => setMarkdownContent(e.target.value)}
-                  placeholder="Write your research summary, qualifications, awards using Markdown..."
-                  className="w-full bg-white border border-[#e8e2d5] rounded-xl p-4 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-oxford"
+                  placeholder="Write your research interests, educational background, honors, and laboratory summary using Markdown..."
+                  className="w-full bg-white border border-slate-200 rounded-xl p-4 text-xs font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-oxford leading-relaxed"
                 />
               </div>
             ) : (
-              <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 min-h-[250px] text-xs font-sans text-slate-900">
+              <div className="bg-slate-50/70 border border-slate-200 rounded-xl p-6 min-h-[300px] text-xs font-sans text-slate-900 leading-relaxed overflow-y-auto max-h-[400px]">
                 {renderMarkdown(markdownContent)}
               </div>
             )}
 
             <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
-              <Button variant="outline" type="button" onClick={() => setIsDescModalOpen(false)} className="px-4">
+              <Button variant="outline" type="button" onClick={() => setIsDescModalOpen(false)} className="px-4 cursor-pointer">
                 Cancel
               </Button>
-              <Button type="submit" disabled={savingDesc} className="px-5 font-semibold">
-                {savingDesc ? 'Saving...' : 'Save Description'}
+              <Button type="submit" disabled={savingDesc} className="px-5 font-semibold bg-oxford hover:bg-oxford-dark text-white cursor-pointer">
+                {savingDesc ? 'Saving...' : 'Save Biography'}
               </Button>
             </DialogFooter>
           </form>

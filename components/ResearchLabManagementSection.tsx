@@ -17,6 +17,14 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableHead,
+  TableRow,
+  TableCell,
+} from '@/components/ui/table';
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -222,190 +230,193 @@ export default function ResearchLabManagementSection() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header Banner */}
-      <Card className="bg-slate-900 border-slate-800 text-white shadow-xl overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
-        <CardHeader className="relative z-10 sm:flex-row sm:items-center sm:justify-between pb-4">
-          <div className="space-y-1">
-            <CardTitle className="text-xl sm:text-2xl font-serif font-bold text-white flex items-center gap-2.5">
-              <FlaskConical className="w-6 h-6 text-cyan-400" />
-              Research Laboratories Management
-            </CardTitle>
-            <CardDescription className="text-slate-400 text-xs sm:text-sm">
-              Create, update, and manage research laboratories, Markdown descriptions, hero images, and associated faculty members.
-            </CardDescription>
-          </div>
-          <div className="mt-4 sm:mt-0 flex items-center gap-2">
-            <Button
-              onClick={fetchData}
-              variant="outline"
-              size="sm"
-              className="border-slate-700 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
-            >
-              <RefreshCw className={`w-4 h-4 mr-1.5 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-            <Button
-              onClick={openAddModal}
-              size="sm"
-              className="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold shadow-md"
-            >
-              <Plus className="w-4 h-4 mr-1.5" />
-              Add Laboratory
-            </Button>
-          </div>
-        </CardHeader>
-      </Card>
+    <div className="space-y-8 font-sans">
+      {/* Header Banner / Action Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-transparent py-2 rounded-none shadow-none">
+        <div>
+          <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+            <FlaskConical className="w-7 h-7 text-oxford" />
+            <span>Research Laboratories</span>
+            <Badge variant="outline" className="ml-2 font-mono text-xs border-oxford text-oxford">
+              {labs.length} Labs
+            </Badge>
+          </h2>
+          <p className="text-slate-600 text-base mt-1">
+            Create, update, and manage research laboratories, Markdown descriptions, hero images, and associated faculty members.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={fetchData}
+            className="h-11 w-11 text-slate-700 hover:text-slate-950"
+            title="Refresh Labs"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button
+            variant="default"
+            onClick={openAddModal}
+            className="flex items-center gap-2 py-3 px-5 font-semibold rounded-xl shadow-xs transition-all text-base cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Laboratory</span>
+          </Button>
+        </div>
+      </div>
 
       {/* Success Notification */}
       {successMsg && (
-        <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center gap-2 text-emerald-400 text-xs sm:text-sm">
-          <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2.5 text-emerald-800 text-sm font-semibold animate-fadeIn">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
       {/* Laboratories Table / Grid Card */}
-      <Card className="bg-slate-900/90 border-slate-800 text-white shadow-xl">
-        <CardHeader className="pb-3 border-b border-slate-800/80">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-bold text-slate-200 flex items-center gap-2">
-              <span>Department Laboratories</span>
-              <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 text-xs">
-                {labs.length} Laboratories
-              </Badge>
-            </CardTitle>
-          </div>
+      <Card className="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+        <CardHeader className="p-6 pb-4 border-b border-slate-100 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
+            <span>Department Research Laboratories</span>
+            <Badge variant="outline" className="border-oxford/30 text-oxford text-xs ml-1 font-mono">
+              {labs.length} Laboratories
+            </Badge>
+          </CardTitle>
         </CardHeader>
         <CardContent className="p-0 overflow-x-auto">
           {loading ? (
-            <div className="p-12 text-center text-slate-400 space-y-3">
-              <RefreshCw className="w-7 h-7 animate-spin mx-auto text-cyan-400" />
+            <div className="p-12 text-center text-slate-500 space-y-3">
+              <RefreshCw className="w-7 h-7 animate-spin mx-auto text-oxford" />
               <p className="text-xs">Loading research laboratories...</p>
             </div>
           ) : labs.length === 0 ? (
-            <div className="p-12 text-center text-slate-400 space-y-3">
-              <FlaskConical className="w-10 h-10 mx-auto text-slate-600" />
-              <p className="text-sm font-semibold text-slate-300">No Research Laboratories found</p>
+            <div className="p-12 text-center text-slate-500 space-y-3">
+              <FlaskConical className="w-10 h-10 mx-auto text-slate-400" />
+              <p className="text-sm font-semibold text-slate-800">No Research Laboratories found</p>
               <Button
                 onClick={openAddModal}
+                variant="default"
                 size="sm"
-                className="mt-2 bg-cyan-500 hover:bg-cyan-600 text-white text-xs"
+                className="mt-2 text-xs"
               >
                 <Plus className="w-3.5 h-3.5 mr-1" /> Add First Laboratory
               </Button>
             </div>
           ) : (
-            <table className="w-full text-left border-collapse text-xs sm:text-sm">
-              <thead className="bg-slate-950/60 text-slate-400 uppercase font-semibold text-[11px] border-b border-slate-800">
-                <tr>
-                  <th className="px-6 py-3.5">Hero Image</th>
-                  <th className="px-6 py-3.5">Laboratory Name & Category</th>
-                  <th className="px-6 py-3.5">Associated Faculty</th>
-                  <th className="px-6 py-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60">
+            <Table className="text-sm">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="font-bold w-24">Hero Image</TableHead>
+                  <TableHead className="font-bold">Laboratory Name & Category</TableHead>
+                  <TableHead className="font-bold">Associated Faculty</TableHead>
+                  <TableHead className="text-right font-bold">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {labs.map((lab) => (
-                  <tr key={lab.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="w-16 h-11 rounded-lg bg-slate-950 overflow-hidden border border-slate-700/60 relative">
+                  <TableRow key={lab.id} className="hover:bg-slate-50/40">
+                    <TableCell className="py-4">
+                      <div className="w-16 h-11 rounded-lg bg-slate-100 overflow-hidden border border-slate-200 relative shrink-0">
                         <img
                           src={lab.image || 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80'}
                           alt={lab.name}
                           className="w-full h-full object-cover"
                         />
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-white text-sm sm:text-base">{lab.name}</div>
-                      <div className="text-[11px] text-cyan-400 font-mono mt-0.5">{lab.category || 'Experimental'}</div>
-                    </td>
-                    <td className="px-6 py-4">
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="font-bold text-slate-900 text-base font-serif">{lab.name}</div>
+                      <div className="text-xs text-cyan-dark font-mono font-medium mt-0.5">{lab.category || 'Experimental'}</div>
+                    </TableCell>
+                    <TableCell className="py-4">
                       {lab.faculties && lab.faculties.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
+                        <div className="flex flex-wrap gap-1.5">
                           {lab.faculties.map((f) => (
                             <span
                               key={f.id}
-                              className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20"
+                              className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"
                             >
                               {f.name}
                             </span>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-slate-500 italic text-xs">No faculty assigned</span>
+                        <span className="text-slate-400 italic text-xs">No faculty assigned</span>
                       )}
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-2">
+                    </TableCell>
+                    <TableCell className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
                       <a
                         href={`/research/${lab.id}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition-all"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 transition-all"
                       >
                         <Eye className="w-3.5 h-3.5" /> View Page
                       </a>
                       <Button
+                        variant="secondary"
+                        size="icon"
                         onClick={() => openEditModal(lab)}
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-2.5 text-slate-300 hover:text-white hover:bg-slate-800"
+                        className="h-9 w-9 text-slate-600 hover:text-slate-900"
+                        title="Edit Laboratory"
                       >
-                        <Edit className="w-3.5 h-3.5 mr-1" /> Edit
+                        <Edit className="w-4 h-4" />
                       </Button>
                       <Button
+                        variant="destructive"
+                        size="icon"
                         onClick={() => setDeletingId(lab.id)}
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 px-2.5 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10"
+                        className="h-9 w-9"
+                        title="Delete Laboratory"
                       >
-                        <Trash2 className="w-3.5 h-3.5 mr-1" /> Delete
+                        <Trash2 className="w-4 h-4" />
                       </Button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           )}
         </CardContent>
       </Card>
 
       {/* Add / Edit Laboratory Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-lg font-serif font-bold text-white flex items-center gap-2">
-              <FlaskConical className="w-5 h-5 text-cyan-400" />
-              {editingLab ? 'Edit Research Laboratory' : 'Add New Research Laboratory'}
+        <DialogContent className="bg-white border border-slate-200 text-slate-900 max-w-2xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 rounded-2xl shadow-2xl">
+          <DialogHeader className="border-b border-slate-100 pb-4">
+            <DialogTitle className="text-xl sm:text-2xl font-serif font-bold text-slate-900 flex items-center gap-2">
+              <FlaskConical className="w-6 h-6 text-oxford" />
+              <span>{editingLab ? 'Edit Research Laboratory' : 'Add New Research Laboratory'}</span>
             </DialogTitle>
           </DialogHeader>
 
           {error && (
-            <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl flex items-center gap-2 text-rose-400 text-xs">
-              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <div className="p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-center gap-2 text-rose-700 text-sm font-semibold">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
               <span>{error}</span>
             </div>
           )}
 
-          <form onSubmit={handleSave} className="space-y-4 pt-2">
+          <form onSubmit={handleSave} className="space-y-5 pt-3">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                  Laboratory Name <span className="text-rose-400">*</span>
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-800">
+                  Laboratory Name <span className="text-rose-500">*</span>
                 </label>
                 <Input
                   type="text"
                   placeholder="e.g. Quantum Optics & Photonics Lab"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="bg-slate-950 border-slate-800 text-slate-100 text-xs sm:text-sm font-serif"
+                  className="text-base font-serif"
+                  required
                 />
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-800">
                   Research Category
                 </label>
                 <Input
@@ -413,18 +424,18 @@ export default function ResearchLabManagementSection() {
                   placeholder="e.g. Materials Science / Photonics / Theoretical"
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="bg-slate-950 border-slate-800 text-slate-100 text-xs sm:text-sm"
+                  className="text-sm font-sans"
                 />
               </div>
             </div>
 
             {/* Cover / Hero Image Upload */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-800">
                 Hero Image File OR Image URL
               </label>
               <div className="space-y-2">
-                <Input
+                <input
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
                   onChange={(e) => {
@@ -434,9 +445,9 @@ export default function ResearchLabManagementSection() {
                       setImagePreview(URL.createObjectURL(file));
                     }
                   }}
-                  className="bg-slate-950 border-slate-800 text-slate-300 text-xs file:bg-cyan-500 file:text-white file:border-0 file:rounded-md file:px-3 file:py-1 file:mr-3 file:cursor-pointer hover:file:bg-cyan-600"
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-slate-800 cursor-pointer"
                 />
-                <div className="text-[11px] text-slate-400 text-center font-bold font-sans">OR</div>
+                <div className="text-[10px] text-slate-400 text-center font-bold uppercase tracking-widest font-mono">OR Direct Image URL</div>
                 <Input
                   type="text"
                   placeholder="https://images.unsplash.com/..."
@@ -445,37 +456,38 @@ export default function ResearchLabManagementSection() {
                     setFormData({ ...formData, imageUrl: e.target.value, imageFile: null });
                     setImagePreview(e.target.value);
                   }}
-                  className="bg-slate-950 border-slate-800 text-slate-100 text-xs font-mono"
+                  className="text-xs font-mono"
                 />
               </div>
 
               {imagePreview && (
-                <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-950 border border-slate-800 mt-2">
+                <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200 mt-2">
                   <img src={imagePreview} alt="Hero Preview" className="w-full h-full object-cover" />
                 </div>
               )}
             </div>
 
             {/* Markdown Description */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Full Description (Markdown Supported) <span className="text-rose-400">*</span>
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-800">
+                Full Description (Markdown Supported) <span className="text-rose-500">*</span>
               </label>
               <textarea
                 rows={8}
                 placeholder="Write laboratory research themes, key equipment, outcomes using Markdown..."
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs sm:text-sm text-slate-100 font-mono focus:outline-none focus:ring-2 focus:ring-cyan-500 leading-relaxed"
+                className="w-full bg-white border border-slate-200 rounded-xl p-3.5 text-sm text-slate-900 font-sans focus:outline-none focus:ring-2 focus:ring-oxford leading-relaxed"
+                required
               />
             </div>
 
-            {/* Associated Faculty Members (Many-to-Many Multi Select) */}
-            <div>
-              <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Associated Faculty Members (Many-to-Many Relationship)
+            {/* Associated Faculty Members */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-800">
+                Associated Faculty Members
               </label>
-              <div className="p-3 bg-slate-950 border border-slate-800 rounded-xl max-h-40 overflow-y-auto space-y-1.5">
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl max-h-48 overflow-y-auto space-y-1.5">
                 {facultyList.length === 0 ? (
                   <p className="text-xs text-slate-500 italic">No faculty members found in database.</p>
                 ) : (
@@ -486,17 +498,17 @@ export default function ResearchLabManagementSection() {
                         key={fac.id}
                         type="button"
                         onClick={() => toggleFacultySelection(fac.id)}
-                        className={`w-full flex items-center justify-between p-2 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                        className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                           isSelected
-                            ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/40'
-                            : 'bg-slate-900 text-slate-400 hover:bg-slate-850 hover:text-slate-200 border border-transparent'
+                            ? 'bg-oxford text-white border border-oxford shadow-xs'
+                            : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
                         }`}
                       >
                         <span>{fac.name} ({fac.designation || 'Faculty'})</span>
                         {isSelected ? (
-                          <Check className="w-4 h-4 text-indigo-400" />
+                          <Check className="w-4 h-4 text-white" />
                         ) : (
-                          <Plus className="w-3.5 h-3.5 text-slate-500" />
+                          <Plus className="w-3.5 h-3.5 text-slate-400" />
                         )}
                       </button>
                     );
@@ -505,26 +517,30 @@ export default function ResearchLabManagementSection() {
               </div>
             </div>
 
-            <DialogFooter className="pt-3 border-t border-slate-800">
+            <DialogFooter className="border-t border-slate-100 pt-4 gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsModalOpen(false)}
-                className="border-slate-700 text-slate-300 hover:bg-slate-800"
+                disabled={saving}
+                className="cursor-pointer"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
                 disabled={saving}
-                className="bg-cyan-500 hover:bg-cyan-600 text-white font-semibold"
+                className="bg-oxford hover:bg-slate-800 text-white font-semibold cursor-pointer"
               >
                 {saving ? (
-                  <>
-                    <RefreshCw className="w-3.5 h-3.5 mr-1.5 animate-spin" /> Saving...
-                  </>
+                  <span className="flex items-center gap-1.5">
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Saving...</span>
+                  </span>
+                ) : editingLab ? (
+                  'Save Changes'
                 ) : (
-                  'Save Laboratory'
+                  'Create Laboratory'
                 )}
               </Button>
             </DialogFooter>
@@ -534,28 +550,30 @@ export default function ResearchLabManagementSection() {
 
       {/* Delete Confirmation Modal */}
       <Dialog open={!!deletingId} onOpenChange={() => setDeletingId(null)}>
-        <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-sm">
+        <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl">
           <DialogHeader>
-            <DialogTitle className="text-base font-bold text-white flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-rose-500" />
-              Confirm Laboratory Deletion
+            <DialogTitle className="text-lg font-bold text-rose-600 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              <span>Confirm Laboratory Deletion</span>
             </DialogTitle>
           </DialogHeader>
-          <p className="text-xs text-slate-300 leading-relaxed">
-            Are you sure you want to delete this research laboratory?
+          <p className="text-sm text-slate-600 leading-relaxed">
+            Are you sure you want to delete this research laboratory? This action cannot be undone.
           </p>
-          <DialogFooter className="pt-3 border-t border-slate-800">
+          <DialogFooter className="pt-4 gap-2">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => setDeletingId(null)}
-              className="border-slate-700 text-slate-300 hover:bg-slate-800 text-xs"
+              disabled={isDeleting}
             >
               Cancel
             </Button>
             <Button
+              variant="destructive"
+              size="sm"
               onClick={handleDelete}
               disabled={isDeleting}
-              className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold"
             >
               {isDeleting ? 'Deleting...' : 'Delete Laboratory'}
             </Button>
