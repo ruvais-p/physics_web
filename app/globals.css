@@ -1,0 +1,219 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --oxford-blue: #002147;
+    --oxford-blue-dark: #000a1e;
+    --science-cyan: #0284C7;
+    --science-cyan-dark: #0369a1;
+    --heritage-red: #AB0613;
+    --bg-canvas: #faf7f2;
+    --surface-lowest: #ffffff;
+    --surface-low: #f7f4ef;
+    --surface-container: #f0ebe1;
+    --surface-high: #e8e2d5;
+    --surface-gray: #f4f0e6;
+    --on-surface: #1c1917;
+    --on-surface-variant: #44403c;
+    --outline: #78716c;
+    --outline-variant: #d6d3d1;
+  }
+
+  body {
+    background-color: var(--bg-canvas);
+    color: var(--on-surface);
+    font-family: var(--font-inter), 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-size: 1rem;
+    line-height: 1.625;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-serif-heading, .font-serif {
+    font-family: var(--font-inter), 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  h1 {
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+  }
+
+  h2 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  h3 {
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
+  }
+
+  h4 {
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
+  }
+
+  p {
+    font-family: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.625;
+  }
+}
+
+@theme {
+  --color-oxford: #002147;
+  --color-oxford-dark: #000a1e;
+  --color-cyan-accent: #0284C7;
+  --color-cyan-dark: #0369a1;
+  --color-heritage-red: #AB0613;
+  --color-surface-canvas: #faf7f2;
+  --color-surface-lowest: #ffffff;
+  --color-surface-low: #f7f4ef;
+  --color-surface-mid: #f0ebe1;
+  --color-surface-high: #e8e2d5;
+  --color-surface-gray: #f4f0e6;
+  --color-on-surface: #1c1917;
+  --color-on-surface-muted: #44403c;
+  --color-outline-subtle: #d6d3d1;
+
+  --font-serif: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-inter), 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* Custom Utilities for Design System */
+.bg-oxford {
+  background-color: #002147;
+}
+
+.bg-oxford-dark {
+  background-color: #000a1e;
+}
+
+.text-oxford {
+  color: #002147;
+}
+
+.bg-cyan-accent {
+  background-color: #0284C7;
+}
+
+.text-cyan-accent {
+  color: #0284C7;
+}
+
+.border-cyan-accent {
+  border-color: #0284C7;
+}
+
+.bg-heritage-red {
+  background-color: #AB0613;
+}
+
+.text-heritage-red {
+  color: #AB0613;
+}
+
+.shadow-oxford-ambient {
+  box-shadow: 0 10px 30px -5px rgba(0, 33, 71, 0.08), 0 4px 12px -2px rgba(0, 33, 71, 0.04);
+}
+
+.shadow-dark-blue-glow {
+  box-shadow: 0 10px 30px -5px rgba(0, 33, 71, 0.25), 0 4px 12px -2px rgba(0, 33, 71, 0.15);
+}
+
+.hover-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px -6px rgba(0, 33, 71, 0.12);
+}
+
+/* Continuous Running Notification Ticker Marquee */
+@keyframes marquee {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee {
+  display: inline-flex;
+  width: max-content;
+  animation: marquee 28s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Continuous Running Laboratories Marquee */
+@keyframes marquee-labs {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-marquee-labs {
+  display: inline-flex;
+  animation: marquee-labs 35s linear infinite;
+}
+
+/* Faculty Card Image Grayscale Hover Effect */
+.faculty-member-card .faculty-card-image {
+  filter: grayscale(100%) !important;
+  transition: filter 0.4s ease-in-out !important;
+}
+
+.faculty-member-card:hover .faculty-card-image {
+  filter: grayscale(0%) !important;
+}
+
+/* 3D Flip Card Styles */
+.flip-card {
+  perspective: 1000px;
+}
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+.flip-card:hover .flip-card-inner {
+  transform: rotateY(180deg);
+}
+.flip-card-front, .flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  border-radius: 1.25rem;
+  overflow: hidden;
+}
+.flip-card-front {
+  z-index: 2;
+  transform: rotateY(0deg);
+}
+.flip-card-back {
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem;
+  border: 1px solid rgba(2, 132, 199, 0.3);
+}
+
+

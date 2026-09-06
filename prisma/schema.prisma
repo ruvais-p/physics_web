@@ -1,0 +1,230 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String   @default("System Admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  content   String?
+  category  String   @default("General")
+  link      String?
+  isActive  Boolean  @default(true)
+  date      DateTime @default(now())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ResearchLab {
+  id          String    @id @default(uuid())
+  name        String
+  category    String?   @default("Experimental")
+  description String    @db.Text
+  image       String?
+  faculties   Faculty[] @relation("FacultyResearchLabs")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Facility {
+  id          String    @id @default(uuid())
+  name        String
+  description String    @db.Text
+  image       String?
+  faculties   Faculty[] @relation("FacultyFacilities")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Faculty {
+  id                 String              @id @default(uuid())
+  name               String
+  email              String              @unique
+  password           String
+  mustChangePassword Boolean             @default(true)
+  designation        String?             @default("Faculty Member")
+  department         String?             @default("Department of Physics")
+  phone              String?
+  bio                String?
+  isActive           Boolean             @default(true)
+  sortOrder          Int                 @default(0)
+  profile            FacultyProfile?
+  documents          FacultyDocument?
+  descriptionRecord  FacultyDescription?
+  students           FacultyStudent[]
+  projects           FacultyProject[]
+  publications       FacultyPublication[]
+  researchLabs       ResearchLab[]       @relation("FacultyResearchLabs")
+  facilities         Facility[]          @relation("FacultyFacilities")
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+}
+
+model FacultyProject {
+  id           String    @id @default(uuid())
+  facultyId    String
+  faculty      Faculty   @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  title        String
+  description  String?   @db.Text
+  agency       String?
+  role         String?   @default("Principal Investigator")
+  funding      String?
+  startDate    DateTime?
+  endDate      DateTime?
+  externalLink String?
+  otherFaculty String?
+  status       String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([facultyId])
+}
+
+model FacultyPublication {
+  id              String    @id @default(uuid())
+  facultyId       String
+  faculty         Faculty   @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  title           String
+  journal         String?
+  authors         String?
+  publicationDate DateTime?
+  externalLink    String?
+  doi             String?
+  category        String?   @default("Journal Article")
+  description     String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([facultyId])
+}
+
+model FacultyProfile {
+  uid       String   @id @default(uuid())
+  facultyId String   @unique
+  faculty   Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  phone     String?
+  profiles  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FacultyDocument {
+  uid       String   @id @default(uuid())
+  facultyId String   @unique
+  faculty   Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  image     String?
+  cv        String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FacultyDescription {
+  uid         String   @id @default(uuid())
+  facultyId   String   @unique
+  faculty     Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  description String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model FacultyStudent {
+  uid         String   @id @default(uuid())
+  facultyId   String
+  faculty     Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
+  name        String
+  description String?  @db.Text
+  image       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([facultyId])
+}
+
+model Hero {
+  id          Int      @id @default(autoincrement())
+  image       String
+  title       String   @db.VarChar(255)
+  description String   @db.Text
+  is_visible  Boolean  @default(true)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AboutUs {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  image     String?
+  updatedAt DateTime @updatedAt
+}
+
+model Event {
+  id          Int          @id @default(autoincrement())
+  title       String
+  description String       @db.Text
+  image       String
+  date        DateTime
+  venue       String?
+  apply_link  String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  images      EventImage[]
+
+  @@map("events")
+}
+
+model EventImage {
+  id        Int      @id @default(autoincrement())
+  eventId   Int      @map("event_id")
+  imagePath String   @map("image_path")
+  sortOrder Int      @default(0) @map("sort_order")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@map("event_images")
+}
+
+model Course {
+  id          String             @id
+  code        String?            @default("")
+  title       String
+  level       String
+  duration    String
+  intake      Int?               @default(0)
+  fees        String?            @default("")
+  eligibility String?            @db.Text
+  description String             @db.Text
+  highlights  String[]           @default([])
+  schemes     CurriculumScheme[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+}
+
+model CurriculumScheme {
+  id        String   @id @default(uuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  year      String
+  scheme    String
+  pdfUrl    String
+  sortOrder Int      @default(0)
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courseId])
+}

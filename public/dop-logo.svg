@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 160" fill="none">
+  <!-- Letter D -->
+  <text x="5" y="120" font-family="Georgia, 'Times New Roman', serif" font-size="110" font-weight="900" fill="currentColor">D</text>
+  
+  <!-- Central Atom Emblem (Representing O) -->
+  <g transform="translate(110, 80)">
+    <!-- Vertical Orbit -->
+    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" stroke-width="2.5" fill="none"/>
+    <!-- Diagonal Orbit 1 -->
+    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" stroke-width="2.5" fill="none" transform="rotate(60)"/>
+    <!-- Diagonal Orbit 2 -->
+    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" stroke-width="2.5" fill="none" transform="rotate(-60)"/>
+    <!-- Central Nucleus -->
+    <circle cx="0" cy="0" r="15" fill="currentColor"/>
+  </g>
+  
+  <!-- Letter P -->
+  <text x="150" y="120" font-family="Georgia, 'Times New Roman', serif" font-size="110" font-weight="900" fill="currentColor">P</text>
+</svg>
