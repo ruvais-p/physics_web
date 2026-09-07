@@ -92,11 +92,10 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 w-full transition-all duration-300">
       {/* Dynamic Top-Attached Navbar Container (Sleek & Compact) */}
       <div
-        className={`w-full px-6 sm:px-12 py-3.5 sm:py-4 lg:py-4.5 transition-all duration-300 border-b ${
-          isWhiteNav
+        className={`w-full px-6 sm:px-12 py-3.5 sm:py-4 lg:py-4.5 transition-all duration-300 border-b ${isWhiteNav
             ? 'bg-white/95 backdrop-blur-xl border-slate-200/80 shadow-md shadow-oxford/5'
             : 'bg-transparent border-transparent'
-        }`}
+          }`}
       >
         <div className="max-w-[1536px] mx-auto flex items-center justify-between">
 
@@ -136,37 +135,30 @@ export default function Navbar() {
                     <Link
                       id={`nav-link-${item.name.toLowerCase()}`}
                       href={item.href}
-                      className={`flex items-center space-x-1.5 text-base sm:text-lg lg:text-lg font-semibold transition-colors ${
-                        isWhiteNav
+                      className={`flex items-center space-x-1.5 text-base sm:text-lg lg:text-lg font-semibold transition-colors ${isWhiteNav
                           ? isActive ? 'text-cyan-accent font-bold' : 'text-oxford hover:text-cyan-accent'
                           : isActive ? 'text-white font-bold drop-shadow' : 'text-white/90 hover:text-cyan-accent'
-                      }`}
+                        }`}
                     >
                       <span>{item.name}</span>
-                      {item.iconType === 'dropdown' ? (
-                        <ChevronDown className={`w-4 h-4 transition-transform group-hover:translate-y-0.5 ${isWhiteNav ? 'text-oxford' : 'text-white/80'}`} />
-                      ) : (
-                        <ChevronRight className={`w-4 h-4 transition-transform group-hover:translate-x-0.5 ${isWhiteNav ? 'text-oxford' : 'text-white/80'}`} />
-                      )}
+
                     </Link>
 
                     {/* Dropdown Menu */}
                     {hasDropdown && activeDropdown === item.name && (
                       <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 z-50">
-                        <div className={`w-72 border rounded-xl shadow-2xl p-3 transition-colors ${
-                          isWhiteNav
+                        <div className={`w-72 border rounded-xl shadow-2xl p-3 transition-colors ${isWhiteNav
                             ? 'bg-white/95 border-slate-200 shadow-xl'
                             : 'bg-slate-900/95 backdrop-blur-2xl border-white/20'
-                        }`}>
+                          }`}>
                           {item.dropdown?.map((sub) => (
                             <Link
                               key={sub.name}
                               href={sub.href}
-                              className={`block px-4 py-3 rounded-lg text-base transition-colors ${
-                                isWhiteNav
+                              className={`block px-4 py-3 rounded-lg text-base transition-colors ${isWhiteNav
                                   ? 'text-slate-800 hover:bg-slate-100 hover:text-cyan-accent font-medium'
                                   : 'text-slate-200 hover:bg-white/15 hover:text-sky-300'
-                              }`}
+                                }`}
                             >
                               {sub.name}
                             </Link>
@@ -202,9 +194,8 @@ export default function Navbar() {
                 id="mobile-menu-toggle-btn"
                 type="button"
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className={`p-3 rounded-xl focus:outline-none transition-colors ${
-                  isWhiteNav ? 'text-oxford hover:bg-slate-100' : 'text-white hover:bg-white/20'
-                }`}
+                className={`p-3 rounded-xl focus:outline-none transition-colors ${isWhiteNav ? 'text-oxford hover:bg-slate-100' : 'text-white hover:bg-white/20'
+                  }`}
                 aria-expanded={mobileMenuOpen}
                 aria-label="Toggle navigation menu"
               >
@@ -217,17 +208,15 @@ export default function Navbar() {
 
         {/* Mobile Menu Drawer */}
         {mobileMenuOpen && (
-          <div className={`lg:hidden mt-4 pt-4 border-t space-y-2 ${
-            isWhiteNav ? 'border-slate-200' : 'border-white/20'
-          }`}>
+          <div className={`lg:hidden mt-4 pt-4 border-t space-y-2 ${isWhiteNav ? 'border-slate-200' : 'border-white/20'
+            }`}>
             {NAV_ITEMS.map((item) => (
               <div key={item.name} className="space-y-1">
                 <Link
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium transition-colors ${
-                    isWhiteNav ? 'text-oxford hover:bg-slate-100' : 'text-white hover:bg-white/20'
-                  }`}
+                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium transition-colors ${isWhiteNav ? 'text-oxford hover:bg-slate-100' : 'text-white hover:bg-white/20'
+                    }`}
                 >
                   <span className="flex items-center gap-1.5">
                     {item.name}
@@ -239,17 +228,15 @@ export default function Navbar() {
                   </span>
                 </Link>
                 {item.dropdown && (
-                  <div className={`pl-6 space-y-1 border-l ml-4 ${
-                    isWhiteNav ? 'border-slate-200' : 'border-white/20'
-                  }`}>
+                  <div className={`pl-6 space-y-1 border-l ml-4 ${isWhiteNav ? 'border-slate-200' : 'border-white/20'
+                    }`}>
                     {item.dropdown.map((sub) => (
                       <Link
                         key={sub.name}
                         href={sub.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${
-                          isWhiteNav ? 'text-slate-700 hover:text-cyan-accent' : 'text-slate-200 hover:text-white'
-                        }`}
+                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${isWhiteNav ? 'text-slate-700 hover:text-cyan-accent' : 'text-slate-200 hover:text-white'
+                          }`}
                       >
                         {sub.name}
                       </Link>

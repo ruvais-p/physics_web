@@ -1,19 +1,12 @@
 import type { Metadata } from 'next';
-import { League_Spartan, Inter } from 'next/font/google';
+import { Poppins } from 'next/font/google';
 import '@/app/globals.css';
 import LayoutWrapper from '@/components/LayoutWrapper';
 
-const leagueSpartan = League_Spartan({
-  subsets: ['latin'],
-  weight: ['400', '600', '700', '800', '900'],
-  variable: '--font-spartan',
-  display: 'swap',
-});
-
-const inter = Inter({
+const poppins = Poppins({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700', '800', '900'],
-  variable: '--font-inter',
+  variable: '--font-poppins',
   display: 'swap',
 });
 
@@ -43,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${leagueSpartan.variable} ${inter.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${poppins.variable} font-sans`} suppressHydrationWarning>
       <body
         className="min-h-screen flex flex-col bg-surface-canvas text-on-surface font-sans antialiased"
         suppressHydrationWarning

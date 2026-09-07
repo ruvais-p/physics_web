@@ -731,13 +731,13 @@ export default function UnifiedDashboardPage() {
     if (slide) {
       setEditingHeroSlide(slide);
       setHeroFormData({
-        title: slide.title,
-        description: slide.description,
+        title: slide.title || '',
+        description: slide.description || '',
         imageFile: null,
-        imageUrl: slide.image,
-        is_visible: slide.is_visible,
+        imageUrl: slide.image || '',
+        is_visible: slide.is_visible ?? true,
       });
-      setHeroImagePreview(slide.image);
+      setHeroImagePreview(slide.image || null);
     } else {
       setEditingHeroSlide(null);
       setHeroFormData({
@@ -756,6 +756,7 @@ export default function UnifiedDashboardPage() {
     setIsHeroModalOpen(false);
     setEditingHeroSlide(null);
     setHeroImagePreview(null);
+    setHeroFormError(null);
   };
 
   const handleHeroSave = async (e: React.FormEvent) => {
@@ -3577,6 +3578,7 @@ export default function UnifiedDashboardPage() {
             </form>
           </DialogContent>
         </Dialog>
+
         {/* Notification Modal */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif">
@@ -3837,11 +3839,11 @@ export default function UnifiedDashboardPage() {
                   />
                   <div className="text-xs text-slate-400 text-center font-bold font-sans">OR</div>
                   <Input
-                    type="url"
-                    placeholder="https://images.unsplash.com/..."
+                    type="text"
+                    placeholder="https://images.unsplash.com/... or /uploads/..."
                     value={heroFormData.imageUrl}
                     onChange={(e) => {
-                      setHeroFormData({ ...heroFormData, imageUrl: e.target.value });
+                      setHeroFormData({ ...heroFormData, imageUrl: e.target.value, imageFile: null });
                       setHeroImagePreview(e.target.value);
                     }}
                     className="w-full text-xs font-mono"
@@ -6430,6 +6432,119 @@ export default function UnifiedDashboardPage() {
               </Button>
               <Button type="submit" disabled={savingProject} className="px-5 font-semibold">
                 {savingProject ? 'Saving Project...' : editingProject ? 'Update Project' : 'Create Project'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Hero Item Create/Edit Modal for Faculty Dashboard */}
+      <Dialog open={isHeroModalOpen} onOpenChange={setIsHeroModalOpen}>
+        <DialogContent className="max-w-lg bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-sans text-slate-900">
+          <DialogHeader className="border-b border-slate-100 pb-4">
+            <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
+              <Sliders className="w-5 h-5 text-oxford" />
+              <span>{editingHeroSlide ? 'Edit Hero Slide' : 'Add New Hero Slide (Max 10)'}</span>
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleHeroSave} className="space-y-5 pt-4">
+            {heroFormError && (
+              <div className="p-3 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-lg">
+                {heroFormError}
+              </div>
+            )}
+
+            {/* Title Input with live char counter */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-bold text-slate-700">Slide Title *</label>
+                <span className={`text-xs font-mono font-semibold ${heroFormData.title.length > 80 ? 'text-rose-600 font-bold' : 'text-slate-500'}`}>
+                  {heroFormData.title.length}/80 chars
+                </span>
+              </div>
+              <Input
+                type="text"
+                maxLength={80}
+                placeholder="e.g. Quantum Frontiers & Nanomaterials Research"
+                value={heroFormData.title}
+                onChange={(e) => setHeroFormData({ ...heroFormData, title: e.target.value })}
+                className="w-full text-base font-serif"
+              />
+            </div>
+
+            {/* Description Input with live char counter */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-sm font-bold text-slate-700">Slide Subtitle / Description</label>
+                <span className={`text-xs font-mono font-semibold ${heroFormData.description.length > 200 ? 'text-rose-600 font-bold' : 'text-slate-500'}`}>
+                  {heroFormData.description.length}/200 chars
+                </span>
+              </div>
+              <textarea
+                rows={3}
+                maxLength={200}
+                placeholder="Pioneering research in magnetic nanocomposites, quantum transport..."
+                value={heroFormData.description}
+                onChange={(e) => setHeroFormData({ ...heroFormData, description: e.target.value })}
+                className="w-full bg-white border border-[#e8e2d5] rounded-xl p-3 text-sm text-slate-900 font-sans focus:outline-none focus:ring-2 focus:ring-oxford"
+              />
+            </div>
+
+            {/* Image Input */}
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">Upload Image File OR Image URL / Local Path *</label>
+              <div className="space-y-2">
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setHeroFormData({ ...heroFormData, imageFile: file });
+                      setHeroImagePreview(URL.createObjectURL(file));
+                    }
+                  }}
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
+                />
+                <div className="text-xs text-slate-400 text-center font-bold font-sans">OR</div>
+                <Input
+                  type="text"
+                  placeholder="https://images.unsplash.com/... or /uploads/..."
+                  value={heroFormData.imageUrl}
+                  onChange={(e) => {
+                    setHeroFormData({ ...heroFormData, imageUrl: e.target.value, imageFile: null });
+                    setHeroImagePreview(e.target.value);
+                  }}
+                  className="w-full text-xs font-mono"
+                />
+              </div>
+
+              {heroImagePreview && (
+                <div className="mt-2 w-full h-28 rounded-xl border border-slate-200 overflow-hidden relative bg-slate-100">
+                  <img src={heroImagePreview} alt="Preview" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
+
+            {/* Visibility Status Switch */}
+            <div className="flex items-center justify-between bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+              <div>
+                <span className="text-sm font-bold text-slate-900 block font-serif">Public Visibility</span>
+                <span className="text-xs text-slate-500 font-sans">Show on public homepage slideshow</span>
+              </div>
+              <Switch
+                checked={heroFormData.is_visible}
+                onCheckedChange={(checked) => setHeroFormData({ ...heroFormData, is_visible: checked })}
+              />
+            </div>
+
+            <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
+              <Button variant="outline" type="button" onClick={closeHeroModal} className="px-4">
+                Cancel
+              </Button>
+              <Button type="submit" disabled={heroSaving} className="px-5 font-semibold">
+                {heroSaving ? 'Saving...' : editingHeroSlide ? 'Update Hero Slide' : 'Create Hero Slide'}
               </Button>
             </DialogFooter>
           </form>

@@ -18,64 +18,6 @@ export type Slide = {
   ctaLink?: string;
 };
 
-const DEFAULT_SLIDES: Slide[] = [
-  {
-    id: 'rnd',
-    tab: 'R & D',
-    title: ['Quantum Frontiers &', 'Nanomaterials'],
-    subtitle: 'Pioneering research in magnetic nanocomposites, quantum transport, and 2D topological insulator heterostructures.',
-    image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=1920&auto=format&fit=crop',
-    overlay: 'rgba(0, 0, 0, 0.55)',
-    titleColor: '#0284c7',
-    ctaText: 'Explore Laboratories',
-    ctaLink: '/research',
-  },
-  {
-    id: 'academics',
-    tab: 'Academics',
-    title: ['Advanced Degree', 'Programs'],
-    subtitle: 'Choice-Based Credit System (CBCS) offering M.Sc., Ph.D., and 5-Year Integrated M.Sc. degree programs.',
-    image: '/faculty.png',
-    overlay: 'rgba(0, 0, 0, 0.55)',
-    titleColor: '#0284c7',
-    ctaText: 'View Degree Programs',
-    ctaLink: '/courses',
-  },
-  {
-    id: 'instrumentation',
-    tab: 'Instrumentation',
-    title: ['World-Class', 'Central Facilities'],
-    subtitle: 'Equipped with FE-SEM, XRD Diffractometer, Confocal Raman Spectrometer, and VSM Magnetometers.',
-    image: '/phy_dept.png',
-    overlay: 'rgba(0, 0, 0, 0.55)',
-    titleColor: '#0284c7',
-    ctaText: 'Book Central Facilities',
-    ctaLink: '/facilities',
-  },
-  {
-    id: 'photonics',
-    tab: 'Photonics & Lasers',
-    title: ['Optoelectronics &', 'Nonlinear Optics'],
-    subtitle: 'Laser-matter interactions, Z-scan optical limiting, and rare-earth doped photothermal sensors.',
-    image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1920&auto=format&fit=crop',
-    overlay: 'rgba(0, 0, 0, 0.55)',
-    titleColor: '#0284c7',
-    ctaText: 'Read Publications',
-    ctaLink: '/journals',
-  },
-  {
-    id: 'cosmology',
-    tab: 'Cosmology',
-    title: ['Theoretical Physics &', 'Cosmology'],
-    subtitle: 'Modeling dark energy dynamics, entropic gravity, black hole thermodynamics, and FLRW expanding spacetimes.',
-    image: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=1920&auto=format&fit=crop',
-    overlay: 'rgba(0, 0, 0, 0.55)',
-    titleColor: '#0284c7',
-    ctaText: 'Meet Our Faculty',
-    ctaLink: '/people',
-  },
-];
-
 const SLIDE_DURATION_MS = 6000;
 
 interface HeroProps {
@@ -93,13 +35,13 @@ interface HeroProps {
 export default function Hero({
   badge,
   title,
-  subtitle = 'Bridging academic tradition with pioneering research.',
+  subtitle,
   primaryCtaText,
   primaryCtaLink,
   secondaryCtaText,
   secondaryCtaLink,
   bgImage,
-  slides = DEFAULT_SLIDES,
+  slides,
 }: HeroProps) {
   const [dynamicSlides, setDynamicSlides] = useState<Slide[] | null>(null);
 
@@ -112,21 +54,26 @@ export default function Hero({
           const mapped: Slide[] = data.map((item, idx) => ({
             id: String(item.id),
             tab: `Slide ${idx + 1}`,
-            badge: 'DEPARTMENT OF PHYSICS • CUSAT',
+            badge: item.badge,
             title: [item.title],
             subtitle: item.description,
             image: item.image,
-            overlay: 'rgba(0, 0, 0, 0.55)',
-            titleColor: '#0284c7',
+            overlay: 'rgba(0, 0, 0, 0.25)',
+            titleColor: '#ffffff',
           }));
           setDynamicSlides(mapped);
+        } else {
+          setDynamicSlides([]);
         }
       })
-      .catch((err) => console.error('Failed to fetch public hero slides:', err));
+      .catch((err) => {
+        console.error('Failed to fetch public hero slides:', err);
+        setDynamicSlides([]);
+      });
   }, []);
 
   // Determine active slides array
-  const baseSlides = dynamicSlides && dynamicSlides.length > 0 ? dynamicSlides : slides;
+  const baseSlides = dynamicSlides && dynamicSlides.length > 0 ? dynamicSlides : (slides || []);
 
   // If custom title is provided without custom slides array, render single header slide mode
   const effectiveSlides: Slide[] = title
@@ -134,7 +81,7 @@ export default function Hero({
       {
         id: 'custom',
         tab: 'Overview',
-        badge: badge || 'DEPARTMENT OF PHYSICS • CUSAT',
+        badge: badge,
         title: [title],
         subtitle: subtitle || '',
         image: bgImage || 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=1920&auto=format&fit=crop',
@@ -155,6 +102,7 @@ export default function Hero({
 
   const goTo = useCallback(
     (nextIdx: number) => {
+      if (total === 0) return;
       setIndex(((nextIdx % total) + total) % total);
     },
     [total]
@@ -170,6 +118,12 @@ export default function Hero({
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, [index, isPlaying, next, total]);
+
+  if (total === 0 || !currentSlide) {
+    return (
+      <section className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-black text-white overflow-hidden min-h-[675px] sm:min-h-[775px] lg:min-h-[865px] xl:min-h-[900px] 2xl:min-h-[970px]" />
+    );
+  }
 
   return (
     <section className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-black text-white overflow-hidden min-h-[675px] sm:min-h-[775px] lg:min-h-[865px] xl:min-h-[900px] 2xl:min-h-[970px]">
@@ -210,19 +164,19 @@ export default function Hero({
 
       {/* Main Slide Content Layer (Anchored to Bottom-Left) */}
       <div className="relative z-20 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-40 sm:pt-48 lg:pt-56 pb-6 sm:pb-8 lg:pb-10 flex flex-col justify-end text-left items-start min-h-[630px] sm:min-h-[720px] lg:min-h-[810px] xl:min-h-[850px]">
-        <div className="max-w-3xl space-y-5 text-left">
+        <div className="max-w-3xl text-left">
 
           {/* Optional Badge / Breadcrumbs (Clean Unboxed Text) */}
           {currentSlide.badge && (
-            <div className="text-xs sm:text-sm font-bold tracking-widest text-cyan-accent uppercase drop-shadow-md">
+            <div className="text-xs sm:text-sm font-bold tracking-widest text-cyan-accent uppercase drop-shadow-md mb-2">
               <span>{currentSlide.badge}</span>
             </div>
           )}
 
           {/* Headline */}
           <h1
-            className="font-serif text-4xl sm:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] text-cyan-accent drop-shadow-2xl"
-            style={{ color: currentSlide.titleColor || '#0284c7' }}
+            className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] text-white drop-shadow-2xl"
+            style={{ color: currentSlide.titleColor || '#ffffff' }}
           >
             {currentSlide.title.map((line, idx) => (
               <span key={idx} className="block">
@@ -233,7 +187,7 @@ export default function Hero({
 
           {/* Subtitle */}
           {currentSlide.subtitle && (
-            <p className="font-sans text-base sm:text-xl text-slate-200 leading-relaxed max-w-2xl font-normal drop-shadow-md">
+            <p className="mt-1 sm:mt-1.5 text-base sm:text-lg text-slate-200 leading-snug max-w-2xl font-normal drop-shadow-md">
               {currentSlide.subtitle}
             </p>
           )}
@@ -266,11 +220,10 @@ export default function Hero({
                 aria-selected={i === index}
                 aria-label={`Go to slide ${i + 1}`}
                 onClick={() => goTo(i)}
-                className={`w-3 h-3 rounded-full transition-all cursor-pointer ${
-                  i === index
-                    ? 'bg-white scale-110 shadow-md'
-                    : 'bg-white/40 hover:bg-white/70'
-                }`}
+                className={`w-3 h-3 rounded-full transition-all cursor-pointer ${i === index
+                  ? 'bg-white scale-110 shadow-md'
+                  : 'bg-white/40 hover:bg-white/70'
+                  }`}
               />
             ))}
           </div>
@@ -303,25 +256,25 @@ export default function Hero({
 
       {/* Tailwind Keyframe Animation for Progress Bar */}
       <style jsx global>{`
-        @keyframes heroProgress {
-          from {
-            transform: scaleX(0);
+          @keyframes heroProgress {
+            from {
+              transform: scaleX(0);
+            }
+            to {
+              transform: scaleX(1);
+            }
           }
-          to {
-            transform: scaleX(1);
+          .animate-hero-progress {
+            animation: heroProgress linear forwards;
           }
-        }
-        .animate-hero-progress {
-          animation: heroProgress linear forwards;
-        }
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .no-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
+          .no-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+          .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
     </section>
   );
 }

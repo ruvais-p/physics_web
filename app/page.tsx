@@ -58,41 +58,34 @@ export default function HomePage() {
       <section className="w-full px-6 sm:px-12 lg:px-16 py-12 sm:py-16 bg-gradient-to-b from-surface-lowest via-surface-low/30 to-surface-lowest">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
 
-          {/* Arched Window Image Column */}
-          <div className="lg:col-span-5 flex justify-center items-center mx-auto">
-            <div className="relative w-full max-w-[380px] sm:max-w-[440px]">
-              {/* Outer Decorative Arch Halo */}
-              <div className="absolute -inset-3 rounded-t-[180px] sm:rounded-t-[240px] rounded-b-3xl border-2 border-cyan-accent/40 bg-cyan-accent/5 -z-10 transform -rotate-1" />
-
-              {/* Main Arched Window Frame */}
-              <div className="relative w-full aspect-[4/5] rounded-t-[160px] sm:rounded-t-[220px] rounded-b-3xl border-4 border-heritage-red/80 overflow-hidden shadow-2xl bg-oxford-dark group">
-                <img
-                  src="/campus.jpg"
-                  alt="Department of Physics CUSAT Campus"
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-oxford-dark/80 via-transparent to-transparent" />
-              </div>
+          {/* Department Building Image Column */}
+          <div className="lg:col-span-5 flex justify-center items-center">
+            <div className="relative w-full max-w-lg rounded-2xl overflow-hidden shadow-xl border border-slate-200/80 bg-slate-900 group">
+              <img
+                src="/building-black-and-white.webp"
+                alt="Department of Physics Building"
+                className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
+              />
             </div>
           </div>
 
           {/* Content Column */}
-          <div className="lg:col-span-7 space-y-6 text-center">
-            <div className="space-y-2">
-              <h2 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-extrabold text-oxford tracking-tight leading-tight text-center">
-                Academics done <span className="text-cyan-accent italic font-light">differently.</span>
+          <div className="lg:col-span-7 space-y-5 text-center lg:text-left">
+            <div className="space-y-1.5">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight leading-tight">
+                Academics done <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight leading-tight">differently.</span>
               </h2>
             </div>
 
-            <h3 className="text-xl sm:text-2xl font-bold text-slate-800 font-sans text-center">
+            <h3 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
               Dive into world-class programs &amp; research
             </h3>
 
-            <p className="text-slate-700 text-sm sm:text-base leading-relaxed text-center">
+            <p className="text-base sm:text-lg text-slate-700 leading-relaxed font-normal">
               Established in 1971, the Department of Physics, CUSAT has maintained the highest standards in postgraduate education and scientific research. Over the years, the Department has become the premier destination for students in Kerala and across India seeking advanced studies in Physics. Our postgraduates and researchers are consistently placed in top faculty, postdoctoral, and Ph.D. positions at world-renowned research centers across the globe.
             </p>
 
-            <p className="text-slate-700 text-sm sm:text-base leading-relaxed text-center">
+            <p className="text-base sm:text-lg text-slate-700 leading-relaxed font-normal">
               Going forward, the Department envisions continuing its mission of providing quality advanced training in Physics through its M.Sc., Integrated M.Sc., and Ph.D. research programs, driving fundamental scientific breakthroughs in materials science, quantum technology, and photonics.
             </p>
           </div>
@@ -100,26 +93,27 @@ export default function HomePage() {
       </section>
 
       {/* Events Section */}
-      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-low/20 border-b border-surface-mid/30">
-        <div className="max-w-[1536px] mx-auto space-y-10">
+      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-low/30 border-b border-surface-mid/30">
+        <div className="max-w-[1536px] mx-auto space-y-12">
 
           {/* Section Header */}
-          <div className="text-center space-y-3 border-b border-slate-200 pb-6">
-            <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest font-sans block text-center">
-              Department Activities
-            </span>
-            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight text-center">
-              Upcoming &amp; Featured Events
-            </h2>
-            <div className="pt-1 flex justify-center">
-              <Link
-                href="/events"
-                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors duration-200"
-              >
-                <span>View All Events</span>
-                <ChevronRight className="w-4 h-4" />
-              </Link>
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-slate-200 pb-6">
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block">
+                Department Activities
+              </span>
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
+                UPCOMING &amp; FEATURED EVENTS
+              </h2>
             </div>
+
+            <Link
+              href="/events"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors self-start sm:self-auto shrink-0"
+            >
+              <span>View All Events</span>
+              <ChevronRight className="w-4 h-4" />
+            </Link>
           </div>
 
           {/* Dynamic Events Cards Grid Fetched Live from PostgreSQL DB */}
