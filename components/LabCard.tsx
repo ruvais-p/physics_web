@@ -1,3 +1,4 @@
+import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
@@ -17,71 +18,63 @@ interface LabCardProps {
   variant?: 'light' | 'dark';
 }
 
-function deriveShortDesc(lab: ResearchLabItem): string {
-  if (lab.shortDesc && lab.shortDesc.trim()) return lab.shortDesc.trim();
-  if (!lab.description) return 'Research Laboratory in the Department of Physics.';
-  // Clean markdown syntax for card preview
-  const clean = lab.description
-    .replace(/^#+\s+/gm, '')
-    .replace(/\*+/g, '')
-    .replace(/`+/g, '')
-    .replace(/>\s+/g, '')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+// Helper to extract a short description snippet without markdown tags (matching FacilityCard)
+function getShortDescription(text: string, shortDesc?: string | null): string {
+  if (shortDesc && shortDesc.trim()) return shortDesc.trim();
+  if (!text) return 'Research Laboratory in the Department of Physics.';
+
+  const cleanText = text
+    .replace(/^#+\s+/gm, '') // Remove Markdown headers
+    .replace(/\*\*([^*]+)\*\*/g, '$1') // Remove bold
+    .replace(/\*([^*]+)\*/g, '$1') // Remove italics
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove links
+    .replace(/>\s+/g, '') // Remove blockquotes
     .trim();
-  return clean.length > 130 ? clean.slice(0, 130) + '...' : clean;
+
+  const firstPara = cleanText.split('\n\n')[0] || cleanText;
+  if (firstPara.length > 160) {
+    return firstPara.substring(0, 160) + '...';
+  }
+  return firstPara;
 }
 
-export default function LabCard({ lab, variant = 'light' }: LabCardProps) {
-  const isDark = variant === 'dark';
+export default function LabCard({ lab }: LabCardProps) {
   const displayImage = lab.image || 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80';
-  const shortDescription = deriveShortDesc(lab);
+  const shortDescription = getShortDescription(lab.description, lab.shortDesc);
 
   return (
-    <div
-      className={`group flex flex-col justify-between overflow-hidden shadow-sm hover:shadow-xl rounded-2xl border transition-all duration-300 font-sans ${
-        isDark
-          ? 'bg-[#000A1E]/80 backdrop-blur-md border-white/10 hover:border-cyan-accent/50'
-          : 'bg-white border-slate-200 hover:border-cyan-accent/40'
-      }`}
+    <Link
+      href={`/research/${lab.id}`}
+      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md hover:border-cyan-accent/40 transition-all duration-300 flex flex-col justify-between group block font-sans"
     >
-      {/* Laboratory Image */}
-      <div className="relative h-52 w-full overflow-hidden bg-slate-900">
-        <Image
-          src={displayImage}
-          alt={lab.name}
-          fill
-          className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-90 group-hover:opacity-100"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-        />
-      </div>
+      <div>
+        {/* Laboratory Image */}
+        <div className="relative h-52 w-full overflow-hidden bg-slate-900">
+          <Image
+            src={displayImage}
+            alt={lab.name}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        </div>
 
-      {/* Card Body */}
-      <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-        <div className="space-y-2">
-          <h3
-            className={`font-serif text-xl font-bold leading-tight transition-colors duration-300 ${
-              isDark ? 'text-white group-hover:text-cyan-accent' : 'text-oxford group-hover:text-cyan-accent'
-            }`}
-          >
+        {/* Laboratory Content */}
+        <div className="p-6 space-y-3">
+          <h3 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-accent transition-colors leading-snug">
             {lab.name}
           </h3>
 
-          <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
+          <p className="text-sm text-slate-600 leading-relaxed font-sans line-clamp-3">
             {shortDescription}
           </p>
         </div>
-
-        {/* View Details Button */}
-        <div className="pt-3 border-t border-slate-100 dark:border-slate-800">
-          <Link
-            href={`/research/${lab.id}`}
-            className="inline-flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-cyan-600 hover:text-cyan-500 transition-colors cursor-pointer group/btn"
-          >
-            <span>View Details</span>
-            <ArrowRight className="w-3.5 h-3.5 group-hover/btn:translate-x-1 transition-transform" />
-          </Link>
-        </div>
       </div>
-    </div>
+
+      <div className="px-6 pb-6 pt-0 flex items-center gap-1.5 text-xs font-bold text-cyan-accent group-hover:text-cyan-700 transition-colors">
+        <span>View Details</span>
+        <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+      </div>
+    </Link>
   );
 }

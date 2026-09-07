@@ -4,13 +4,13 @@ import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Hero from '@/components/Hero';
-import { 
-  MapPin, 
-  Phone, 
-  Mail, 
-  Clock, 
-  Send, 
-  CheckCircle2, 
+import {
+  MapPin,
+  Phone,
+  Mail,
+  Clock,
+  Send,
+  CheckCircle2,
   ExternalLink,
   Building2,
   Sparkles,
@@ -37,18 +37,17 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-24 relative">
-      
+
       {/* Hero Header matching main website design */}
       <Hero
-        title="CONTACT US"
+        title="CONTACT  US"
         badge="HOME > CONTACT"
         subtitle="Department Office, South Kalamassery, Kochi – 682022, Kerala, India."
         bgImage="/campus.jpg"
-        align="center"
       />
 
       <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 mt-10 sm:mt-12 space-y-12">
-        
+
         {/* 1. Top Contact Info Strip (Pill Cards) */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pb-2">
           {/* General Office */}
@@ -94,7 +93,7 @@ export default function ContactPage() {
 
         {/* 2. Main Grid: Inquiry Form (Left) & Department Address + Map (Right) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
-          
+
           {/* Left Column: Online Inquiry Form */}
           <div className="lg:col-span-7">
             <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-200/90 shadow-sm space-y-8">
@@ -236,7 +235,7 @@ export default function ContactPage() {
           {/* Right Column: Department Address & Interactive Google Map */}
           <div className="lg:col-span-5 space-y-6">
             <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-200/90 shadow-sm space-y-7">
-              
+
               <div className="space-y-1.5">
                 <div className="text-xs font-bold uppercase tracking-widest text-cyan-dark flex items-center gap-1.5">
                   <Building2 className="w-4 h-4 text-oxford" />

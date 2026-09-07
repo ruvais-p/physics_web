@@ -98,11 +98,16 @@ export default function PeoplePage() {
         <div className="space-y-20 pt-10">
           {/* 1. Head of Department Section */}
           {actualHodList.length > 0 && (
-            <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16">
-              <div className="font-sans">
+            <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 space-y-8">
+              <div className="text-center">
+                <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
+                  Head of Department
+                </h2>
+              </div>
+              <div className="flex justify-center font-sans">
                 {actualHodList.map((person) => (
-                  <Link key={person.id} href={`/people/${person.id}`} className="block">
-                    <FacultyCard person={person} horizontal />
+                  <Link key={person.id} href={`/people/${person.id}`} className="block w-full max-w-sm">
+                    <FacultyCard person={person} />
                   </Link>
                 ))}
               </div>
