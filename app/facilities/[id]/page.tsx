@@ -3,15 +3,21 @@
 import React, { use, useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import Hero from '@/components/Hero';
+import FacultyCard from '@/components/FacultyCard';
 import {
   Wrench,
   Users,
-  ArrowLeft,
+  MapPin,
+  Building2,
   User,
-  ChevronRight,
+  ArrowLeft,
   ExternalLink,
+  ChevronRight,
+  FileText,
+  CheckCircle2,
 } from 'lucide-react';
-import { FACILITIES, FACULTY_MEMBERS } from '@/lib/data';
+import { FACILITIES, FACULTY_MEMBERS, FacultyMember } from '@/lib/data';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -35,10 +41,10 @@ interface FacilityDetailData {
   faculties?: FacultyAssociated[];
 }
 
-// Markdown Parser Helper Function
+// Markdown Parser Helper Functions (Matching Research & Events Detail Pages)
 function renderMarkdown(md: string) {
   if (!md || !md.trim()) {
-    return <p className="text-slate-600 leading-relaxed text-base font-sans italic">No facility description added yet.</p>;
+    return <p className="text-base text-slate-500 italic">No facility description available yet.</p>;
   }
 
   const lines = md.split('\n');
@@ -49,7 +55,7 @@ function renderMarkdown(md: string) {
     if (currentList) {
       if (currentList.type === 'ul') {
         elements.push(
-          <ul key={`ul_${elements.length}`} className="list-disc ml-6 space-y-2 my-4 text-base sm:text-lg lg:text-[20px] text-slate-700 font-sans leading-relaxed">
+          <ul key={`ul_${elements.length}`} className="list-disc ml-6 space-y-2.5 my-4 text-base sm:text-lg lg:text-[20px] leading-relaxed text-slate-700 font-sans">
             {currentList.items.map((item, idx) => (
               <li key={idx}>{parseInlineMarkdown(item)}</li>
             ))}
@@ -57,7 +63,7 @@ function renderMarkdown(md: string) {
         );
       } else {
         elements.push(
-          <ol key={`ol_${elements.length}`} className="list-decimal ml-6 space-y-2 my-4 text-base sm:text-lg lg:text-[20px] text-slate-700 font-sans leading-relaxed">
+          <ol key={`ol_${elements.length}`} className="list-decimal ml-6 space-y-2.5 my-4 text-base sm:text-lg lg:text-[20px] leading-relaxed text-slate-700 font-sans">
             {currentList.items.map((item, idx) => (
               <li key={idx}>{parseInlineMarkdown(item)}</li>
             ))}
@@ -96,13 +102,12 @@ function renderMarkdown(md: string) {
     flushList();
 
     if (!trimmed) {
-      elements.push(<div key={`br_${index}`} className="h-3" />);
       return;
     }
 
     if (trimmed.startsWith('# ')) {
       elements.push(
-        <h2 key={index} className="text-2xl sm:text-3xl lg:text-4xl font-serif font-bold text-oxford mt-8 mb-3 border-b border-slate-200 pb-2">
+        <h2 key={index} className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-oxford font-serif mt-8 mb-4">
           {parseInlineMarkdown(trimmed.slice(2))}
         </h2>
       );
@@ -111,7 +116,7 @@ function renderMarkdown(md: string) {
 
     if (trimmed.startsWith('## ')) {
       elements.push(
-        <h3 key={index} className="text-xl sm:text-2xl lg:text-3xl font-serif font-bold text-oxford mt-6 mb-2">
+        <h3 key={index} className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-800 font-serif mt-6 mb-3">
           {parseInlineMarkdown(trimmed.slice(3))}
         </h3>
       );
@@ -120,7 +125,7 @@ function renderMarkdown(md: string) {
 
     if (trimmed.startsWith('### ')) {
       elements.push(
-        <h4 key={index} className="text-base sm:text-lg font-bold font-sans uppercase tracking-wider text-oxford mt-5 mb-1.5">
+        <h4 key={index} className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-800 font-serif mt-5 mb-2">
           {parseInlineMarkdown(trimmed.slice(4))}
         </h4>
       );
@@ -129,7 +134,7 @@ function renderMarkdown(md: string) {
 
     if (trimmed.startsWith('> ')) {
       elements.push(
-        <blockquote key={index} className="border-l-3 border-oxford pl-4 py-2 my-4 italic text-slate-700 font-sans text-base sm:text-lg lg:text-[20px] leading-relaxed">
+        <blockquote key={index} className="border-l-4 border-cyan-accent pl-5 py-3 my-5 italic text-slate-700 font-sans text-base sm:text-lg lg:text-[20px] leading-relaxed bg-slate-50/70 rounded-r-xl">
           {parseInlineMarkdown(trimmed.slice(2))}
         </blockquote>
       );
@@ -137,22 +142,48 @@ function renderMarkdown(md: string) {
     }
 
     elements.push(
-      <p key={index} className="text-base sm:text-lg lg:text-[20px] text-slate-700 font-sans leading-relaxed my-3">
+      <p key={index} className="text-base sm:text-lg lg:text-[20px] text-slate-700 leading-relaxed lg:leading-[1.75] font-sans font-normal my-4">
         {parseInlineMarkdown(trimmed)}
       </p>
     );
   });
 
   flushList();
-  return <div className="space-y-1">{elements}</div>;
+  return <div className="space-y-3 font-sans">{elements}</div>;
 }
 
 function parseInlineMarkdown(text: string): React.ReactNode {
-  const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let keyIdx = 0;
+
+  while (remaining) {
+    const linkMatch = remaining.match(/^([\s\S]*?)\[([^\]]+)\]\(([^)]+)\)([\s\S]*)$/);
+    if (linkMatch) {
+      const [, before, label, url, after] = linkMatch;
+      if (before) parts.push(parseFormatting(before, keyIdx++));
+      parts.push(
+        <a key={keyIdx++} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-accent hover:underline font-semibold inline-flex items-center gap-0.5">
+          <span>{label}</span>
+          <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+        </a>
+      );
+      remaining = after;
+      continue;
+    }
+
+    parts.push(parseFormatting(remaining, keyIdx++));
+    break;
+  }
+
+  return parts;
+}
+
+function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
   const elements: React.ReactNode[] = [];
+  const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
-  let keyIndex = 0;
 
   while ((match = regex.exec(text)) !== null) {
     if (match.index > lastIndex) {
@@ -160,11 +191,11 @@ function parseInlineMarkdown(text: string): React.ReactNode {
     }
 
     if (match[1]) {
-      elements.push(<strong key={`b_${keyIndex++}`} className="font-bold text-slate-900">{match[2]}</strong>);
+      elements.push(<strong key={`${keyPrefix}_b_${match.index}`} className="font-bold text-slate-900">{match[2]}</strong>);
     } else if (match[3]) {
-      elements.push(<em key={`i_${keyIndex++}`} className="italic text-slate-800">{match[4]}</em>);
+      elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-800">{match[4]}</em>);
     } else if (match[5]) {
-      elements.push(<code key={`c_${keyIndex++}`} className="text-oxford font-mono text-sm">{match[6]}</code>);
+      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-100 text-oxford px-1.5 py-0.5 rounded font-mono text-sm">{match[6]}</code>);
     }
 
     lastIndex = regex.lastIndex;
@@ -174,7 +205,7 @@ function parseInlineMarkdown(text: string): React.ReactNode {
     elements.push(text.substring(lastIndex));
   }
 
-  return elements.length === 1 ? elements[0] : <React.Fragment key={`frag_${keyIndex}`}>{elements}</React.Fragment>;
+  return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
 }
 
 export default function FacilityDetailPage({ params }: PageProps) {
@@ -221,7 +252,7 @@ export default function FacilityDetailPage({ params }: PageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center py-20 font-serif text-slate-800">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center py-20 font-sans text-slate-800">
         <div className="text-center space-y-3">
           <div className="w-10 h-10 border-4 border-oxford border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-sm font-semibold">Loading Facility Details...</p>
@@ -249,131 +280,178 @@ export default function FacilityDetailPage({ params }: PageProps) {
   const heroImage = facility.image || 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80';
 
   return (
-    <div className="space-y-12 pb-24 relative font-sans">
-      {/* Facility Hero Image Banner */}
-      <div className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center">
-        {/* Background Image with Top Blue Gradient Overlay */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src={heroImage}
-            alt={facility.name}
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#002147]/80 via-[#002147]/30 to-transparent" />
-        </div>
+    <div className="min-h-screen bg-slate-50 font-sans pb-20">
+      {/* Hero Header matching main About, Research & Events design with center-aligned text */}
+      <Hero
+        title={facility.name}
+        badge="HOME > FACILITIES"
+        subtitle=""
+        bgImage={heroImage}
+        align="center"
+      />
 
-        {/* Hero Content (Centered Text) */}
-        <div className="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 text-center space-y-4 pt-16 sm:pt-20 lg:pt-24">
-          {/* Breadcrumbs Above Title */}
-          <div className="flex flex-wrap items-center justify-center gap-2 text-xl sm:text-2xl lg:text-3xl font-sans font-bold text-slate-100 drop-shadow-md">
-            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
-            <span>&gt;</span>
-            <Link href="/facilities" className="hover:text-cyan-accent transition-colors">Facilities</Link>
-            <span>&gt;</span>
-            <span className="text-white font-extrabold truncate max-w-[200px] sm:max-w-none">{facility.name}</span>
-          </div>
-
-          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-black text-white tracking-tight leading-tight drop-shadow-lg">
-            {facility.name}
-          </h1>
-        </div>
-      </div>
-
-      {/* Main Content: Flat, Open, Container-less Design */}
-      <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 pt-6">
+      {/* Main Content Area */}
+      <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 mt-10 sm:mt-12 space-y-10">
         
-        {/* Left Columns: Full Markdown Facility Description (No Box Card) */}
-        <div className="lg:col-span-8 space-y-6 text-left">
-          <div className="border-b border-slate-200 pb-3">
-            <h2 className="text-2xl sm:text-3xl font-bold font-serif text-oxford">
-              About the Facility
-            </h2>
-            <p className="text-sm text-slate-500 font-sans mt-1">
-              Specifications, technical capabilities, and operating parameters
-            </p>
-          </div>
-
-          {/* Markdown Rendered Content */}
-          <div className="prose max-w-none text-slate-700">
-            {renderMarkdown(facility.description)}
-          </div>
-        </div>
-
-        {/* Right Columns: Associated Faculty (No Box Card) */}
-        <div className="lg:col-span-4 space-y-6 text-left">
-          <div className="border-b border-slate-200 pb-3">
-            <h3 className="text-xl sm:text-2xl font-bold font-serif text-oxford">
-              Associated Faculty
-            </h3>
-            <p className="text-sm text-slate-500 font-sans mt-1">
-              Faculty In-Charge &amp; Technical Advisors
-            </p>
-          </div>
-
-          {!facility.faculties || facility.faculties.length === 0 ? (
-            <p className="text-sm text-slate-500 italic">No faculty members linked to this facility yet.</p>
-          ) : (
-            <div className="space-y-4">
-              {facility.faculties.map((fac) => {
-                const facImg = fac.documents?.image || fac.image || '/cvs/cv_placeholder.pdf';
-                const isDefaultImg = facImg.endsWith('.pdf');
-
-                return (
-                  <Link
-                    key={fac.id}
-                    href={`/people/${fac.id}`}
-                    className="group flex items-center gap-4 py-3 border-b border-slate-100 transition-colors"
-                  >
-                    <div className="w-14 h-14 rounded-2xl bg-slate-100 overflow-hidden shrink-0 border border-slate-200 relative">
-                      {!isDefaultImg ? (
-                        <Image
-                          src={facImg}
-                          alt={fac.name}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-oxford bg-slate-100">
-                          <User className="w-6 h-6" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-base font-bold text-oxford group-hover:text-cyan-dark transition-colors font-serif truncate">
-                        {fac.name}
-                      </h4>
-                      <p className="text-xs text-slate-600 font-sans truncate mt-0.5">
-                        {fac.designation || 'Faculty Member'}
-                      </p>
-                      {fac.email && (
-                        <p className="text-xs text-cyan-dark font-sans truncate mt-0.5">
-                          {fac.email}
-                        </p>
-                      )}
-                    </div>
-
-                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-cyan-dark group-hover:translate-x-1 transition-all shrink-0" />
-                  </Link>
-                );
-              })}
+        {/* 1. Facility Type, In-Charge, Location Info Strip (Displayed Under the Hero Image) */}
+        <div className="flex flex-wrap items-center justify-start gap-y-4 gap-x-8 sm:gap-x-12 pb-8 border-b border-slate-200 text-slate-700 font-sans">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-oxford/10 text-oxford flex items-center justify-center shrink-0">
+              <Wrench className="w-5 h-5 text-oxford" />
             </div>
-          )}
+            <div>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Instrumentation / Type</span>
+              <span className="text-base sm:text-lg font-bold text-oxford">Central Research Facility</span>
+            </div>
+          </div>
 
-          <div className="pt-6">
-            <Link
-              href="/facilities"
-              className="inline-flex items-center gap-2 text-sm font-bold text-oxford hover:text-cyan-dark transition-colors"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Back to All Facilities</span>
-            </Link>
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-cyan-accent/10 text-cyan-accent flex items-center justify-center shrink-0">
+              <Users className="w-5 h-5 text-cyan-accent" />
+            </div>
+            <div>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Faculty In-Charge</span>
+              <span className="text-base sm:text-lg font-bold text-oxford">
+                {facility.faculties && facility.faculties.length > 0
+                  ? `${facility.faculties.length} Faculty Member${facility.faculties.length > 1 ? 's' : ''}`
+                  : 'Faculty In-Charge'}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-oxford/10 text-oxford flex items-center justify-center shrink-0">
+              <MapPin className="w-5 h-5 text-oxford" />
+            </div>
+            <div>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Location / Department</span>
+              <span className="text-base sm:text-lg font-bold text-oxford">Department of Physics, CUSAT</span>
+            </div>
           </div>
         </div>
 
-      </div>
+        {/* 2. Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 sm:gap-16">
+          
+          {/* Left Column (2/3): Description & Associated Faculty */}
+          <div className="lg:col-span-2 space-y-12">
+            
+            {/* Description of the Facility (Structured Markdown Content) */}
+            <div className="space-y-6 pb-12 border-b border-slate-200">
+              <div className="flex items-center gap-3">
+                <FileText className="w-6 h-6 text-oxford" />
+                <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-oxford">
+                  About the Facility
+                </h2>
+              </div>
+
+              <div className="text-slate-700 leading-relaxed font-sans">
+                {renderMarkdown(facility.description || '')}
+              </div>
+            </div>
+
+            {/* Associated Faculty / In-Charge (Under About the Facility with FacultyCard) */}
+            {facility.faculties && facility.faculties.length > 0 && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Users className="w-6 h-6 text-oxford" />
+                    <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-oxford">
+                      Associated Faculty / In-Charge
+                    </h2>
+                  </div>
+                  <span className="text-xs font-mono font-bold text-oxford bg-oxford/10 px-3.5 py-1.5 rounded-full">
+                    {facility.faculties.length} Faculty Member{facility.faculties.length > 1 ? 's' : ''}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-10 font-sans">
+                  {facility.faculties.map((fac) => {
+                    const person: FacultyMember = {
+                      id: fac.id,
+                      name: fac.name,
+                      designation: fac.designation || 'Faculty Member',
+                      qualification: 'Ph.D.',
+                      email: fac.email || '',
+                      phone: '',
+                      room: '',
+                      researchFocus: [],
+                      bio: '',
+                      publicationsCount: 0,
+                      citations: 0,
+                      image: fac.documents?.image || fac.image || '/faculty.png',
+                      type: 'faculty',
+                    };
+
+                    return (
+                      <Link key={fac.id} href={`/people/${fac.id}`} className="block h-full">
+                        <FacultyCard person={person} />
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+          </div>
+
+          {/* Right Column (1/3 Sidebar): Facility Info & Department Contact */}
+          <div className="space-y-10 lg:pl-4">
+
+            {/* Quick Overview */}
+            <div className="space-y-3 pb-8 border-b border-slate-200 font-sans">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                Instrumentation Facility
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
+                <div className="flex items-center gap-2 text-oxford font-bold text-sm">
+                  <Wrench className="w-4 h-4 text-cyan-accent" />
+                  <span>{facility.name}</span>
+                </div>
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  Central Research Instrumentation Facility • Advanced Physics Division
+                </p>
+              </div>
+            </div>
+
+            {/* Department Venue & Contact */}
+            <div className="space-y-4 font-sans">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <Building2 className="w-4 h-4 text-oxford" />
+                <span>Host Department</span>
+              </div>
+
+              <div className="space-y-1.5 text-sm sm:text-base text-slate-600 leading-relaxed">
+                <p className="font-bold text-oxford">Department of Physics</p>
+                <p>Cochin University of Science and Technology (CUSAT)</p>
+                <p>Kochi - 682022, Kerala, India</p>
+              </div>
+
+              <div className="pt-4 space-y-3">
+                <Link
+                  href="/facilities"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-oxford hover:text-cyan-dark transition-colors"
+                >
+                  <span>Explore all central facilities</span>
+                  <ArrowLeft className="w-4 h-4 rotate-180" />
+                </Link>
+                <div>
+                  <Link
+                    href="/people"
+                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-cyan-dark hover:text-cyan-accent transition-colors"
+                  >
+                    <span>View all department faculty & scholars</span>
+                    <ArrowLeft className="w-4 h-4 rotate-180" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
     </div>
   );
 }
+
