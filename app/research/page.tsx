@@ -118,11 +118,10 @@ export default function ResearchPage() {
         <div className="inline-flex flex-wrap items-center justify-center gap-1.5 p-1.5 bg-white/95 backdrop-blur-xl border border-cyan-accent/30 shadow-lg rounded-2xl sm:rounded-3xl">
           <button
             onClick={() => handleTabClick('labs')}
-            className={`px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 cursor-pointer ${
-              activeTab === 'labs'
+            className={`px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 cursor-pointer ${activeTab === 'labs'
                 ? 'bg-cyan-accent text-white shadow-md'
                 : 'text-oxford hover:text-cyan-accent hover:bg-slate-50'
-            }`}
+              }`}
           >
             Research Laboratories
           </button>
@@ -134,21 +133,19 @@ export default function ResearchPage() {
           </Link>
           <button
             onClick={() => handleTabClick('publications')}
-            className={`px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 cursor-pointer ${
-              activeTab === 'publications'
+            className={`px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 cursor-pointer ${activeTab === 'publications'
                 ? 'bg-cyan-accent text-white shadow-md'
                 : 'text-oxford hover:text-cyan-accent hover:bg-slate-50'
-            }`}
+              }`}
           >
             Publications
           </button>
           <button
             onClick={() => handleTabClick('facilities')}
-            className={`px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 cursor-pointer ${
-              activeTab === 'facilities'
+            className={`px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 cursor-pointer ${activeTab === 'facilities'
                 ? 'bg-cyan-accent text-white shadow-md'
                 : 'text-oxford hover:text-cyan-accent hover:bg-slate-50'
-            }`}
+              }`}
           >
             Central Facilities
           </button>
