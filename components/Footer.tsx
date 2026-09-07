@@ -12,15 +12,15 @@ export default function Footer() {
             <div>
               {/* DOP Atom Logo (Unboxed) */}
               <Link href="/" className="inline-block text-cyan-accent hover:opacity-90 transition-opacity" aria-label="DOP Home">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 160" className="h-12 w-auto fill-current text-cyan-accent">
-                  <text x="5" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">D</text>
-                  <g transform="translate(110, 80)">
-                    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="3" fill="none" />
-                    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="3" fill="none" transform="rotate(60)" />
-                    <ellipse cx="0" cy="0" rx="26" ry="74" stroke="currentColor" strokeWidth="3" fill="none" transform="rotate(-60)" />
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -12 255 184" className="h-12 w-auto fill-current text-cyan-accent overflow-visible">
+                  <text x="2" y="124" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">D</text>
+                  <g transform="translate(112, 80)">
+                    <ellipse cx="0" cy="0" rx="25" ry="70" stroke="currentColor" strokeWidth="3.5" fill="none" />
+                    <ellipse cx="0" cy="0" rx="25" ry="70" stroke="currentColor" strokeWidth="3.5" fill="none" transform="rotate(60)" />
+                    <ellipse cx="0" cy="0" rx="25" ry="70" stroke="currentColor" strokeWidth="3.5" fill="none" transform="rotate(-60)" />
                     <circle cx="0" cy="0" r="16" fill="currentColor" />
                   </g>
-                  <text x="150" y="120" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">P</text>
+                  <text x="145" y="124" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">P</text>
                 </svg>
               </Link>
             </div>
@@ -108,51 +108,27 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Column 4: Contact & Google Map Location */}
-          <div className="space-y-3">
+          {/* Column 4: Contact & Inquiries */}
+          <div className="space-y-4">
             <h3 className="font-serif text-lg font-semibold text-white mb-2 border-b border-cyan-accent/30 pb-2 inline-block">
-              Campus Location & Contact
+              Contact & Inquiries
             </h3>
-            <ul className="space-y-2 text-xs text-slate-300">
-              <li className="flex items-start space-x-2">
+            <ul className="space-y-3 text-xs text-slate-300">
+              <li className="flex items-start space-x-2.5">
                 <MapPin className="w-4 h-4 text-cyan-accent shrink-0 mt-0.5" />
                 <span>Department of Physics, CUSAT, Kalamassery, Kochi - 682022, Kerala, India</span>
               </li>
-              <li className="flex items-center space-x-2">
+              <li className="flex items-center space-x-2.5">
                 <Phone className="w-4 h-4 text-cyan-accent shrink-0" />
                 <span>+91 484 2577404 / 2577401</span>
               </li>
-              <li className="flex items-center space-x-2">
+              <li className="flex items-center space-x-2.5">
                 <Mail className="w-4 h-4 text-cyan-accent shrink-0" />
                 <span>phys@cusat.ac.in</span>
               </li>
             </ul>
-
-            {/* Interactive Embedded Google Map */}
-            <div className="pt-2">
-              <div className="w-full h-36 rounded-xl overflow-hidden border border-white/20 shadow-lg relative group">
-                <iframe
-                  title="Department of Physics CUSAT Google Map Location"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3928.6534591461974!2d76.32483837494498!3d10.04543949006198!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3b080c361eb00001%3A0xe54e60e81c00fdfb!2sDepartment%20of%20Physics%2C%20CUSAT!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
-                  width="100%"
-                  height="100%"
-                  style={{ border: 0, filter: 'contrast(1.05) brightness(0.95)' }}
-                  allowFullScreen={false}
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-              </div>
-              <a
-                href="https://www.google.com/maps/place/Department+of+Applied+Chemistry+and+Department+of+Physics+,+CUSAT/@10.0459694,76.3265267,17.8z/data=!4m6!3m5!1s0x3b080c370e2c0b3b:0x83497fa6cb0e123a!8m2!3d10.044099!4d76.327021!16s%2Fg%2F1vjdnhd_?hl=en&entry=ttu&g_ep=EgoyMDI2MDcyOS4wIKXMDSoASAFQAw%3D%3D"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-2 inline-flex items-center space-x-1 text-[11px] font-semibold text-cyan-accent hover:underline"
-              >
-                <MapPin className="w-3 h-3" />
-                <span>Open in Google Maps</span>
-              </a>
-            </div>
           </div>
+
 
         </div>
 

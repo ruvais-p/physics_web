@@ -89,6 +89,7 @@ export default function HomePage() {
               Going forward, the Department envisions continuing its mission of providing quality advanced training in Physics through its M.Sc., Integrated M.Sc., and Ph.D. research programs, driving fundamental scientific breakthroughs in materials science, quantum technology, and photonics.
             </p>
           </div>
+
         </div>
       </section>
 
@@ -245,15 +246,16 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Publications Cards Grid (Matching requested design) */}
+          {/* Publications Cards Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-6xl mx-auto">
             {PUBLICATIONS.slice(0, 4).map((pub) => (
               <JournalCard key={pub.id} publication={pub} />
             ))}
           </div>
-
         </div>
       </section>
+
+
 
     </div>
   );

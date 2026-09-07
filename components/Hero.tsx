@@ -1,9 +1,29 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Pause, Play, ChevronLeft, ChevronRight } from 'lucide-react';
 import TextReveal from '@/components/TextReveal';
+
+// Helper function to resolve breadcrumb route
+function getBreadcrumbHref(segment: string): string {
+  const clean = segment.trim().toLowerCase();
+  if (clean === 'home') return '/';
+  if (clean === 'about' || clean === 'about us') return '/about';
+  if (clean === 'people' || clean === 'faculty' || clean === 'scholars') return '/people';
+  if (clean === 'courses' || clean === 'academics' || clean === 'programs') return '/courses';
+  if (clean === 'research' || clean === 'research & innovation') return '/research';
+  if (clean === 'facilities' || clean === 'central facilities' || clean === 'instrumentation') return '/facilities';
+  if (clean === 'journals' || clean === 'publications') return '/journals';
+  if (clean === 'events' || clean === 'news & events') return '/events';
+  if (clean === 'news') return '/news';
+  if (clean === 'alumni') return '/alumni';
+  if (clean === 'library') return '/library';
+  if (clean === 'contact' || clean === 'contact us') return '/contact';
+  if (clean === 'dashboard') return '/dashboard';
+  return `/${clean.replace(/\s+/g, '-')}`;
+}
 
 export type Slide = {
   id: string;
@@ -166,7 +186,7 @@ export default function Hero({
       <div className="relative z-20 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-40 sm:pt-48 lg:pt-56 pb-6 sm:pb-8 lg:pb-10 flex flex-col justify-end text-left items-start min-h-[630px] sm:min-h-[720px] lg:min-h-[810px] xl:min-h-[850px]">
         <div className="max-w-3xl text-left">
 
-          {/* Optional Badge / Breadcrumbs (Clean Unboxed Text) */}
+          {/* Optional Badge / Breadcrumbs (Clean Interactive Links) */}
           {currentSlide.badge && (
             <div className="text-xs sm:text-sm font-bold tracking-widest text-cyan-accent uppercase drop-shadow-md mb-2">
               <span>{currentSlide.badge}</span>

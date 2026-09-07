@@ -49,10 +49,10 @@ export default function CourseCard({ course }: CourseCardProps) {
     course.level === 'MSc'
       ? 'M.Sc. in Physics'
       : course.level === 'PhD'
-      ? 'Ph.D. in Physics'
-      : course.level === 'Integrated'
-      ? 'Integrated M.Sc. in Physics'
-      : course.title
+        ? 'Ph.D. in Physics'
+        : course.level === 'Integrated'
+          ? 'Integrated M.Sc. in Physics'
+          : course.title
   );
 
   return (
@@ -88,17 +88,7 @@ export default function CourseCard({ course }: CourseCardProps) {
           </p>
         )}
 
-        {/* Eligibility Details */}
-        {course.eligibility && (
-          <div className="mt-4 p-5 rounded-2xl bg-amber-50/50 border border-amber-200/70 text-slate-800 space-y-1.5">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-amber-900 font-mono">
-              Admission / Minimum Eligibility Criteria
-            </h3>
-            <p className="text-sm sm:text-base leading-relaxed text-slate-700">
-              {course.eligibility}
-            </p>
-          </div>
-        )}
+
       </div>
 
       {/* Curriculum Scheme & Regulation Table */}
@@ -107,9 +97,7 @@ export default function CourseCard({ course }: CourseCardProps) {
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-oxford border-b border-slate-100 pb-2">
             Curriculum Scheme &amp; Regulation
           </h2>
-          <p className="text-slate-600 text-base leading-relaxed font-sans pt-1">
-            Click on any row or action button to view/download the official syllabus curriculum PDF.
-          </p>
+
         </div>
 
         <div className="overflow-hidden border border-slate-200/90 rounded-2xl shadow-md bg-white">

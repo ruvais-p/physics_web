@@ -98,23 +98,13 @@ export default function PeoplePage() {
         <div className="space-y-20 pt-10">
           {/* 1. Head of Department Section */}
           {actualHodList.length > 0 && (
-            <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 space-y-8">
-              <div className="text-center">
-                <span className="text-xs font-mono font-bold uppercase tracking-widest text-cyan-dark bg-cyan-50 px-3.5 py-1.5 rounded-full border border-cyan-200/60 inline-block mb-3">
-                  Department Leadership
-                </span>
-                <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
-                  Head of Department
-                </h2>
-              </div>
-              <div className="flex justify-center font-sans">
-                <div className="w-full max-w-sm sm:max-w-md lg:max-w-lg">
-                  {actualHodList.map((person) => (
-                    <Link key={person.id} href={`/people/${person.id}`} className="block h-full">
-                      <FacultyCard person={person} />
-                    </Link>
-                  ))}
-                </div>
+            <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16">
+              <div className="font-sans">
+                {actualHodList.map((person) => (
+                  <Link key={person.id} href={`/people/${person.id}`} className="block">
+                    <FacultyCard person={person} horizontal />
+                  </Link>
+                ))}
               </div>
             </section>
           )}
@@ -122,9 +112,6 @@ export default function PeoplePage() {
           {/* 2. Faculty Members Section */}
           <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 space-y-8">
             <div className="text-center">
-              <span className="text-xs font-mono font-bold uppercase tracking-widest text-cyan-dark bg-cyan-50 px-3.5 py-1.5 rounded-full border border-cyan-200/60 inline-block mb-3">
-                Academic Staff
-              </span>
               <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
                 Faculty Members
               </h2>
@@ -141,9 +128,6 @@ export default function PeoplePage() {
           {/* 3. Research Scholars Section */}
           <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 space-y-8">
             <div className="text-center">
-              <span className="text-xs font-mono font-bold uppercase tracking-widest text-cyan-dark bg-cyan-50 px-3.5 py-1.5 rounded-full border border-cyan-200/60 inline-block mb-3">
-                Doctoral Candidates
-              </span>
               <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
                 Research Scholars
               </h2>
