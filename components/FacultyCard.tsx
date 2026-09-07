@@ -7,9 +7,10 @@ import { FacultyMember, Scholar } from '@/lib/data';
 interface FacultyCardProps {
   person: FacultyMember | Scholar;
   onClick?: () => void;
+  horizontal?: boolean;
 }
 
-export default function FacultyCard({ person, onClick }: FacultyCardProps) {
+export default function FacultyCard({ person, onClick, horizontal }: FacultyCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const isFaculty = person.type === 'faculty';
   const isClickable = Boolean(onClick || isFaculty);
@@ -24,6 +25,57 @@ export default function FacultyCard({ person, onClick }: FacultyCardProps) {
 
   const isLongText = fullText.length > 110;
 
+  if (horizontal) {
+    return (
+      <div 
+        onClick={onClick}
+        className={`group faculty-member-card transition-all duration-300 grid grid-cols-1 md:grid-cols-3 gap-10 sm:gap-12 lg:gap-14 items-start ${
+          isClickable ? 'cursor-pointer' : 'cursor-default'
+        }`}
+      >
+        {/* Left Image: Occupies 1 column, perfectly aligning with grid below */}
+        <div className="relative w-full aspect-square overflow-hidden rounded-3xl bg-slate-50 border border-slate-100/80 shadow-sm">
+          <Image
+            src={person.image}
+            alt={person.name}
+            fill
+            className="object-cover faculty-card-image"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          />
+        </div>
+
+        {/* Right Details Body: Occupies remaining 2 columns */}
+        <div className="md:col-span-2 flex flex-col items-start text-left font-sans pt-1">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight mb-3">
+            Head of Department
+          </h2>
+
+          <h3 className={`text-xl sm:text-2xl font-bold text-oxford transition-colors leading-snug ${
+            isClickable ? 'group-hover:text-cyan-dark' : ''
+          }`}>
+            {person.name}
+          </h3>
+
+          <p className="text-base sm:text-lg text-slate-600 mt-2 leading-relaxed">
+            {fullText}
+          </p>
+
+          {isFaculty && (person as FacultyMember).email && (
+            <p className="text-sm sm:text-base text-slate-500 mt-2">
+              Email: <span className="text-cyan-dark">{(person as FacultyMember).email}</span>
+            </p>
+          )}
+
+          {isFaculty && (
+            <span className="mt-4 inline-flex items-center text-sm font-semibold text-cyan-dark group-hover:text-cyan-accent transition-colors">
+              View Profile &rarr;
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div 
       onClick={onClick}
@@ -32,7 +84,7 @@ export default function FacultyCard({ person, onClick }: FacultyCardProps) {
       }`}
     >
       
-      {/* Top Image: Rectangular/Square aspect-ratio, rounded corners, grayscale by default, colored on hover */}
+      {/* Top Image: Rectangular/Square aspect-ratio, rounded corners */}
       <div className="relative w-full aspect-square overflow-hidden rounded-3xl bg-slate-50 border border-slate-100/80 shadow-sm">
         <Image
           src={person.image}

@@ -20,7 +20,7 @@ function renderMarkdown(md: string) {
     if (currentList) {
       if (currentList.type === 'ul') {
         elements.push(
-          <ul key={`ul_${elements.length}`} className="list-disc ml-6 space-y-2 my-3 text-base sm:text-lg text-slate-700 font-sans">
+          <ul key={`ul_${elements.length}`} className="list-disc ml-6 space-y-2.5 my-4 text-base sm:text-lg lg:text-[20px] leading-relaxed text-slate-700 font-sans">
             {currentList.items.map((item, idx) => (
               <li key={idx}>{parseInlineMarkdown(item)}</li>
             ))}
@@ -28,7 +28,7 @@ function renderMarkdown(md: string) {
         );
       } else {
         elements.push(
-          <ol key={`ol_${elements.length}`} className="list-decimal ml-6 space-y-2 my-3 text-base sm:text-lg text-slate-700 font-sans">
+          <ol key={`ol_${elements.length}`} className="list-decimal ml-6 space-y-2.5 my-4 text-base sm:text-lg lg:text-[20px] leading-relaxed text-slate-700 font-sans">
             {currentList.items.map((item, idx) => (
               <li key={idx}>{parseInlineMarkdown(item)}</li>
             ))}
@@ -72,7 +72,7 @@ function renderMarkdown(md: string) {
 
     if (trimmed.startsWith('# ')) {
       elements.push(
-        <h2 key={index} className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-oxford font-serif mt-6 mb-3">
+        <h2 key={index} className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-oxford font-serif mt-8 mb-4">
           {parseInlineMarkdown(trimmed.slice(2))}
         </h2>
       );
@@ -81,7 +81,7 @@ function renderMarkdown(md: string) {
 
     if (trimmed.startsWith('## ')) {
       elements.push(
-        <h3 key={index} className="text-xl sm:text-2xl font-bold text-slate-800 font-serif mt-5 mb-2">
+        <h3 key={index} className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-800 font-serif mt-6 mb-3">
           {parseInlineMarkdown(trimmed.slice(3))}
         </h3>
       );
@@ -90,7 +90,7 @@ function renderMarkdown(md: string) {
 
     if (trimmed.startsWith('### ')) {
       elements.push(
-        <h4 key={index} className="text-lg sm:text-xl font-bold text-slate-800 font-serif mt-4 mb-2">
+        <h4 key={index} className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-800 font-serif mt-5 mb-2">
           {parseInlineMarkdown(trimmed.slice(4))}
         </h4>
       );
@@ -99,7 +99,7 @@ function renderMarkdown(md: string) {
 
     if (trimmed.startsWith('> ')) {
       elements.push(
-        <blockquote key={index} className="border-l-4 border-cyan-accent pl-4 py-2 my-4 italic text-slate-700 font-sans text-base bg-slate-50/60 rounded-r-xl">
+        <blockquote key={index} className="border-l-4 border-cyan-accent pl-5 py-3 my-5 italic text-slate-700 font-sans text-base sm:text-lg lg:text-[20px] leading-relaxed bg-slate-50/70 rounded-r-xl">
           {parseInlineMarkdown(trimmed.slice(2))}
         </blockquote>
       );
@@ -107,14 +107,14 @@ function renderMarkdown(md: string) {
     }
 
     elements.push(
-      <p key={index} className="text-base sm:text-lg lg:text-xl text-slate-700 leading-relaxed font-sans font-normal text-justify my-4">
+      <p key={index} className="text-base sm:text-lg lg:text-[20px] text-slate-700 leading-relaxed lg:leading-[1.75] font-sans font-normal text-justify my-5">
         {parseInlineMarkdown(trimmed)}
       </p>
     );
   });
 
   flushList();
-  return <div className="space-y-2 font-sans">{elements}</div>;
+  return <div className="space-y-3 font-sans">{elements}</div>;
 }
 
 function parseInlineMarkdown(text: string): React.ReactNode {
@@ -215,6 +215,35 @@ export default function AboutPage() {
           ) : (
             <div className="space-y-6">
               {renderMarkdown(aboutData?.content || '')}
+
+              {/* Quick Navigation Redirect Buttons */}
+              <div className="pt-10 border-t border-slate-200 mt-10">
+
+                <div className="flex flex-wrap items-center justify-center gap-4 font-sans">
+                  <Link
+                    href="/research"
+                    className="inline-flex items-center justify-center px-8 py-3 rounded-2xl bg-oxford text-white hover:bg-cyan-900 font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
+                  >
+                    <span>Research</span>
+                  </Link>
+
+                  <Link
+                    href="/people"
+                    className="inline-flex items-center justify-center px-8 py-3 rounded-2xl bg-oxford text-white hover:bg-cyan-900 font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
+                  >
+                    <span>People</span>
+                  </Link>
+
+                  <Link
+                    href="/events"
+                    className="inline-flex items-center justify-center px-8 py-3 rounded-2xl bg-oxford text-white hover:bg-cyan-900 font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
+                  >
+                    <span>Events</span>
+                  </Link>
+                </div>
+
+
+              </div>
             </div>
           )}
         </div>

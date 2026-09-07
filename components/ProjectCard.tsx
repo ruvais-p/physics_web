@@ -18,23 +18,8 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project }: ProjectCardProps) {
   return (
-    <div className="bg-white rounded-[2rem] p-7 sm:p-8 border border-slate-100/90 shadow-[0_10px_30px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.06)] transition-all duration-300 flex flex-col justify-between space-y-5 group h-full">
+    <div className="bg-white rounded-[2rem] p-6 sm:p-7 border border-slate-100/90 shadow-[0_10px_30px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_45px_rgba(0,0,0,0.06)] transition-all duration-300 flex flex-col justify-between space-y-4 group h-full">
       <div className="space-y-4">
-        {/* Top Row: Dark Navy Agency/Year Pill & Golden Folder/Lab Icon */}
-        <div className="flex items-center justify-between">
-          <span className="bg-[#0B1E36] text-white text-xs font-extrabold px-3.5 py-1 rounded-md tracking-wider font-sans">
-            {project.agency || 'DST-SERB'}
-          </span>
-          <FolderGit2 className="w-5 h-5 text-[#FDE68A] stroke-[2]" />
-        </div>
-
-        {/* Category Pill */}
-        <div>
-          <span className="inline-block bg-[#F0F4F8] text-slate-600 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider px-3.5 py-1.5 rounded-lg border border-slate-200/50 max-w-full truncate font-sans">
-            {project.category || 'RESEARCH PROJECT'}
-          </span>
-        </div>
-
         {/* Project Image */}
         {project.image && (
           <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 shadow-inner">
