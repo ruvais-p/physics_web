@@ -86,7 +86,7 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const isWhiteNav = !isHome || isScrolled;
+  const isWhiteNav = isScrolled || mobileMenuOpen;
 
   return (
     <header className="sticky top-0 z-50 w-full transition-all duration-300">
@@ -99,8 +99,8 @@ export default function Navbar() {
       >
         <div className="max-w-[1536px] mx-auto flex items-center justify-between">
 
-          {/* Left: Brand Logos Together (DOP + CUSAT) */}
-          <div className="flex items-center space-x-3 sm:space-x-4 shrink-0">
+          {/* Left: Brand Logo (Department of Physics) */}
+          <div className="flex items-center shrink-0">
             <Link id="nav-brand-link" href="/" className="flex items-center group py-1" aria-label="Department of Physics Home">
               <div className="h-10 sm:h-12 lg:h-14 w-auto text-cyan-accent group-hover:scale-105 transition-transform duration-300 drop-shadow-sm flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -12 255 184" className="h-full w-auto fill-current text-cyan-accent overflow-visible">
@@ -115,29 +115,10 @@ export default function Navbar() {
                 </svg>
               </div>
             </Link>
-
-            <div className={`h-7 sm:h-8 w-px transition-colors ${isWhiteNav ? 'bg-slate-200' : 'bg-white/30'}`} />
-
-            {/* CUSAT University Red Logo */}
-            <a
-              href="https://cusat.ac.in"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center group shrink-0"
-              aria-label="Cochin University of Science and Technology"
-            >
-              <Image
-                src="/CUSAT3.png"
-                alt="CUSAT Logo"
-                width={56}
-                height={56}
-                className="h-9 sm:h-11 lg:h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-sm"
-              />
-            </a>
           </div>
 
-          {/* Right: Desktop Navigation Links & Mobile Menu Toggle */}
-          <div className="flex items-center gap-6 xl:gap-8">
+          {/* Right: Desktop Navigation Links, CUSAT Logo & Mobile Menu Toggle */}
+          <div className="flex items-center gap-5 sm:gap-6 xl:gap-7">
             {/* Desktop Navigation Links */}
             <nav id="desktop-navbar" className="hidden lg:flex items-center space-x-6 xl:space-x-8">
               {NAV_ITEMS.map((item) => {
@@ -189,6 +170,26 @@ export default function Navbar() {
                 );
               })}
             </nav>
+
+            {/* Divider between Nav Links and CUSAT Logo */}
+            <div className={`hidden lg:block h-7 sm:h-8 w-px transition-colors ${isWhiteNav ? 'bg-slate-200' : 'bg-white/30'}`} />
+
+            {/* CUSAT University Red Logo on Right Side */}
+            <a
+              href="https://cusat.ac.in"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center group shrink-0"
+              aria-label="Cochin University of Science and Technology"
+            >
+              <Image
+                src="/CUSAT3.png"
+                alt="CUSAT Logo"
+                width={56}
+                height={56}
+                className="h-9 sm:h-11 lg:h-12 w-auto object-contain group-hover:scale-105 transition-transform duration-300 drop-shadow-sm"
+              />
+            </a>
 
             {/* Mobile Menu Toggle Button */}
             <div className="flex lg:hidden items-center">

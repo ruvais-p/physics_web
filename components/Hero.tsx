@@ -249,7 +249,7 @@ export default function Hero({
       <div className={`relative z-20 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-40 sm:pt-48 lg:pt-56 pb-6 sm:pb-8 lg:pb-10 flex flex-col justify-end min-h-[630px] sm:min-h-[720px] lg:min-h-[810px] xl:min-h-[850px] ${
         align === 'center' ? 'items-center text-center' : 'items-start text-left'
       }`}>
-        <div className={`max-w-4xl ${
+        <div className={`max-w-6xl xl:max-w-7xl w-full ${
           align === 'center' ? 'text-center flex flex-col items-center justify-center mx-auto' : 'text-left'
         }`}>
 
@@ -288,18 +288,18 @@ export default function Hero({
 
           {/* Headline */}
           <h1
-            className={`font-serif text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[1.08] drop-shadow-2xl w-full ${
+            className={`font-serif text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[1.08] drop-shadow-2xl w-full ${
               align === 'center' ? 'text-center flex flex-col items-center justify-center' : 'text-left'
             }`}
             style={{ color: currentSlide.titleColor || '#ffffff' }}
           >
             {currentSlide.title.map((line, idx) => (
-              <span key={idx} className={`block w-full ${align === 'center' ? 'text-center flex justify-center' : ''}`}>
+              <span key={idx} className={`block w-full sm:whitespace-nowrap ${align === 'center' ? 'text-center flex justify-center' : ''}`}>
                 <TextReveal
                   text={line}
                   animKey={`${index}-${idx}`}
                   delay={idx * 0.15}
-                  className={align === 'center' ? 'justify-center text-center' : ''}
+                  className={`sm:flex-nowrap sm:whitespace-nowrap ${align === 'center' ? 'justify-center text-center' : ''}`}
                 />
               </span>
             ))}
