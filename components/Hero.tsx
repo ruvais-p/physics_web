@@ -62,7 +62,7 @@ export default function Hero({
   secondaryCtaText,
   secondaryCtaLink,
   bgImage,
-  slides = DEFAULT_SLIDES,
+  slides,
   align = 'left',
 }: HeroProps) {
   const [dynamicSlides, setDynamicSlides] = useState<Slide[] | null>(null);
@@ -186,13 +186,13 @@ export default function Hero({
       <div className={`relative z-20 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-40 sm:pt-48 lg:pt-56 pb-6 sm:pb-8 lg:pb-10 flex flex-col justify-end min-h-[630px] sm:min-h-[720px] lg:min-h-[810px] xl:min-h-[850px] ${
         align === 'center' ? 'items-center text-center' : 'items-start text-left'
       }`}>
-        <div className={`max-w-4xl space-y-5 ${
+        <div className={`max-w-4xl ${
           align === 'center' ? 'text-center flex flex-col items-center justify-center mx-auto' : 'text-left'
         }`}>
 
           {/* Optional Badge / Breadcrumbs (Clean Interactive Links) */}
           {currentSlide.badge && (
-            <div className={`text-xs sm:text-sm font-bold tracking-widest text-cyan-accent uppercase drop-shadow-md flex flex-wrap items-center gap-2 ${
+            <div className={`text-xs sm:text-sm font-bold tracking-widest text-cyan-accent uppercase drop-shadow-md flex flex-wrap items-center gap-2 mb-2 ${
               align === 'center' ? 'justify-center' : 'justify-start'
             }`}>
               {currentSlide.badge.includes('>') ? (
@@ -228,7 +228,7 @@ export default function Hero({
             className={`font-serif text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[1.08] drop-shadow-2xl w-full ${
               align === 'center' ? 'text-center flex flex-col items-center justify-center' : 'text-left'
             }`}
-            style={{ color: currentSlide.titleColor || '#0284c7' }}
+            style={{ color: currentSlide.titleColor || '#ffffff' }}
           >
             {currentSlide.title.map((line, idx) => (
               <span key={idx} className={`block w-full ${align === 'center' ? 'text-center flex justify-center' : ''}`}>
@@ -244,7 +244,7 @@ export default function Hero({
 
           {/* Subtitle */}
           {currentSlide.subtitle && (
-            <p className={`font-sans text-base sm:text-xl text-slate-200 leading-relaxed max-w-3xl font-normal drop-shadow-md w-full ${
+            <p className={`font-sans text-base sm:text-xl text-slate-200 leading-snug max-w-3xl font-normal drop-shadow-md w-full mt-1 sm:mt-1.5 ${
               align === 'center' ? 'text-center mx-auto' : 'text-left'
             }`}>
               {currentSlide.subtitle}
