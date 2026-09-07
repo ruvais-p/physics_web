@@ -15,7 +15,7 @@ export async function GET() {
       orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     });
 
-    const formattedFaculty = facultyList.map((f) => {
+    const formattedFaculty = facultyList.map((f: any) => {
       const profileJson = (f.profile?.profiles as Record<string, any>) || {};
 
       // Parse social and public profile links
@@ -47,7 +47,7 @@ export async function GET() {
         socialLinks,
         customProfiles,
         type: 'faculty' as const,
-        students: f.students.map((s) => ({
+        students: f.students.map((s: any) => ({
           id: s.uid,
           name: s.name,
           description: s.description,

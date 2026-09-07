@@ -58,7 +58,7 @@ export async function GET(
         orderBy: { createdAt: 'desc' },
       });
 
-      const ownedProjectsMapped = faculty.projects.map((p) => {
+      const ownedProjectsMapped = faculty.projects.map((p: any) => {
         const startYear = p.startDate ? new Date(p.startDate).getFullYear() : null;
         const endYear = p.endDate ? new Date(p.endDate).getFullYear() : null;
         let duration = '';
@@ -89,7 +89,7 @@ export async function GET(
         };
       });
 
-      const collaboratedProjectsMapped = collaboratedProjects.map((p) => {
+      const collaboratedProjectsMapped = collaboratedProjects.map((p: any) => {
         const startYear = p.startDate ? new Date(p.startDate).getFullYear() : null;
         const endYear = p.endDate ? new Date(p.endDate).getFullYear() : null;
         let duration = '';
@@ -135,7 +135,7 @@ export async function GET(
         socialLinks,
         customProfiles,
         type: 'faculty' as const,
-        students: faculty.students.map((s) => ({
+        students: faculty.students.map((s: any) => ({
           id: s.uid,
           name: s.name,
           description: s.description,
@@ -148,7 +148,7 @@ export async function GET(
           type: 'scholar' as const,
         })),
         projects: [...ownedProjectsMapped, ...collaboratedProjectsMapped],
-        publications: faculty.publications.map((pub) => ({
+        publications: faculty.publications.map((pub: any) => ({
           id: pub.id,
           title: pub.title,
           journal: pub.journal,

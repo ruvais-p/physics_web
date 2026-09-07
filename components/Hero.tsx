@@ -50,6 +50,7 @@ interface HeroProps {
   secondaryCtaLink?: string;
   bgImage?: string;
   slides?: Slide[];
+  align?: 'left' | 'center';
 }
 
 export default function Hero({
@@ -61,7 +62,8 @@ export default function Hero({
   secondaryCtaText,
   secondaryCtaLink,
   bgImage,
-  slides,
+  slides = DEFAULT_SLIDES,
+  align = 'left',
 }: HeroProps) {
   const [dynamicSlides, setDynamicSlides] = useState<Slide[] | null>(null);
 
@@ -180,42 +182,78 @@ export default function Hero({
       {/* Top Floating Gradient for Header legibility */}
       <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-black/80 via-black/40 to-transparent z-10 pointer-events-none" />
 
-
-
-      {/* Main Slide Content Layer (Anchored to Bottom-Left) */}
-      <div className="relative z-20 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-40 sm:pt-48 lg:pt-56 pb-6 sm:pb-8 lg:pb-10 flex flex-col justify-end text-left items-start min-h-[630px] sm:min-h-[720px] lg:min-h-[810px] xl:min-h-[850px]">
-        <div className="max-w-3xl text-left">
+      {/* Main Slide Content Layer */}
+      <div className={`relative z-20 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-40 sm:pt-48 lg:pt-56 pb-6 sm:pb-8 lg:pb-10 flex flex-col justify-end min-h-[630px] sm:min-h-[720px] lg:min-h-[810px] xl:min-h-[850px] ${
+        align === 'center' ? 'items-center text-center' : 'items-start text-left'
+      }`}>
+        <div className={`max-w-4xl space-y-5 ${
+          align === 'center' ? 'text-center flex flex-col items-center justify-center mx-auto' : 'text-left'
+        }`}>
 
           {/* Optional Badge / Breadcrumbs (Clean Interactive Links) */}
           {currentSlide.badge && (
-            <div className="text-xs sm:text-sm font-bold tracking-widest text-cyan-accent uppercase drop-shadow-md mb-2">
-              <span>{currentSlide.badge}</span>
+            <div className={`text-xs sm:text-sm font-bold tracking-widest text-cyan-accent uppercase drop-shadow-md flex flex-wrap items-center gap-2 ${
+              align === 'center' ? 'justify-center' : 'justify-start'
+            }`}>
+              {currentSlide.badge.includes('>') ? (
+                currentSlide.badge.split('>').map((part, pIdx, arr) => {
+                  const label = part.trim();
+                  const isLast = pIdx === arr.length - 1;
+                  const href = getBreadcrumbHref(label);
+
+                  return (
+                    <span key={pIdx} className="inline-flex items-center gap-2">
+                      {isLast ? (
+                        <span className="text-white font-extrabold">{label}</span>
+                      ) : (
+                        <Link
+                          href={href}
+                          className="hover:text-white transition-colors cursor-pointer hover:underline"
+                        >
+                          {label}
+                        </Link>
+                      )}
+                      {!isLast && <span className="text-cyan-accent/70">&gt;</span>}
+                    </span>
+                  );
+                })
+              ) : (
+                <span>{currentSlide.badge}</span>
+              )}
             </div>
           )}
 
           {/* Headline */}
           <h1
-            className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight leading-[1.08] text-white drop-shadow-2xl"
-            style={{ color: currentSlide.titleColor || '#ffffff' }}
+            className={`font-serif text-3xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[1.08] drop-shadow-2xl w-full ${
+              align === 'center' ? 'text-center flex flex-col items-center justify-center' : 'text-left'
+            }`}
+            style={{ color: currentSlide.titleColor || '#0284c7' }}
           >
             {currentSlide.title.map((line, idx) => (
-              <span key={idx} className="block">
-                <TextReveal text={line} animKey={`${index}-${idx}`} delay={idx * 0.15} />
+              <span key={idx} className={`block w-full ${align === 'center' ? 'text-center flex justify-center' : ''}`}>
+                <TextReveal
+                  text={line}
+                  animKey={`${index}-${idx}`}
+                  delay={idx * 0.15}
+                  className={align === 'center' ? 'justify-center text-center' : ''}
+                />
               </span>
             ))}
           </h1>
 
           {/* Subtitle */}
           {currentSlide.subtitle && (
-            <p className="mt-1 sm:mt-1.5 text-base sm:text-lg text-slate-200 leading-snug max-w-2xl font-normal drop-shadow-md">
+            <p className={`font-sans text-base sm:text-xl text-slate-200 leading-relaxed max-w-3xl font-normal drop-shadow-md w-full ${
+              align === 'center' ? 'text-center mx-auto' : 'text-left'
+            }`}>
               {currentSlide.subtitle}
             </p>
           )}
 
-
-
         </div>
       </div>
+
 
       {/* Bottom Right Slide Controls (Prev/Next Arrows, Dots, Play/Pause Toggle) */}
       {total > 1 && (

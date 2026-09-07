@@ -3,6 +3,7 @@
 import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import Hero from '@/components/Hero';
 import { 
   Calendar, 
   Clock, 
@@ -40,6 +41,173 @@ interface EventItem {
   applyLink?: string;
   isFeatured?: boolean;
   galleryImages?: { id: number; imagePath: string; sortOrder: number }[];
+}
+
+// Markdown Parser Helper Functions
+function renderMarkdown(md: string) {
+  if (!md || !md.trim()) {
+    return <p className="text-base text-slate-500 italic">No event description available yet.</p>;
+  }
+
+  const lines = md.split('\n');
+  const elements: React.ReactNode[] = [];
+  let currentList: { type: 'ul' | 'ol'; items: string[] } | null = null;
+
+  const flushList = () => {
+    if (currentList) {
+      if (currentList.type === 'ul') {
+        elements.push(
+          <ul key={`ul_${elements.length}`} className="list-disc ml-6 space-y-2.5 my-4 text-base sm:text-lg lg:text-[20px] leading-relaxed text-slate-700 font-sans">
+            {currentList.items.map((item, idx) => (
+              <li key={idx}>{parseInlineMarkdown(item)}</li>
+            ))}
+          </ul>
+        );
+      } else {
+        elements.push(
+          <ol key={`ol_${elements.length}`} className="list-decimal ml-6 space-y-2.5 my-4 text-base sm:text-lg lg:text-[20px] leading-relaxed text-slate-700 font-sans">
+            {currentList.items.map((item, idx) => (
+              <li key={idx}>{parseInlineMarkdown(item)}</li>
+            ))}
+          </ol>
+        );
+      }
+      currentList = null;
+    }
+  };
+
+  lines.forEach((line, index) => {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      const itemText = trimmed.slice(2);
+      if (!currentList || currentList.type !== 'ul') {
+        flushList();
+        currentList = { type: 'ul', items: [itemText] };
+      } else {
+        currentList.items.push(itemText);
+      }
+      return;
+    }
+
+    if (/^\d+\.\s/.test(trimmed)) {
+      const itemText = trimmed.replace(/^\d+\.\s/, '');
+      if (!currentList || currentList.type !== 'ol') {
+        flushList();
+        currentList = { type: 'ol', items: [itemText] };
+      } else {
+        currentList.items.push(itemText);
+      }
+      return;
+    }
+
+    flushList();
+
+    if (!trimmed) {
+      return;
+    }
+
+    if (trimmed.startsWith('# ')) {
+      elements.push(
+        <h2 key={index} className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-oxford font-serif mt-8 mb-4">
+          {parseInlineMarkdown(trimmed.slice(2))}
+        </h2>
+      );
+      return;
+    }
+
+    if (trimmed.startsWith('## ')) {
+      elements.push(
+        <h3 key={index} className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-800 font-serif mt-6 mb-3">
+          {parseInlineMarkdown(trimmed.slice(3))}
+        </h3>
+      );
+      return;
+    }
+
+    if (trimmed.startsWith('### ')) {
+      elements.push(
+        <h4 key={index} className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-800 font-serif mt-5 mb-2">
+          {parseInlineMarkdown(trimmed.slice(4))}
+        </h4>
+      );
+      return;
+    }
+
+    if (trimmed.startsWith('> ')) {
+      elements.push(
+        <blockquote key={index} className="border-l-4 border-cyan-accent pl-5 py-3 my-5 italic text-slate-700 font-sans text-base sm:text-lg lg:text-[20px] leading-relaxed bg-slate-50/70 rounded-r-xl">
+          {parseInlineMarkdown(trimmed.slice(2))}
+        </blockquote>
+      );
+      return;
+    }
+
+    elements.push(
+      <p key={index} className="text-base sm:text-lg lg:text-[20px] text-slate-700 leading-relaxed lg:leading-[1.75] font-sans font-normal my-4">
+        {parseInlineMarkdown(trimmed)}
+      </p>
+    );
+  });
+
+  flushList();
+  return <div className="space-y-3 font-sans">{elements}</div>;
+}
+
+function parseInlineMarkdown(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let keyIdx = 0;
+
+  while (remaining) {
+    const linkMatch = remaining.match(/^([\s\S]*?)\[([^\]]+)\]\(([^)]+)\)([\s\S]*)$/);
+    if (linkMatch) {
+      const [, before, label, url, after] = linkMatch;
+      if (before) parts.push(parseFormatting(before, keyIdx++));
+      parts.push(
+        <a key={keyIdx++} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-accent hover:underline font-semibold inline-flex items-center gap-0.5">
+          <span>{label}</span>
+          <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+        </a>
+      );
+      remaining = after;
+      continue;
+    }
+
+    parts.push(parseFormatting(remaining, keyIdx++));
+    break;
+  }
+
+  return parts;
+}
+
+function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
+  const elements: React.ReactNode[] = [];
+  const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      elements.push(text.substring(lastIndex, match.index));
+    }
+
+    if (match[1]) {
+      elements.push(<strong key={`${keyPrefix}_b_${match.index}`} className="font-bold text-slate-900">{match[2]}</strong>);
+    } else if (match[3]) {
+      elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-800">{match[4]}</em>);
+    } else if (match[5]) {
+      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-100 text-oxford px-1.5 py-0.5 rounded font-mono text-sm">{match[6]}</code>);
+    }
+
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    elements.push(text.substring(lastIndex));
+  }
+
+  return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
 }
 
 // Mock Events dataset matching app/events/page.tsx
@@ -271,65 +439,58 @@ For further information regarding schedule or venue arrangements, please contact
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-20">
 
-      {/* Hero Banner Section (Matches Homepage Hero Height) */}
-      <section className="-mt-[140px] sm:-mt-[165px] lg:-mt-[180px] relative w-full bg-slate-900 text-white overflow-hidden min-h-[620px] sm:min-h-[720px] lg:min-h-[780px] flex items-center justify-center">
-        {/* Background Image with Top Blue Gradient Overlay */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src={event.image}
-            alt={event.title}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#002147]/80 via-[#002147]/30 to-transparent" />
-        </div>
+      {/* Hero Header matching main About page design with center-aligned text */}
+      <Hero
+        title={event.title}
+        badge="HOME > EVENTS"
+        subtitle=""
+        bgImage={event.image || '/eventssss.jpg'}
+        align="center"
+      />
 
-        {/* Hero Content (Centered Text) */}
-        <div className="relative z-10 w-full max-w-5xl mx-auto px-6 sm:px-12 lg:px-16 text-center space-y-4 pt-16 sm:pt-20 lg:pt-24">
-          {/* Breadcrumbs Above Title - Enlarged */}
-          <div className="flex items-center justify-center space-x-3 text-xl sm:text-2xl lg:text-3xl font-sans font-bold text-slate-100 drop-shadow-md">
-            <Link href="/" className="hover:text-cyan-accent transition-colors">Home</Link>
-            <span>&gt;</span>
-            <Link href="/events" className="hover:text-cyan-accent transition-colors">Events</Link>
-            <span>&gt;</span>
-            <span className="text-white font-extrabold">Event Details</span>
+      {/* Main Content Area */}
+      <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 mt-10 sm:mt-12 space-y-10">
+        
+        {/* 1. Date, Time, Place (Displayed Under the Hero Image) */}
+        <div className="flex flex-wrap items-center justify-start gap-y-4 gap-x-8 sm:gap-x-12 pb-8 border-b border-slate-200 text-slate-700 font-sans">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-oxford/10 text-oxford flex items-center justify-center shrink-0">
+              <Calendar className="w-5 h-5 text-oxford" />
+            </div>
+            <div>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Date</span>
+              <span className="text-base sm:text-lg font-bold text-oxford">{event.date}</span>
+            </div>
           </div>
 
-          <h1 className="font-serif text-5xl sm:text-7xl lg:text-8xl font-black text-white leading-tight drop-shadow-lg">
-            {event.title}
-          </h1>
-
-          <p className="text-slate-100 font-sans text-lg sm:text-xl lg:text-2xl max-w-3xl mx-auto leading-relaxed drop-shadow-sm font-medium">
-            {event.desc}
-          </p>
-
-          {/* Modern Sleek Metadata Line (No Pill Buttons) */}
-          <div className="pt-4 flex flex-wrap items-center justify-center gap-y-3 gap-x-8 text-sm sm:text-base font-sans text-white border-t border-white/20 max-w-3xl mx-auto">
-            <div className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-cyan-accent" />
-              <span className="font-semibold">{event.date}</span>
-            </div>
-            <span className="hidden sm:inline text-white/40">•</span>
-            <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-cyan-accent/10 text-cyan-accent flex items-center justify-center shrink-0">
               <Clock className="w-5 h-5 text-cyan-accent" />
-              <span className="font-semibold">{event.time}</span>
             </div>
-            <span className="hidden sm:inline text-white/40">•</span>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-cyan-accent" />
-              <span className="font-semibold">{event.venue}</span>
+            <div>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Time</span>
+              <span className="text-base sm:text-lg font-bold text-oxford">{event.time}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-xl bg-oxford/10 text-oxford flex items-center justify-center shrink-0">
+              <MapPin className="w-5 h-5 text-oxford" />
+            </div>
+            <div>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Venue / Place</span>
+              <span className="text-base sm:text-lg font-bold text-oxford">{event.venue}</span>
             </div>
           </div>
         </div>
-      </section>
 
-      {/* Main Content Area (Clean Frameless Design without card containers) */}
-      <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 mt-12 sm:mt-16">
+        {/* 2. Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 sm:gap-16">
           
-          {/* Left Column (2/3): Details, Gallery & Agenda */}
+          {/* Left Column (2/3): Description, Gallery & Agenda */}
           <div className="lg:col-span-2 space-y-12">
             
-            {/* About the Event */}
+            {/* Description of the Event (Structured Markdown Content) */}
             <div className="space-y-6 pb-12 border-b border-slate-200">
               <div className="flex items-center gap-3">
                 <FileText className="w-6 h-6 text-oxford" />
@@ -338,12 +499,11 @@ For further information regarding schedule or venue arrangements, please contact
                 </h2>
               </div>
 
-              <div className="prose prose-slate max-w-none text-slate-700 leading-relaxed space-y-5 text-base sm:text-lg font-sans">
-                {(event.fullDetails || event.desc).split('\n\n').map((paragraph, idx) => (
-                  <p key={idx}>{paragraph}</p>
-                ))}
+              <div className="text-slate-700 leading-relaxed font-sans">
+                {renderMarkdown(event.fullDetails || event.desc || '')}
               </div>
             </div>
+
 
             {/* Event Photo Gallery Section */}
             {event.galleryImages && event.galleryImages.length > 0 && (
@@ -412,6 +572,27 @@ For further information regarding schedule or venue arrangements, please contact
           {/* Right Column (1/3 Sidebar): Speaker Info & Department Contact */}
           <div className="space-y-10 lg:pl-4">
 
+            {/* Event Registration / Apply Link (Placed Above Resource Person) */}
+            {event.applyLink && (
+              <div className="space-y-3 pb-8 border-b border-slate-200 font-sans">
+                <div className="text-xs font-bold text-cyan-accent uppercase tracking-widest">
+                  Event Registration
+                </div>
+                <a
+                  href={event.applyLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-oxford hover:bg-cyan-900 text-white font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all duration-300 group cursor-pointer"
+                >
+                  <span>Register for Event</span>
+                  <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </a>
+                <p className="text-xs text-slate-500 text-center">
+                  Registration open for students, scholars, and faculty.
+                </p>
+              </div>
+            )}
+
             {/* Resource Person / Speaker */}
             {event.speaker && (
               <div className="space-y-4 pb-8 border-b border-slate-200">
@@ -436,6 +617,7 @@ For further information regarding schedule or venue arrangements, please contact
                 </div>
               </div>
             )}
+
 
             {/* Department Venue & Contact */}
             <div className="space-y-4 font-sans">
