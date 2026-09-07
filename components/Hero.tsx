@@ -38,6 +38,69 @@ export type Slide = {
   ctaLink?: string;
 };
 
+const DEFAULT_SLIDES: Slide[] = [
+  {
+    id: 'rnd',
+    tab: 'R & D',
+    badge: 'DEPARTMENT OF PHYSICS • CUSAT',
+    title: ['Quantum Frontiers &', 'Nanomaterials'],
+    subtitle: 'Pioneering research in magnetic nanocomposites, quantum transport, and 2D topological insulator heterostructures.',
+    image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=1920&auto=format&fit=crop',
+    overlay: 'rgba(0, 0, 0, 0.55)',
+    titleColor: '#0284c7',
+    ctaText: 'Explore Laboratories',
+    ctaLink: '/research',
+  },
+  {
+    id: 'academics',
+    tab: 'Academics',
+    badge: 'DEPARTMENT OF PHYSICS • CUSAT',
+    title: ['Advanced Degree', 'Programs'],
+    subtitle: 'Choice-Based Credit System (CBCS) offering M.Sc., Ph.D., and 5-Year Integrated M.Sc. degree programs.',
+    image: '/faculty.png',
+    overlay: 'rgba(0, 0, 0, 0.55)',
+    titleColor: '#0284c7',
+    ctaText: 'View Degree Programs',
+    ctaLink: '/courses',
+  },
+  {
+    id: 'instrumentation',
+    tab: 'Instrumentation',
+    badge: 'DEPARTMENT OF PHYSICS • CUSAT',
+    title: ['World-Class', 'Central Facilities'],
+    subtitle: 'Equipped with FE-SEM, XRD Diffractometer, Confocal Raman Spectrometer, and VSM Magnetometers.',
+    image: '/phy_dept.png',
+    overlay: 'rgba(0, 0, 0, 0.55)',
+    titleColor: '#0284c7',
+    ctaText: 'Book Central Facilities',
+    ctaLink: '/facilities',
+  },
+  {
+    id: 'photonics',
+    tab: 'Photonics & Lasers',
+    badge: 'DEPARTMENT OF PHYSICS • CUSAT',
+    title: ['Optoelectronics &', 'Nonlinear Optics'],
+    subtitle: 'Laser-matter interactions, Z-scan optical limiting, and rare-earth doped photothermal sensors.',
+    image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1920&auto=format&fit=crop',
+    overlay: 'rgba(0, 0, 0, 0.55)',
+    titleColor: '#0284c7',
+    ctaText: 'Read Publications',
+    ctaLink: '/journals',
+  },
+  {
+    id: 'cosmology',
+    tab: 'Cosmology',
+    badge: 'DEPARTMENT OF PHYSICS • CUSAT',
+    title: ['Theoretical Physics &', 'Cosmology'],
+    subtitle: 'Modeling dark energy dynamics, entropic gravity, black hole thermodynamics, and FLRW expanding spacetimes.',
+    image: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=1920&auto=format&fit=crop',
+    overlay: 'rgba(0, 0, 0, 0.55)',
+    titleColor: '#0284c7',
+    ctaText: 'Meet Our Faculty',
+    ctaLink: '/people',
+  },
+];
+
 const SLIDE_DURATION_MS = 6000;
 
 interface HeroProps {
