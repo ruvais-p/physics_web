@@ -16,6 +16,7 @@ function getBreadcrumbHref(segment: string): string {
   if (clean === 'research' || clean === 'research & innovation') return '/research';
   if (clean === 'facilities' || clean === 'central facilities' || clean === 'instrumentation') return '/facilities';
   if (clean === 'journals' || clean === 'publications') return '/journals';
+  if (clean === 'projects' || clean === 'sponsored projects' || clean === 'grants') return '/projects';
   if (clean === 'events' || clean === 'news & events') return '/events';
   if (clean === 'news') return '/news';
   if (clean === 'alumni') return '/alumni';

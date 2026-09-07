@@ -3,9 +3,8 @@ import Hero from '@/components/Hero';
 import NotificationsTicker from '@/components/NotificationsTicker';
 import HomeEvents from '@/components/HomeEvents';
 import JournalCard from '@/components/JournalCard';
-import ProjectCard from '@/components/ProjectCard';
 import { RESEARCH_LABS, PUBLICATIONS } from '@/lib/data';
-import { ChevronRight, ExternalLink, BookOpen } from 'lucide-react';
+import { ChevronRight, ArrowRight } from 'lucide-react';
 
 function LabCard({ lab, className = "h-64" }: { lab: typeof RESEARCH_LABS[0]; className?: string }) {
   const isLogo = lab.image === '/dop-logo.svg';
@@ -172,85 +171,147 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Spotlight Projects Section */}
-      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-low/40 border-y border-surface-mid/40">
-        <div className="max-w-[1536px] mx-auto space-y-10">
+      {/* Spotlight Projects Section - Redesigned with Rich Texture & Call-to-Action */}
+      <section className="relative w-full overflow-hidden px-6 sm:px-12 lg:px-16 py-20 sm:py-28 bg-[#001738] text-white">
+        {/* Subtle Textured Grid Background Overlay */}
+        <div className="absolute inset-0 opacity-[0.035] pointer-events-none">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+            <defs>
+              <pattern id="projects-dot-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+                <circle cx="2" cy="2" r="1" fill="#ffffff" />
+              </pattern>
+              <pattern id="projects-grid-lines" width="64" height="64" patternUnits="userSpaceOnUse">
+                <path d="M 64 0 L 0 0 0 64" fill="none" stroke="#ffffff" strokeWidth="0.5" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#projects-dot-grid)" />
+            <rect width="100%" height="100%" fill="url(#projects-grid-lines)" />
+          </svg>
+        </div>
 
-          {/* Section Title */}
-          <div className="text-center space-y-3 border-b border-slate-200 pb-6">
-            <span className="text-xs font-extrabold text-cyan-accent uppercase tracking-widest block font-sans">
-              Funded Research Initiatives
-            </span>
-            <h2 className="font-serif text-4xl sm:text-5xl font-bold text-oxford text-center">
-              Spotlight Projects
+        <div className="relative z-10 max-w-6xl mx-auto text-center space-y-10 sm:space-y-12">
+          {/* Section Headings */}
+          <div className="space-y-4 max-w-3xl mx-auto">
+            <h2 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
+              Driving Breakthroughs with Prestigious National Grants
             </h2>
+
+            <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-sans font-normal max-w-2xl mx-auto">
+              Our faculty lead cutting-edge research funded by leading national and international agencies—tackling frontier challenges in quantum technology, nanostructured energy materials, photonics, and cosmology.
+            </p>
           </div>
 
-          {/* Project Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto">
-            {[
-              {
-                id: 'p1',
-                title: 'Development of Quantum Cryptography & Key Distribution for Secure Communication',
-                desc: 'This project focuses on building quantum key distribution links over existing optical fiber channels, achieving absolute information-theoretic security using entangled photons.',
-                image: 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=600&q=80',
-                agency: 'DST-SERB',
-                category: 'QUANTUM CRYPTOGRAPHY',
-                investigator: 'Dr. Ramesh Babu T.',
-                funding: '₹45 Lakhs',
-              },
-              {
-                id: 'p2',
-                title: 'Polyaniline-Graphene Hybrid Nanostructures for Next-Generation Supercapacitors',
-                desc: 'An interdisciplinary project aimed at fabricating lightweight, flexible supercapacitors with high energy density and cycle life for micro-mobility energy storage.',
-                image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&q=80',
-                agency: 'KSCSTE',
-                category: 'ENERGY MATERIALS',
-                investigator: 'Dr. S. Jayalekshmi',
-                funding: '₹32 Lakhs',
-              },
-              {
-                id: 'p3',
-                title: 'Holographic Dark Energy & Gravitational Wave Signature Modeling',
-                desc: 'Developing large-scale cosmological simulation pipelines to trace thermodynamic constraints on dark energy and predict signature anomalies in future gravitational wave detectors.',
-                image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=600&q=80',
-                agency: 'DST-INSPIRE',
-                category: 'COSMOLOGY & GRAVITY',
-                investigator: 'Dr. Titus K. Mathew',
-                funding: '₹28 Lakhs',
-              },
-            ].map((proj) => (
-              <ProjectCard key={proj.id} project={proj} />
-            ))}
+          {/* Research Metrics / Highlights Strip */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-4xl mx-auto">
+            <div className="p-5 sm:p-6 rounded-2xl bg-white/[0.04] border border-white/10 text-center hover:bg-white/[0.07] hover:border-white/20 transition-all duration-300 group">
+              <div className="font-serif text-2xl sm:text-4xl font-extrabold text-cyan-400 group-hover:scale-105 transition-transform">
+                ₹15+ Cr
+              </div>
+              <div className="text-xs sm:text-sm text-slate-300 mt-1 font-medium">Extramural Funding</div>
+            </div>
+
+            <div className="p-5 sm:p-6 rounded-2xl bg-white/[0.04] border border-white/10 text-center hover:bg-white/[0.07] hover:border-white/20 transition-all duration-300 group">
+              <div className="font-serif text-2xl sm:text-4xl font-extrabold text-cyan-400 group-hover:scale-105 transition-transform">
+                50+
+              </div>
+              <div className="text-xs sm:text-sm text-slate-300 mt-1 font-medium">Sponsored Projects</div>
+            </div>
+
+            <div className="p-5 sm:p-6 rounded-2xl bg-white/[0.04] border border-white/10 text-center hover:bg-white/[0.07] hover:border-white/20 transition-all duration-300 group">
+              <div className="font-serif text-2xl sm:text-4xl font-extrabold text-cyan-400 group-hover:scale-105 transition-transform">
+                8+
+              </div>
+              <div className="text-xs sm:text-sm text-slate-300 mt-1 font-medium">Funding Agencies</div>
+            </div>
+
+            <div className="p-5 sm:p-6 rounded-2xl bg-white/[0.04] border border-white/10 text-center hover:bg-white/[0.07] hover:border-white/20 transition-all duration-300 group">
+              <div className="font-serif text-2xl sm:text-4xl font-extrabold text-cyan-400 group-hover:scale-105 transition-transform">
+                100%
+              </div>
+              <div className="text-xs sm:text-sm text-slate-300 mt-1 font-medium">Peer-Reviewed</div>
+            </div>
           </div>
 
+          {/* Sponsoring Agencies Pill Badges */}
+          <div className="space-y-3">
+            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+              Major Sponsoring Bodies &amp; Collaborators
+            </span>
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 max-w-3xl mx-auto">
+              {['DST-SERB', 'ISRO RESPOND', 'BRNS / DAE', 'CSIR', 'UGC-DAE CSR', 'KSCSTE', 'DRDO', 'DST-INSPIRE'].map((agency) => (
+                <span
+                  key={agency}
+                  className="px-3.5 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-xs sm:text-sm font-semibold text-slate-200"
+                >
+                  {agency}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA Buttons to Projects Page */}
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link
+              id="home-explore-projects-cta"
+              href="/projects"
+              className="inline-flex items-center justify-center gap-2.5 px-8 py-4 bg-cyan-accent hover:bg-sky-400 text-white font-bold text-base sm:text-lg rounded-2xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer"
+            >
+              <span>Explore All Research Projects</span>
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" />
+            </Link>
+
+            <Link
+              href="/research"
+              className="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl border border-white/20 hover:border-white/40 text-slate-200 hover:text-white hover:bg-white/5 font-semibold text-sm sm:text-base transition-all duration-300 cursor-pointer"
+            >
+              <span>Research Laboratories</span>
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Featured Publications Section */}
-      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-lowest border-t border-surface-low/60">
-        <div className="max-w-[1536px] mx-auto space-y-10">
+      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-lowest border-t border-slate-200">
+        <div className="max-w-[1536px] mx-auto space-y-10 sm:space-y-12">
 
-          {/* Header */}
-          <div className="text-center space-y-3 border-b border-slate-200 pb-6">
-            <h2 className="font-serif text-4xl sm:text-5xl font-bold text-oxford text-center">
-              Recent Publications
-            </h2>
-            <div className="flex justify-center">
-              <Link
-                href="/journals"
-                className="inline-flex items-center gap-1 text-sm font-bold text-cyan-accent hover:text-cyan-dark transition-colors"
-              >
-                <span>View All Publications &rarr;</span>
-              </Link>
+          {/* Section Header */}
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-slate-200 pb-6">
+            <div className="space-y-2">
+              <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block font-sans">
+                Scholarly Research Output
+              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
+                Recent Publications
+              </h2>
             </div>
+
+            <Link
+              href="/journals"
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors self-start sm:self-auto shrink-0 group"
+            >
+              <span>View All Publications</span>
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </div>
 
           {/* Publications Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
             {PUBLICATIONS.slice(0, 4).map((pub) => (
               <JournalCard key={pub.id} publication={pub} />
             ))}
+          </div>
+
+          {/* Bottom Callout Bar */}
+          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 p-5 sm:p-6 bg-slate-50 rounded-2xl border border-slate-200 text-sm">
+            <div className="text-slate-600 font-medium text-center sm:text-left">
+              Looking for our complete catalog of indexed journals, faculty papers, and metrics?
+            </div>
+            <Link
+              href="/journals"
+              className="px-5 py-2.5 bg-oxford hover:bg-cyan-900 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-sm shrink-0"
+            >
+              Browse Full Publications Archive &rarr;
+            </Link>
           </div>
         </div>
       </section>

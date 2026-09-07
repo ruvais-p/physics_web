@@ -68,6 +68,12 @@ export default function FacilitiesPage() {
             Research Laboratories
           </Link>
           <Link
+            href="/projects"
+            className="px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 text-oxford hover:text-cyan-accent hover:bg-slate-50 cursor-pointer"
+          >
+            Projects &amp; Grants
+          </Link>
+          <Link
             href="/journals"
             className="px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 text-oxford hover:text-cyan-accent hover:bg-slate-50 cursor-pointer"
           >

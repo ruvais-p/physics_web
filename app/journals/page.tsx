@@ -127,6 +127,12 @@ export default function JournalsPage() {
           >
             Research Laboratories
           </Link>
+          <Link
+            href="/projects"
+            className="px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 text-oxford hover:text-cyan-accent hover:bg-slate-50 cursor-pointer"
+          >
+            Projects &amp; Grants
+          </Link>
           <button
             className="px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 bg-cyan-accent text-white shadow-md cursor-default"
           >
