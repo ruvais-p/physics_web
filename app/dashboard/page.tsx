@@ -600,15 +600,11 @@ export default function UnifiedDashboardPage() {
 
   // About Us CMS States
   const [aboutContent, setAboutContent] = useState('');
-  const [aboutImagePath, setAboutImagePath] = useState<string | null>(null);
   const [aboutActiveTab, setAboutActiveTab] = useState<'write' | 'preview'>('write');
   const [loadingAbout, setLoadingAbout] = useState(false);
   const [savingAbout, setSavingAbout] = useState(false);
   const [aboutError, setAboutError] = useState<string | null>(null);
   const [aboutSuccess, setAboutSuccess] = useState<string | null>(null);
-  const [selectedAboutImageFile, setSelectedAboutImageFile] = useState<File | null>(null);
-  const [aboutImageUrlInput, setAboutImageUrlInput] = useState('');
-  const [aboutImagePreviewUrl, setAboutImagePreviewUrl] = useState<string | null>(null);
 
   const fetchCmsAbout = async () => {
     setLoadingAbout(true);
@@ -617,9 +613,6 @@ export default function UnifiedDashboardPage() {
       if (res.ok) {
         const data = await res.json();
         setAboutContent(data.content || '');
-        setAboutImagePath(data.image || null);
-        setAboutImageUrlInput(data.image || '');
-        setAboutImagePreviewUrl(data.image || null);
       }
     } catch (err) {
       console.error('Failed to fetch CMS about us:', err);
@@ -659,17 +652,14 @@ export default function UnifiedDashboardPage() {
     setSavingAbout(true);
 
     try {
-      const formData = new FormData();
-      formData.append('content', aboutContent.trim());
-      if (selectedAboutImageFile) {
-        formData.append('image', selectedAboutImageFile);
-      } else if (aboutImageUrlInput.trim()) {
-        formData.append('imageUrl', aboutImageUrlInput.trim());
-      }
-
       const res = await fetch('/api/cms/about', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: aboutContent.trim(),
+        }),
       });
 
       let data: any = {};
@@ -684,12 +674,7 @@ export default function UnifiedDashboardPage() {
         throw new Error(data.error || 'Failed to save About Us content.');
       }
 
-      if (data.data?.image) {
-        setAboutImagePath(data.data.image);
-        setAboutImagePreviewUrl(data.data.image);
-      }
-      setSelectedAboutImageFile(null);
-      setAboutSuccess('About Us page content and department hero image updated successfully!');
+      setAboutSuccess('About Us page content updated successfully!');
       setTimeout(() => setAboutSuccess(null), 4000);
     } catch (err: any) {
       setAboutError(err.message || 'An error occurred while saving About Us content.');
@@ -2607,10 +2592,10 @@ export default function UnifiedDashboardPage() {
               <div>
                 <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
                   <FileText className="w-7 h-7 text-oxford" />
-                  <span>About Us Page & Department Hero Banner</span>
+                  <span>About Us Page</span>
                 </h2>
                 <p className="text-slate-600 text-base mt-1 font-sans">
-                  Edit the department overview markdown text and upload the hero background image displayed on the public About page.
+                  Edit the department overview markdown text displayed on the public About page.
                 </p>
               </div>
 
@@ -2648,66 +2633,6 @@ export default function UnifiedDashboardPage() {
                 <span>{aboutSuccess}</span>
               </div>
             )}
-
-            {/* Department Hero Image Uploader */}
-            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
-              <div className="space-y-1">
-                <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
-                  <ImageIcon className="w-5 h-5 text-oxford" />
-                  <span>Department Banner Image (About Hero Section)</span>
-                </h3>
-                <p className="text-xs text-slate-500 font-sans">
-                  This image will be displayed as the main background banner in the hero section of the public About Us page.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                <div className="space-y-3 font-sans">
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 block">Upload Image File</label>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setSelectedAboutImageFile(file);
-                          setAboutImagePreviewUrl(URL.createObjectURL(file));
-                        }
-                      }}
-                      className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
-                    />
-                  </div>
-
-                  <div className="text-xs text-slate-400 text-center font-bold">OR</div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-700 block">Image URL</label>
-                    <Input
-                      type="url"
-                      placeholder="https://images.unsplash.com/..."
-                      value={aboutImageUrlInput}
-                      onChange={(e) => {
-                        setAboutImageUrlInput(e.target.value);
-                        setAboutImagePreviewUrl(e.target.value);
-                      }}
-                      className="w-full text-xs font-mono"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-700 block font-sans">Current Hero Banner Preview</label>
-                  <div className="w-full h-40 rounded-2xl border border-slate-200 bg-slate-100 overflow-hidden relative shadow-inner">
-                    <img
-                      src={aboutImagePreviewUrl || '/campus.jpg'}
-                      alt="Department Banner Preview"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
-              </div>
-            </Card>
 
             {/* Markdown Text Editor & Live Preview */}
             <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">

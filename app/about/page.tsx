@@ -175,7 +175,7 @@ function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
 }
 
 export default function AboutPage() {
-  const [aboutData, setAboutData] = useState<{ content: string; image: string | null } | null>(null);
+  const [aboutData, setAboutData] = useState<{ content: string } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -190,8 +190,6 @@ export default function AboutPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const bannerImage = aboutData?.image || '/campus.jpg';
-
   return (
     <div className="pb-24 relative">
       {/* Hero Header matching main homepage design */}
@@ -199,7 +197,7 @@ export default function AboutPage() {
         title="ABOUT DEPARTMENT"
         badge="HOME > ABOUT"
         subtitle="Advancing fundamental physics, materials science, quantum technology, and photonics since 1963."
-        bgImage={bannerImage}
+        bgImage="/campus.jpg"
       />
 
       {/* Main Content Area: Simplified, Clean, left-aligned, large text */}

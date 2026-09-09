@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 import { getAdminSession } from '@/lib/api-auth';
-import { sanitizeWebUrl } from '@/lib/url-security';
 
 // GET CMS About Us record
 export async function GET() {
@@ -16,7 +14,7 @@ export async function GET() {
       orderBy: { id: 'asc' },
     });
 
-    return NextResponse.json(aboutRecord || { content: '', image: '' });
+    return NextResponse.json(aboutRecord || { content: '' });
   } catch (error) {
     console.error('Error fetching CMS about us record:', error);
     return NextResponse.json(
@@ -40,36 +38,15 @@ export async function POST(request: Request) {
 
     const contentType = request.headers.get('content-type') || '';
     let content = existing?.content || '';
-    let imagePath = existing?.image || '';
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
       if (formData.has('content')) {
         content = (formData.get('content') as string || '').trim();
       }
-
-      const imageFile = formData.get('image') as File | null;
-      const imageUrlInput = (formData.get('imageUrl') as string || '').trim();
-
-      if (imageFile && imageFile.size > 0) {
-        if (!isAllowedImageType(imageFile.type || imageFile.name)) {
-          return NextResponse.json({ error: 'Unsupported image format' }, { status: 400 });
-        }
-
-        const { relativePath } = await saveImageAsWebp(
-          imageFile,
-          'public/uploads',
-          'dept',
-          { quality: 85, maxWidth: 2560 }
-        );
-        imagePath = relativePath;
-      } else if (imageUrlInput) {
-        imagePath = sanitizeWebUrl(imageUrlInput) || '';
-      }
     } else {
       const body = await request.json();
       if (body.content !== undefined) content = (body.content || '').trim();
-      if (body.image !== undefined) imagePath = sanitizeWebUrl(body.image) || '';
     }
 
     if (!content) {
@@ -82,14 +59,12 @@ export async function POST(request: Request) {
         where: { id: existing.id },
         data: {
           content,
-          image: imagePath || null,
         },
       });
     } else {
       result = await prisma.aboutUs.create({
         data: {
           content,
-          image: imagePath || null,
         },
       });
     }

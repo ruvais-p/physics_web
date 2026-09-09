@@ -176,7 +176,6 @@ model Hero {
 model AboutUs {
   id        Int      @id @default(autoincrement())
   content   String   @db.Text
-  image     String?
   updatedAt DateTime @updatedAt
 }
 
