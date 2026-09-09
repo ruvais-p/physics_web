@@ -1,8 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
 import Hero from '@/components/Hero';
 import {
   MapPin,
@@ -11,28 +9,58 @@ import {
   Clock,
   Send,
   CheckCircle2,
-  ExternalLink,
   Building2,
-  Sparkles,
   MessageSquare,
   Compass,
-  ArrowUpRight
+  ArrowUpRight,
+  AlertCircle,
+  LoaderCircle,
 } from 'lucide-react';
 
-export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    category: 'M.Sc. Admission Enquiry',
-    message: '',
-  });
-  const [submitted, setSubmitted] = useState(false);
+const INITIAL_FORM_DATA = {
+  name: '',
+  email: '',
+  phone: '',
+  category: 'M.Sc. Admission Enquiry',
+  message: '',
+  website: '',
+};
 
-  const handleSubmit = (e: React.FormEvent) => {
+export default function ContactPage() {
+  const [formData, setFormData] = useState(INITIAL_FORM_DATA);
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.message) return;
-    setSubmitted(true);
+
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send your inquiry.');
+      }
+
+      setSubmitted(true);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to send your inquiry. Please try again.',
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -118,17 +146,18 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-serif text-lg font-bold text-emerald-900">Inquiry Submitted Successfully</h3>
-                      <p className="text-xs text-emerald-700">Your query has been logged with the Department Office.</p>
+                      <p className="text-xs text-emerald-700">Your query has been delivered to the Department Office.</p>
                     </div>
                   </div>
                   <p className="text-xs sm:text-sm text-emerald-800 leading-relaxed pt-2 border-t border-emerald-200/60">
-                    Thank you, <strong>{formData.name}</strong>. Your message regarding <em>"{formData.category}"</em> has been received. Our office will respond to <strong>{formData.email}</strong> within 1-2 business days.
+                    Thank you, <strong>{formData.name}</strong>. Your message regarding <em>&quot;{formData.category}&quot;</em> has been received. Our office will respond to <strong>{formData.email}</strong> within 1-2 business days.
                   </p>
                   <button
                     type="button"
                     onClick={() => {
-                      setFormData({ name: '', email: '', phone: '', category: 'M.Sc. Admission Enquiry', message: '' });
+                      setFormData(INITIAL_FORM_DATA);
                       setSubmitted(false);
+                      setSubmitError(null);
                     }}
                     className="inline-flex items-center gap-2 text-xs font-bold text-emerald-800 hover:text-emerald-950 underline pt-2 cursor-pointer transition-colors"
                   >
@@ -137,6 +166,19 @@ export default function ContactPage() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="absolute left-[-9999px] h-px w-px overflow-hidden" aria-hidden="true">
+                    <label htmlFor="contact-website">Website</label>
+                    <input
+                      id="contact-website"
+                      name="website"
+                      type="text"
+                      tabIndex={-1}
+                      autoComplete="off"
+                      value={formData.website}
+                      onChange={(e) => setFormData({ ...formData, website: e.target.value })}
+                    />
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div className="space-y-1.5">
                       <label htmlFor="contact-name" className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
@@ -219,13 +261,25 @@ export default function ContactPage() {
                     />
                   </div>
 
+                  {submitError && (
+                    <div className="p-4 text-sm text-rose-700 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                      <span>{submitError}</span>
+                    </div>
+                  )}
+
                   <button
                     id="contact-submit-btn"
                     type="submit"
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-oxford hover:bg-cyan-900 text-white font-bold text-sm sm:text-base px-8 py-3.5 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group"
+                    disabled={submitting}
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-oxford hover:bg-cyan-900 disabled:opacity-60 disabled:cursor-not-allowed text-white font-bold text-sm sm:text-base px-8 py-3.5 rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer group"
                   >
-                    <span>Send Message</span>
-                    <Send className="w-4 h-4 text-cyan-accent group-hover:translate-x-0.5 transition-transform" />
+                    <span>{submitting ? 'Sending...' : 'Send Message'}</span>
+                    {submitting ? (
+                      <LoaderCircle className="w-4 h-4 text-cyan-accent animate-spin" />
+                    ) : (
+                      <Send className="w-4 h-4 text-cyan-accent group-hover:translate-x-0.5 transition-transform" />
+                    )}
                   </button>
                 </form>
               )}
@@ -324,4 +378,3 @@ export default function ContactPage() {
     </div>
   );
 }
-

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
-import { verifyAdminToken, verifyFacultyToken, verifyAuthToken } from '@/lib/auth';
+import { getAdminSession } from '@/lib/api-auth';
+import { deleteUploadedFile, hasPdfSignature } from '@/lib/file-security';
+import { sanitizeWebUrl } from '@/lib/url-security';
 
 const ALLOWED_PDF_TYPES = ['application/pdf'];
 const MAX_PDF_SIZE = 15 * 1024 * 1024; // 15 MB
@@ -16,38 +17,17 @@ async function ensureDirExists() {
 async function deletePhysicalFile(relativeWebPath: string | null) {
   if (!relativeWebPath || relativeWebPath.includes('cv_placeholder.pdf')) return;
   try {
-    const cleanPath = relativeWebPath.replace(/^\//, '');
-    const absolutePath = path.join(process.cwd(), 'public', cleanPath);
-    await fs.unlink(absolutePath);
-  } catch (err: any) {
-    if (err.code !== 'ENOENT') {
-      console.error(`Failed to delete physical file ${relativeWebPath}:`, err);
-    }
+    await deleteUploadedFile(relativeWebPath, 'curriculum');
+  } catch (error) {
+    console.error(`Failed to delete physical file ${relativeWebPath}:`, error);
   }
 }
 
 async function verifyAnyUserToken() {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get('auth_token')?.value ||
-    cookieStore.get('admin_token')?.value ||
-    cookieStore.get('faculty_token')?.value;
-
-  if (!token) return null;
-
-  const authUser = await verifyAuthToken(token);
-  if (authUser) return authUser;
-
-  const admin = await verifyAdminToken(token);
-  if (admin) return { ...admin, role: 'admin' as const };
-
-  const faculty = await verifyFacultyToken(token);
-  if (faculty) return { ...faculty, role: 'faculty' as const };
-
-  return null;
+  return getAdminSession();
 }
 
-// PUT /api/courses/schemes/[id] (Admin/Faculty update)
+// PUT /api/courses/schemes/[id] (Admin only)
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -79,7 +59,11 @@ export async function PUT(
     let newPdfUrl = existingScheme.pdfUrl;
 
     if (externalPdfUrl && externalPdfUrl.trim() !== '') {
-      newPdfUrl = externalPdfUrl;
+      const safePdfUrl = sanitizeWebUrl(externalPdfUrl);
+      if (!safePdfUrl) {
+        return NextResponse.json({ error: 'PDF URL must use http, https, or a local path.' }, { status: 400 });
+      }
+      newPdfUrl = safePdfUrl;
     }
 
     if (pdfFile && pdfFile.size > 0) {
@@ -98,12 +82,16 @@ export async function PUT(
       }
 
       const timestamp = Date.now();
-      const sanitizedName = pdfFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const fileName = `scheme_${existingScheme.courseId}_${timestamp}_${sanitizedName}`;
+      const sanitizedName = path.parse(pdfFile.name).name.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 80);
+      const fileName = `scheme_${existingScheme.courseId}_${timestamp}_${sanitizedName || 'document'}.pdf`;
       const filePath = path.join(CURRICULUM_DIR, fileName);
 
       const bytes = await pdfFile.arrayBuffer();
-      await fs.writeFile(filePath, Buffer.from(bytes));
+      const buffer = Buffer.from(bytes);
+      if (!hasPdfSignature(buffer)) {
+        return NextResponse.json({ error: 'The uploaded file is not a valid PDF.' }, { status: 400 });
+      }
+      await fs.writeFile(filePath, buffer);
 
       // Remove old file if replacing custom upload
       if (existingScheme.pdfUrl && !existingScheme.pdfUrl.includes('cv_placeholder.pdf')) {
@@ -130,7 +118,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/courses/schemes/[id] (Admin/Faculty delete)
+// DELETE /api/courses/schemes/[id] (Admin only)
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

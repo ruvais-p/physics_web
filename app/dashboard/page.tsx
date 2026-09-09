@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { sanitizeWebUrl } from '@/lib/url-security';
 import {
   ShieldCheck,
   LogOut,
@@ -57,12 +58,14 @@ import {
   Award,
   Info,
   ArrowRight,
+  Settings,
 } from 'lucide-react';
 import AdminFacultyFullManageModal from '@/components/AdminFacultyFullManageModal';
 import EventGallerySection from '@/components/EventGallerySection';
 import CurriculumManagementSection from '@/components/CurriculumManagementSection';
 import ResearchLabManagementSection from '@/components/ResearchLabManagementSection';
 import FacilityManagementSection from '@/components/FacilityManagementSection';
+import GeneralSettingsSection from '@/components/GeneralSettingsSection';
 
 // Import Shadcn UI elements
 import {
@@ -378,7 +381,7 @@ function parseInlineMarkdown(text: string): React.ReactNode {
       const [, before, label, url, after] = linkMatch;
       if (before) parts.push(parseFormatting(before, keyIdx++));
       parts.push(
-        <a key={keyIdx++} href={url} target="_blank" rel="noopener noreferrer" className="text-oxford hover:text-cyan-700 underline font-semibold inline-flex items-center gap-1">
+        <a key={keyIdx++} href={sanitizeWebUrl(url) || '#'} target="_blank" rel="noopener noreferrer" className="text-oxford hover:text-cyan-700 underline font-semibold inline-flex items-center gap-1">
           <span>{label}</span>
           <ExternalLink className="w-3.5 h-3.5 opacity-80" />
         </a>
@@ -445,7 +448,7 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // ADMIN DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'events' | 'notifications' | 'faculty' | 'curriculum' | 'labs' | 'facilities'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'events' | 'notifications' | 'faculty' | 'publications' | 'curriculum' | 'labs' | 'facilities' | 'settings'>('dashboard');
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -916,13 +919,23 @@ export default function UnifiedDashboardPage() {
   const [facultySaving, setFacultySaving] = useState(false);
   const [facultyFormError, setFacultyFormError] = useState<string | null>(null);
   const [fullManageFacultyId, setFullManageFacultyId] = useState<string | null>(null);
+  const [fullManageInitialTab, setFullManageInitialTab] = useState<'account' | 'publications'>('account');
+
+  const openFullFacultyManager = (
+    facultyId: string,
+    initialTab: 'account' | 'publications' = 'account'
+  ) => {
+    setFullManageInitialTab(initialTab);
+    setFullManageFacultyId(facultyId);
+  };
 
   // -------------------------------------------------------------
   // -------------------------------------------------------------
   // FACULTY DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'projects' | 'publications' | 'hero' | 'events' | 'curriculum' | 'labs' | 'facilities'>('overview');
+  const [facultyTab, setFacultyTab] = useState<'overview' | 'profile' | 'scholars' | 'projects' | 'publications'>('overview');
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [changingPassword, setChangingPassword] = useState(false);
@@ -1263,8 +1276,6 @@ export default function UnifiedDashboardPage() {
           fetchEvents();
         } else if (data.role === 'faculty') {
           fetchFacultySelfData(data.user);
-          fetchHeroSlides();
-          fetchEvents();
         }
       } catch (err) {
         console.error('Session check failed:', err);
@@ -1468,8 +1479,8 @@ export default function UnifiedDashboardPage() {
       return;
     }
 
-    if (!editingFaculty && (!facultyFormData.password || facultyFormData.password.length < 6)) {
-      setFacultyFormError('Predefined Password must be at least 6 characters long');
+    if (!editingFaculty && (!facultyFormData.password || facultyFormData.password.length < 12)) {
+      setFacultyFormError('Predefined Password must be at least 12 characters long');
       return;
     }
 
@@ -1741,8 +1752,8 @@ export default function UnifiedDashboardPage() {
     setPasswordError(null);
     setPasswordSuccess(null);
 
-    if (newPassword.length < 6) {
-      setPasswordError('New password must be at least 6 characters long.');
+    if (newPassword.length < 12) {
+      setPasswordError('New password must be at least 12 characters long.');
       return;
     }
 
@@ -1757,7 +1768,7 @@ export default function UnifiedDashboardPage() {
       const res = await fetch('/api/faculty/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ newPassword, confirmPassword }),
+        body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
       });
 
       const data = await res.json();
@@ -1767,6 +1778,9 @@ export default function UnifiedDashboardPage() {
       }
 
       setPasswordSuccess('Password updated successfully! Your account is now secure.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
       setCurrentUser((prev: any) => (prev ? { ...prev, mustChangePassword: false } : null));
 
       setTimeout(() => {
@@ -2286,6 +2300,16 @@ export default function UnifiedDashboardPage() {
               </TabsTrigger>
 
               <TabsTrigger
+                value="publications"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <BookOpen className="w-4 h-4" />
+                  <span>Publications</span>
+                </div>
+              </TabsTrigger>
+
+              <TabsTrigger
                 value="curriculum"
                 className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
               >
@@ -2312,6 +2336,16 @@ export default function UnifiedDashboardPage() {
                 <div className="flex items-center gap-3.5">
                   <Wrench className="w-4 h-4" />
                   <span>Facilities Management</span>
+                </div>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="settings"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <Settings className="w-4 h-4" />
+                  <span>General Settings</span>
                 </div>
               </TabsTrigger>
             </TabsList>
@@ -2473,7 +2507,30 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
-              {/* Module 6: Curriculum & Regulations */}
+              {/* Module 6: Publications */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <BookOpen className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Publications</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Add and manage journal articles, conference papers, book chapters, publication dates, and DOI links by faculty member.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('publications')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <FilePlus className="w-4 h-4" />
+                  <span>Add Publications</span>
+                </Button>
+              </Card>
+
+              {/* Module 7: Curriculum & Regulations */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2496,7 +2553,7 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
-              {/* Module 7: Research Laboratories */}
+              {/* Module 8: Research Laboratories */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2519,7 +2576,7 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
-              {/* Module 8: Facilities Management */}
+              {/* Module 9: Facilities Management */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -3022,7 +3079,7 @@ export default function UnifiedDashboardPage() {
                         <TableCell className="text-slate-600 text-base py-4">
                           {notif.link ? (
                             <a
-                              href={notif.link}
+                              href={sanitizeWebUrl(notif.link) || '#'}
                               target="_blank"
                               rel="noreferrer"
                               className="inline-flex items-center gap-1 text-base text-cyan-accent hover:underline max-w-[150px] truncate font-medium"
@@ -3269,7 +3326,7 @@ export default function UnifiedDashboardPage() {
                             <Button
                               variant="outline"
                               size="sm"
-                              onClick={() => setFullManageFacultyId(faculty.id)}
+                              onClick={() => openFullFacultyManager(faculty.id)}
                               className="bg-oxford/5 border-oxford/20 text-oxford hover:bg-oxford hover:text-white transition-all text-xs font-semibold px-3 py-1.5 cursor-pointer"
                             >
                               <Edit3 className="w-3.5 h-3.5 mr-1" />
@@ -3301,6 +3358,83 @@ export default function UnifiedDashboardPage() {
                 </Table>
               )}
             </div>
+          </TabsContent>
+
+          {/* PUBLICATIONS MANAGEMENT TAB */}
+          <TabsContent value="publications" className="space-y-8 animate-fadeIn mt-0">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 pb-4">
+              <div>
+                <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                  <BookOpen className="w-7 h-7 text-oxford" />
+                  <span>Faculty Publications</span>
+                </h2>
+                <p className="text-slate-600 text-base mt-1 font-sans">
+                  Choose a faculty member to add or manage journal articles, conference papers, book chapters, and DOI links.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={fetchFaculty}
+                className="h-11 w-11 text-slate-700 hover:text-slate-950"
+                title="Refresh Faculty Records"
+              >
+                <RefreshCw className={`w-4 h-4 ${loadingFaculty ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
+
+            <div className="relative max-w-2xl">
+              <Search className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
+              <Input
+                type="search"
+                placeholder="Search faculty by name, email, or designation..."
+                value={facultySearchTerm}
+                onChange={(event) => setFacultySearchTerm(event.target.value)}
+                className="pl-11 text-base h-12 w-full"
+              />
+            </div>
+
+            {loadingFaculty ? (
+              <div className="py-16 text-center text-slate-500 flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-2 border-oxford border-t-transparent rounded-full animate-spin" />
+                <span>Loading faculty member records...</span>
+              </div>
+            ) : filteredFaculty.length === 0 ? (
+              <div className="py-16 text-center text-slate-500 space-y-3 border-y border-slate-200">
+                <BookOpen className="w-10 h-10 mx-auto text-slate-400" />
+                <p className="text-base font-semibold text-slate-800">No faculty accounts found</p>
+                <p className="text-sm font-sans">Create a faculty account before adding publications.</p>
+              </div>
+            ) : (
+              <div className="border-y border-slate-200 divide-y divide-slate-200">
+                {filteredFaculty.map((faculty) => (
+                  <div
+                    key={faculty.id}
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-5 hover:bg-white/60 transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <h3 className="text-lg font-bold font-serif text-slate-900 truncate">
+                        {faculty.name}
+                      </h3>
+                      <p className="text-sm text-slate-600 font-sans">
+                        {faculty.designation || 'Faculty Member'}
+                      </p>
+                      <p className="text-xs text-slate-500 font-mono mt-1 truncate">
+                        {faculty.email}
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={() => openFullFacultyManager(faculty.id, 'publications')}
+                      className="shrink-0 flex items-center gap-2 px-5 font-semibold"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      <span>Manage Publications</span>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           {/* EVENTS MANAGEMENT TAB */}
@@ -3384,7 +3518,7 @@ export default function UnifiedDashboardPage() {
                         <TableCell className="py-3">
                           {ev.apply_link ? (
                             <a
-                              href={ev.apply_link}
+                              href={sanitizeWebUrl(ev.apply_link, false) || '#'}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-xs font-semibold text-indigo-600 hover:underline flex items-center gap-1"
@@ -3438,6 +3572,11 @@ export default function UnifiedDashboardPage() {
           {/* FACILITIES TAB */}
           <TabsContent value="facilities" className="space-y-10 animate-fadeIn mt-0">
             <FacilityManagementSection />
+          </TabsContent>
+
+          {/* GENERAL SETTINGS TAB */}
+          <TabsContent value="settings" className="space-y-10 animate-fadeIn mt-0">
+            <GeneralSettingsSection />
           </TabsContent>
         </main>
 
@@ -3886,6 +4025,7 @@ export default function UnifiedDashboardPage() {
           <AdminFacultyFullManageModal
             facultyId={fullManageFacultyId}
             isOpen={!!fullManageFacultyId}
+            initialTab={fullManageInitialTab}
             onClose={() => setFullManageFacultyId(null)}
             onFacultyUpdated={fetchFaculty}
           />
@@ -3917,7 +4057,7 @@ export default function UnifiedDashboardPage() {
           </div>
         </div>
 
-        {/* Navigation List (4 Options) */}
+        {/* Navigation List (5 Options) */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden my-3 pr-1 space-y-2">
           <p className="text-[11px] font-sans font-bold text-indigo-300 uppercase tracking-widest px-2 mb-2 sticky top-0 bg-oxford py-1 z-10">Faculty Menu</p>
           <TabsList className="flex flex-col h-auto bg-transparent p-0 space-y-1.5 w-full border-none rounded-none shadow-none">
@@ -3985,66 +4125,6 @@ export default function UnifiedDashboardPage() {
               </Badge>
             </TabsTrigger>
 
-            {/* Option 4: Hero Section Page */}
-            <TabsTrigger
-              value="hero"
-              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
-            >
-              <div className="flex items-center gap-3.5">
-                <Sliders className="w-4 h-4" />
-                <span>Hero Section</span>
-              </div>
-              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
-                {heroSlides.length}/10
-              </Badge>
-            </TabsTrigger>
-
-            {/* Option 5: Events Management Page */}
-            <TabsTrigger
-              value="events"
-              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
-            >
-              <div className="flex items-center gap-3.5">
-                <Calendar className="w-4 h-4" />
-                <span>Events Management</span>
-              </div>
-              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
-                {eventsList.length}
-              </Badge>
-            </TabsTrigger>
-
-            {/* Option 6: Curriculum & Regulations Management */}
-            <TabsTrigger
-              value="curriculum"
-              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
-            >
-              <div className="flex items-center gap-3.5">
-                <BookOpen className="w-4 h-4" />
-                <span>Curriculum & Regulations</span>
-              </div>
-            </TabsTrigger>
-
-            {/* Option 7: Research Laboratories Management */}
-            <TabsTrigger
-              value="labs"
-              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
-            >
-              <div className="flex items-center gap-3.5">
-                <FlaskConical className="w-4 h-4" />
-                <span>Research Laboratories</span>
-              </div>
-            </TabsTrigger>
-
-            {/* Option 8: Central Facilities Management */}
-            <TabsTrigger
-              value="facilities"
-              className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
-            >
-              <div className="flex items-center gap-3.5">
-                <Wrench className="w-4 h-4" />
-                <span>Central Facilities</span>
-              </div>
-            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -4085,6 +4165,9 @@ export default function UnifiedDashboardPage() {
               <CardDescription className="text-slate-600 text-base mt-1">
                 {currentUser?.designation || 'Faculty Member'} • {currentUser?.department || 'Department of Physics'}
               </CardDescription>
+              <p className="text-sm text-slate-500 pt-2 font-sans">
+                Manage your public profile, research scholars, funded projects, and publications.
+              </p>
             </CardContent>
           </Card>
 
@@ -4184,122 +4267,6 @@ export default function UnifiedDashboardPage() {
               </Button>
             </Card>
 
-            {/* Module 5: Hero Section */}
-            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
-              <CardContent className="p-0 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
-                    <Sliders className="w-5 h-5" />
-                  </div>
-                  <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">{heroSlides.length}/10</span>
-                </div>
-                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Hero Section</CardTitle>
-                <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
-                  Upload home page hero slides, reorder slides, and toggle banner visibility on the public site.
-                </CardDescription>
-              </CardContent>
-              <Button
-                variant="default"
-                onClick={() => setFacultyTab('hero')}
-                className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
-              >
-                <Sliders className="w-4 h-4" />
-                <span>Manage Hero</span>
-              </Button>
-            </Card>
-
-            {/* Module 6: Events Management */}
-            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
-              <CardContent className="p-0 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
-                    <Calendar className="w-5 h-5" />
-                  </div>
-                  <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">{eventsList.length}</span>
-                </div>
-                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Events Management</CardTitle>
-                <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
-                  Publish, edit, or remove department seminars, workshops, and endowment lectures.
-                </CardDescription>
-              </CardContent>
-              <Button
-                variant="default"
-                onClick={() => setFacultyTab('events')}
-                className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
-              >
-                <Calendar className="w-4 h-4" />
-                <span>Manage Events</span>
-              </Button>
-            </Card>
-
-            {/* Module 7: Curriculum & Regulations */}
-            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
-              <CardContent className="p-0 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
-                    <BookOpen className="w-5 h-5" />
-                  </div>
-                </div>
-                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Curriculum & Regulations</CardTitle>
-                <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
-                  Manage academic programs, degree levels, syllabus outlines, and regulation scheme PDF uploads.
-                </CardDescription>
-              </CardContent>
-              <Button
-                variant="default"
-                onClick={() => setFacultyTab('curriculum')}
-                className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
-              >
-                <BookOpen className="w-4 h-4" />
-                <span>Curriculum & Schemes</span>
-              </Button>
-            </Card>
-
-            {/* Module 8: Research Laboratories */}
-            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
-              <CardContent className="p-0 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
-                    <FlaskConical className="w-5 h-5" />
-                  </div>
-                </div>
-                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Research Laboratories</CardTitle>
-                <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
-                  Manage departmental laboratory profiles, research themes, facility photos, and faculty members.
-                </CardDescription>
-              </CardContent>
-              <Button
-                variant="default"
-                onClick={() => setFacultyTab('labs')}
-                className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
-              >
-                <FlaskConical className="w-4 h-4" />
-                <span>Research Labs</span>
-              </Button>
-            </Card>
-
-            {/* Module 9: Central Facilities */}
-            <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
-              <CardContent className="p-0 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
-                    <Wrench className="w-5 h-5" />
-                  </div>
-                </div>
-                <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Central Facilities</CardTitle>
-                <CardDescription className="text-sm text-slate-600 leading-normal font-sans">
-                  Manage advanced analytical equipment, instrumentation facilities, user charges, and in-charge faculty.
-                </CardDescription>
-              </CardContent>
-              <Button
-                variant="default"
-                onClick={() => setFacultyTab('facilities')}
-                className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
-              >
-                <Wrench className="w-4 h-4" />
-                <span>Central Facilities</span>
-              </Button>
-            </Card>
           </div>
         </TabsContent>
 
@@ -4387,7 +4354,7 @@ export default function UnifiedDashboardPage() {
                     </button>
                     {cvPath ? (
                       <a
-                        href={cvPath}
+                        href={sanitizeWebUrl(cvPath) || '#'}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center gap-1.5 text-cyan-800 bg-cyan-50/80 hover:bg-cyan-100/80 px-2.5 py-1 rounded-lg border border-cyan-200 shadow-2xs font-semibold transition-colors"
@@ -4575,7 +4542,7 @@ export default function UnifiedDashboardPage() {
                       return (
                         <a
                           key={key}
-                          href={platformUrls[key]}
+                          href={sanitizeWebUrl(platformUrls[key], false) || '#'}
                           target="_blank"
                           rel="noreferrer"
                           className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-oxford/60 hover:shadow-xs transition-all group"
@@ -4607,7 +4574,7 @@ export default function UnifiedDashboardPage() {
                     {otherProfiles.filter((op) => op.name && op.url).map((op) => (
                       <a
                         key={op.id}
-                        href={op.url}
+                        href={sanitizeWebUrl(op.url, false) || '#'}
                         target="_blank"
                         rel="noreferrer"
                         className="flex items-center justify-between p-2.5 rounded-xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-oxford/60 hover:shadow-xs transition-all group"
@@ -4808,7 +4775,7 @@ export default function UnifiedDashboardPage() {
 
                       <div className="flex items-center gap-1 shrink-0">
                         {pj.externalLink && (
-                          <a href={pj.externalLink} target="_blank" rel="noreferrer" className="p-1.5 text-indigo-600 hover:text-indigo-800">
+                          <a href={sanitizeWebUrl(pj.externalLink, false) || '#'} target="_blank" rel="noreferrer" className="p-1.5 text-indigo-600 hover:text-indigo-800">
                             <ExternalLink className="w-4 h-4" />
                           </a>
                         )}
@@ -4885,7 +4852,7 @@ export default function UnifiedDashboardPage() {
 
                       <div className="flex items-center gap-1 shrink-0">
                         {pub.externalLink && (
-                          <a href={pub.externalLink} target="_blank" rel="noreferrer" className="p-1.5 text-indigo-600 hover:text-indigo-800 bg-indigo-50 rounded-lg" title="External Link / DOI">
+                          <a href={sanitizeWebUrl(pub.externalLink, false) || '#'} target="_blank" rel="noreferrer" className="p-1.5 text-indigo-600 hover:text-indigo-800 bg-indigo-50 rounded-lg" title="External Link / DOI">
                             <ExternalLink className="w-4 h-4" />
                           </a>
                         )}
@@ -5076,7 +5043,7 @@ export default function UnifiedDashboardPage() {
                       <TableCell className="py-3">
                         {ev.apply_link ? (
                           <a
-                            href={ev.apply_link}
+                            href={sanitizeWebUrl(ev.apply_link, false) || '#'}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-xs font-semibold text-indigo-600 hover:underline flex items-center gap-1"
@@ -5245,7 +5212,7 @@ export default function UnifiedDashboardPage() {
                         <div className="pt-3 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
                           {proj.externalLink ? (
                             <a
-                              href={proj.externalLink}
+                              href={sanitizeWebUrl(proj.externalLink, false) || '#'}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="inline-flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:underline"
@@ -5333,10 +5300,24 @@ export default function UnifiedDashboardPage() {
             )}
 
             <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">Current Password *</label>
+              <Input
+                type="password"
+                autoComplete="current-password"
+                maxLength={128}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full text-base"
+              />
+            </div>
+
+            <div className="space-y-1.5">
               <label className="text-sm font-bold text-slate-700">New Password *</label>
               <Input
                 type="password"
-                placeholder="At least 6 characters"
+                autoComplete="new-password"
+                maxLength={128}
+                placeholder="At least 12 characters"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="w-full text-base"
@@ -5347,6 +5328,8 @@ export default function UnifiedDashboardPage() {
               <label className="text-sm font-bold text-slate-700">Confirm New Password *</label>
               <Input
                 type="password"
+                autoComplete="new-password"
+                maxLength={128}
                 placeholder="Re-enter new password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
@@ -5614,7 +5597,7 @@ export default function UnifiedDashboardPage() {
                     <span className="font-medium text-slate-800">Current CV document is active</span>
                   </div>
                   <a
-                    href={cvPath}
+                    href={sanitizeWebUrl(cvPath) || '#'}
                     target="_blank"
                     rel="noreferrer"
                     className="text-cyan-800 hover:underline font-semibold flex items-center gap-1"

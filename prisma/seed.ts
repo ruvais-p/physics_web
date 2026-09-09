@@ -4,25 +4,26 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  const defaultAdminEmail = 'admin@physics.cusat.ac.in';
-  const defaultAdminPassword = 'adminpassword123';
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const adminPassword = process.env.ADMIN_PASSWORD;
 
-  const existingAdmin = await prisma.admin.findUnique({
-    where: { email: defaultAdminEmail },
-  });
+  if (adminEmail || adminPassword) {
+    if (!adminEmail || !adminPassword || adminPassword.length < 12 || adminPassword.length > 128) {
+      throw new Error('ADMIN_EMAIL and an ADMIN_PASSWORD of 12-128 characters are both required.');
+    }
 
-  if (!existingAdmin) {
-    const hashedPassword = await bcrypt.hash(defaultAdminPassword, 10);
-    await prisma.admin.create({
-      data: {
-        email: defaultAdminEmail,
-        password: hashedPassword,
-        name: 'Head Admin',
-      },
-    });
-    console.log(`[SEED] Created default admin user: ${defaultAdminEmail}`);
+    const existingAdmin = await prisma.admin.findUnique({ where: { email: adminEmail } });
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash(adminPassword, 12);
+      await prisma.admin.create({
+        data: { email: adminEmail, password: hashedPassword, name: 'Head Admin' },
+      });
+      console.log(`[SEED] Created configured admin user: ${adminEmail}`);
+    } else {
+      console.log('[SEED] Configured admin user already exists.');
+    }
   } else {
-    console.log('[SEED] Admin user already exists.');
+    console.log('[SEED] ADMIN_EMAIL/ADMIN_PASSWORD not set; skipped admin account creation.');
   }
 
   // Seed sample initial notifications if table is empty
@@ -54,25 +55,28 @@ async function main() {
   }
 
   // Seed sample faculty member
-  const sampleFacultyEmail = 'faculty@physics.cusat.ac.in';
-  const sampleFacultyPassword = 'facultypassword123';
-  const existingFaculty = await prisma.faculty.findUnique({
-    where: { email: sampleFacultyEmail },
-  });
+  if (process.env.SEED_SAMPLE_FACULTY === 'true') {
+    const sampleFacultyEmail = process.env.SAMPLE_FACULTY_EMAIL?.trim().toLowerCase();
+    const sampleFacultyPassword = process.env.SAMPLE_FACULTY_PASSWORD;
+    if (!sampleFacultyEmail || !sampleFacultyPassword || sampleFacultyPassword.length < 12 || sampleFacultyPassword.length > 128) {
+      throw new Error('SAMPLE_FACULTY_EMAIL and a SAMPLE_FACULTY_PASSWORD of 12-128 characters are required.');
+    }
 
-  if (!existingFaculty) {
-    const hashedFacultyPassword = await bcrypt.hash(sampleFacultyPassword, 10);
-    await prisma.faculty.create({
-      data: {
-        name: 'Dr. Ramesh Kumar',
-        email: sampleFacultyEmail,
-        password: hashedFacultyPassword,
-        designation: 'Professor & Head',
-        department: 'Department of Physics',
-        mustChangePassword: true,
-      },
-    });
-    console.log(`[SEED] Created default sample faculty user: ${sampleFacultyEmail}`);
+    const existingFaculty = await prisma.faculty.findUnique({ where: { email: sampleFacultyEmail } });
+    if (!existingFaculty) {
+      const hashedFacultyPassword = await bcrypt.hash(sampleFacultyPassword, 12);
+      await prisma.faculty.create({
+        data: {
+          name: 'Sample Faculty',
+          email: sampleFacultyEmail,
+          password: hashedFacultyPassword,
+          designation: 'Faculty Member',
+          department: 'Department of Physics',
+          mustChangePassword: true,
+        },
+      });
+      console.log(`[SEED] Created configured sample faculty user: ${sampleFacultyEmail}`);
+    }
   }
 
   // Seed default courses and schemes

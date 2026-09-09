@@ -154,11 +154,14 @@ interface PublicationItem {
   createdAt: string;
 }
 
+type FacultyManageTab = 'account' | 'profiles' | 'documents' | 'description' | 'students' | 'projects' | 'publications';
+
 interface AdminFacultyFullManageModalProps {
   facultyId: string | null;
   isOpen: boolean;
   onClose: () => void;
   onFacultyUpdated: () => void;
+  initialTab?: FacultyManageTab;
 }
 
 // Simple Markdown Renderer
@@ -211,8 +214,9 @@ export default function AdminFacultyFullManageModal({
   isOpen,
   onClose,
   onFacultyUpdated,
+  initialTab = 'account',
 }: AdminFacultyFullManageModalProps) {
-  const [activeTab, setActiveTab] = useState<'account' | 'profiles' | 'documents' | 'description' | 'students' | 'projects' | 'publications'>('account');
+  const [activeTab, setActiveTab] = useState<FacultyManageTab>(initialTab);
   const [loading, setLoading] = useState(true);
 
   // Account Info State

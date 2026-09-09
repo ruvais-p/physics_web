@@ -5,6 +5,7 @@ import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
 import { verifyFacultyToken } from '@/lib/auth';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
+import { deleteUploadedFile, hasPdfSignature } from '@/lib/file-security';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -21,15 +22,10 @@ async function ensureDirectoriesExist() {
 }
 
 async function deletePhysicalFile(relativeWebPath: string | null) {
-  if (!relativeWebPath) return;
   try {
-    const cleanPath = relativeWebPath.replace(/^\//, '');
-    const absolutePath = path.join(process.cwd(), 'public', cleanPath);
-    await fs.unlink(absolutePath);
-  } catch (err: any) {
-    if (err.code !== 'ENOENT') {
-      console.error(`Failed to delete old physical file ${relativeWebPath}:`, err);
-    }
+    await deleteUploadedFile(relativeWebPath, 'faculty');
+  } catch (error) {
+    console.error(`Failed to delete old physical file ${relativeWebPath}:`, error);
   }
 }
 
@@ -155,6 +151,9 @@ export async function POST(request: Request) {
 
       const bytes = await cvFile.arrayBuffer();
       const buffer = Buffer.from(bytes);
+      if (!hasPdfSignature(buffer)) {
+        return NextResponse.json({ error: 'The uploaded file is not a valid PDF.' }, { status: 400 });
+      }
       await fs.writeFile(filePath, buffer);
 
       // Remove previous physical CV file if replacing

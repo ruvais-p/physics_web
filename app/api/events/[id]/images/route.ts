@@ -1,19 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyAuthToken } from '@/lib/auth';
-import { cookies } from 'next/headers';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get('auth_token')?.value ||
-    cookieStore.get('admin_token')?.value ||
-    cookieStore.get('faculty_token')?.value;
-
-  if (!token) return null;
-  return verifyAuthToken(token);
-}
+import { getAdminSession } from '@/lib/api-auth';
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -43,9 +31,9 @@ export async function GET(request: Request, { params }: Params) {
 
 // POST /api/events/[id]/images - Upload multiple gallery images (Max 20 total limit)
 export async function POST(request: Request, { params }: Params) {
-  const user = await checkAuth();
+  const user = await getAdminSession();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized. Admin or Faculty session required.' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
   }
 
   try {

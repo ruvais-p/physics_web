@@ -1,21 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyAuthToken } from '@/lib/auth';
-import { cookies } from 'next/headers';
-import { writeFile, mkdir } from 'fs/promises';
 import path from 'path';
 import { saveImageAsWebp } from '@/lib/image';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get('auth_token')?.value ||
-    cookieStore.get('admin_token')?.value ||
-    cookieStore.get('faculty_token')?.value;
-
-  if (!token) return null;
-  return verifyAuthToken(token);
-}
+import { getAdminSession } from '@/lib/api-auth';
+import { sanitizeWebUrl } from '@/lib/url-security';
 
 // GET /api/events - Fetch all events ordered by date desc
 export async function GET() {
@@ -30,11 +18,11 @@ export async function GET() {
   }
 }
 
-// POST /api/events - Create new event (Admin & Faculty)
+// POST /api/events - Create new event (Admin only)
 export async function POST(request: Request) {
-  const user = await checkAuth();
+  const user = await getAdminSession();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized. Admin or Faculty session required.' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
   }
 
   try {
@@ -54,7 +42,7 @@ export async function POST(request: Request) {
       const venueInput = (formData.get('venue') as string || '').trim();
       if (venueInput) venue = venueInput;
       const applyLinkInput = (formData.get('apply_link') as string || '').trim();
-      if (applyLinkInput) apply_link = applyLinkInput;
+      if (applyLinkInput) apply_link = sanitizeWebUrl(applyLinkInput, false);
 
       const imageFile = formData.get('image') as File | null;
       const imageUrlInput = (formData.get('imageUrl') as string || '').trim();
@@ -68,7 +56,7 @@ export async function POST(request: Request) {
         );
         imagePath = relativePath;
       } else if (imageUrlInput) {
-        imagePath = imageUrlInput;
+        imagePath = sanitizeWebUrl(imageUrlInput) || '';
       }
     } else {
       const body = await request.json();
@@ -76,8 +64,8 @@ export async function POST(request: Request) {
       description = (body.description || '').trim();
       dateStr = (body.date || '').trim();
       venue = body.venue ? String(body.venue).trim() : null;
-      apply_link = body.apply_link ? String(body.apply_link).trim() : null;
-      imagePath = (body.image || '').trim();
+      apply_link = body.apply_link ? sanitizeWebUrl(body.apply_link, false) : null;
+      imagePath = sanitizeWebUrl(body.image) || '';
     }
 
     if (!title) {

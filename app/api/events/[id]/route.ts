@@ -1,21 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyAuthToken } from '@/lib/auth';
-import { cookies } from 'next/headers';
-import { writeFile, mkdir } from 'fs/promises';
-import path from 'path';
 import { saveImageAsWebp } from '@/lib/image';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get('auth_token')?.value ||
-    cookieStore.get('admin_token')?.value ||
-    cookieStore.get('faculty_token')?.value;
-
-  if (!token) return null;
-  return verifyAuthToken(token);
-}
+import { getAdminSession } from '@/lib/api-auth';
+import { sanitizeWebUrl } from '@/lib/url-security';
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -51,11 +38,11 @@ export async function GET(request: Request, { params }: Params) {
   }
 }
 
-// PUT /api/events/[id] - Update event by ID (Admin & Faculty)
+// PUT /api/events/[id] - Update event by ID (Admin only)
 export async function PUT(request: Request, { params }: Params) {
-  const user = await checkAuth();
+  const user = await getAdminSession();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized. Admin or Faculty session required.' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
   }
 
   try {
@@ -93,7 +80,7 @@ export async function PUT(request: Request, { params }: Params) {
       }
       if (formData.has('apply_link')) {
         const applyVal = (formData.get('apply_link') as string || '').trim();
-        apply_link = applyVal ? applyVal : null;
+        apply_link = applyVal ? sanitizeWebUrl(applyVal, false) : null;
       }
 
       const imageFile = formData.get('image') as File | null;
@@ -108,7 +95,7 @@ export async function PUT(request: Request, { params }: Params) {
         );
         imagePath = relativePath;
       } else if (imageUrlInput) {
-        imagePath = imageUrlInput;
+        imagePath = sanitizeWebUrl(imageUrlInput) || '';
       }
     } else {
       const body = await request.json();
@@ -116,8 +103,8 @@ export async function PUT(request: Request, { params }: Params) {
       if (body.description !== undefined) description = String(body.description).trim();
       if (body.date !== undefined) dateStr = String(body.date).trim();
       if (body.venue !== undefined) venue = body.venue ? String(body.venue).trim() : null;
-      if (body.apply_link !== undefined) apply_link = body.apply_link ? String(body.apply_link).trim() : null;
-      if (body.image !== undefined && body.image.trim()) imagePath = String(body.image).trim();
+      if (body.apply_link !== undefined) apply_link = body.apply_link ? sanitizeWebUrl(body.apply_link, false) : null;
+      if (body.image !== undefined && body.image.trim()) imagePath = sanitizeWebUrl(body.image) || imagePath;
     }
 
     if (!title) {
@@ -151,11 +138,11 @@ export async function PUT(request: Request, { params }: Params) {
   }
 }
 
-// DELETE /api/events/[id] - Delete event by ID (Admin & Faculty)
+// DELETE /api/events/[id] - Delete event by ID (Admin only)
 export async function DELETE(request: Request, { params }: Params) {
-  const user = await checkAuth();
+  const user = await getAdminSession();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized. Admin or Faculty session required.' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
   }
 
   try {

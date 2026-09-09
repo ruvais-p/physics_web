@@ -60,8 +60,8 @@ export async function POST(request: Request) {
     if (!email || !email.trim()) {
       return NextResponse.json({ error: 'Faculty Email is required' }, { status: 400 });
     }
-    if (!password || password.length < 6) {
-      return NextResponse.json({ error: 'Predefined Password must be at least 6 characters long' }, { status: 400 });
+    if (typeof password !== 'string' || password.length < 12 || password.length > 128) {
+      return NextResponse.json({ error: 'Predefined Password must be between 12 and 128 characters' }, { status: 400 });
     }
 
     const cleanEmail = email.trim().toLowerCase();

@@ -2,20 +2,16 @@
 
 import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import Hero from '@/components/Hero';
+import { sanitizeWebUrl } from '@/lib/url-security';
 import { 
   Calendar, 
   Clock, 
   MapPin, 
   User, 
   ArrowLeft, 
-  Sparkles, 
   CheckCircle2, 
   ExternalLink,
-  Share2,
-  Bookmark,
-  Info,
   Building2,
   FileText,
   Images,
@@ -28,7 +24,6 @@ import {
 interface EventItem {
   id: string;
   title: string;
-  category: 'Seminar' | 'Workshop' | 'Conference' | 'Orientation' | 'Symposium';
   date: string;
   time: string;
   venue: string;
@@ -46,7 +41,7 @@ interface EventItem {
 // Markdown Parser Helper Functions
 function renderMarkdown(md: string) {
   if (!md || !md.trim()) {
-    return <p className="text-base text-slate-500 italic">No event description available yet.</p>;
+    return null;
   }
 
   const lines = md.split('\n');
@@ -165,7 +160,7 @@ function parseInlineMarkdown(text: string): React.ReactNode {
       const [, before, label, url, after] = linkMatch;
       if (before) parts.push(parseFormatting(before, keyIdx++));
       parts.push(
-        <a key={keyIdx++} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-accent hover:underline font-semibold inline-flex items-center gap-0.5">
+        <a key={keyIdx++} href={sanitizeWebUrl(url) || '#'} target="_blank" rel="noopener noreferrer" className="text-cyan-accent hover:underline font-semibold inline-flex items-center gap-0.5">
           <span>{label}</span>
           <ExternalLink className="w-3.5 h-3.5 opacity-80" />
         </a>
@@ -210,132 +205,6 @@ function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
   return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
 }
 
-// Mock Events dataset matching app/events/page.tsx
-const DUMMY_EVENTS: Record<string, EventItem> = {
-  'e1': {
-    id: 'e1',
-    title: '15th Department Endowment & Memorial Oration Lecture',
-    category: 'Seminar',
-    date: '19 Jul 2026',
-    time: '10:00 AM - 01:00 PM',
-    venue: 'Department Auditorium (Main Block), CUSAT',
-    image: '/eventssss.jpg',
-    speaker: 'Prof. K. S. Rajan',
-    speakerTitle: 'Senior Fellow, National Institute of Quantum Physics',
-    desc: 'Distinguished national physicists will speak on breakthroughs in low-temperature magnetics and topological insulators, followed by an interactive research panel.',
-    fullDetails: `The Annual Department Endowment & Memorial Oration Lecture is one of the flagship scientific gatherings organized by the Department of Physics, CUSAT. 
-
-### Session Overview
-This 15th edition brings together leading experimentalists and theorists in solid-state physics to discuss emerging frontiers in quantum transport, topological insulators, and candidate materials for room-temperature spintronics.
-
-### Key Topics Covered:
-- **Low-Temperature Magnetism**: Quantum phase transitions and non-equilibrium magnetic states.
-- **Topological Insulators**: Surface states, Berry curvature phenomena, and spin-orbit coupling.
-- **Spintronics & Quantum Devices**: Prospects of 2D van der Waals heterostructures in modern computing.
-
-The lecture will culminate with an open interactive research session where postgraduate students and research scholars can discuss active projects with the guest speakers.`,
-    agenda: [
-      '10:00 AM - Welcome Address by Head of Department',
-      '10:30 AM - Keynote Oration: Topological Insulators & Quantum Transport',
-      '11:45 AM - Interactive Q&A & Research Poster Showcase',
-      '12:30 PM - Felicitation & Concluding Remarks'
-    ],
-    applyLink: 'https://forms.gle/sample-event-registration-e1',
-    isFeatured: true,
-  },
-  'e2': {
-    id: 'e2',
-    title: 'Hands-On Workshop on FE-SEM & micro-Raman Spectroscopy',
-    category: 'Workshop',
-    date: '06 Jul 2026',
-    time: '09:30 AM - 04:30 PM',
-    venue: 'Central Instrumentation Facility (CIF), CUSAT',
-    image: '/innovation-microscope.png',
-    speaker: 'Dr. Anita Varghese',
-    speakerTitle: 'Chief Scientist, STIC CUSAT',
-    desc: 'A focused session on equipment slot bookings and instrumentation data analysis for regional researchers. Participants will receive hands-on training on sample preparation.',
-    fullDetails: `Designed specifically for Ph.D. scholars, faculty members, and M.Sc. dissertation students in physical, chemical, and materials sciences. 
-
-This intensive 1-day technical workshop covers advanced characterization techniques using **Field Emission Scanning Electron Microscopy (FE-SEM)** and high-resolution **micro-Raman spectroscopy**.
-
-### Learning Outcomes:
-- Hands-on sample preparation protocols for conductive and non-conductive specimens.
-- Secondary Electron (SE) vs Backscattered Electron (BSE) imaging optimization.
-- Laser wavelength selection and deconvoluting complex vibrational peaks in micro-Raman spectra.
-- Understanding slot booking protocols and STIC/CIF usage policies.`,
-    agenda: [
-      '09:30 AM - Fundamentals of Scanning Electron Optics',
-      '11:00 AM - Live Demonstration: Sample Mounting & Vacuum Coating',
-      '01:30 PM - Micro-Raman Laser Alignment & Peak Fitting Workshop',
-      '03:30 PM - Slot Allocation Protocols & Data Processing Lab'
-    ],
-    applyLink: 'https://forms.gle/sample-event-registration-e2',
-  },
-  'e3': {
-    id: 'e3',
-    title: 'National Seminar on Cosmology & Quantum Gravity (CQG-2026)',
-    category: 'Conference',
-    date: '30 Jun 2026',
-    time: '09:00 AM - 05:00 PM',
-    venue: 'Seminar Hall, Department of Physics',
-    image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80',
-    speaker: 'Prof. M. V. N. Murthy & Guest Panelists',
-    speakerTitle: 'Theoretical Physics Division, CUSAT',
-    desc: 'Presenting recent simulations and mathematical formulations on gravitational waves and cosmic expansions. Guest lectures will be delivered by eminent scientists.',
-    fullDetails: `CQG-2026 gathers theoretical physicists, astronomers, and computational astrophysicists across India to discuss the latest theoretical developments in cosmic expansion, primordial gravitational waves, and black hole thermodynamics.
-
-### Conference Highlights:
-- **Invited Talks**: Keynote addresses by leading theoretical physicists.
-- **Oral Presentations**: Selected peer-reviewed paper presentations by young scholars.
-- **Panel Discussion**: Resolving the Hubble tension and non-standard cosmological models.`,
-    agenda: [
-      '09:00 AM - Inauguration & Keynote Address',
-      '10:30 AM - Session I: Primordial Gravitational Waves',
-      '01:30 PM - Session II: Dark Energy & Cosmological Tensions',
-      '03:30 PM - Scholar Short Presentations & Valedictory Session'
-    ],
-    applyLink: 'https://forms.gle/sample-event-registration-e3',
-  },
-  'e4': {
-    id: 'e4',
-    title: 'Integrated M.Sc. Orientation & Interactive Session',
-    category: 'Orientation',
-    date: '12 Jul 2026',
-    time: '10:00 AM - 12:30 PM',
-    venue: 'Foyer & Main Auditorium, Department of Physics',
-    image: '/cusat-building.png',
-    speaker: 'Department Faculty Council',
-    speakerTitle: 'Academic Guidance & Mentorship Committee',
-    desc: 'An orientation ceremony welcoming the newly admitted students to the Integrated M.Sc. Physics program, including a campus tour and interaction with research scholars.',
-    fullDetails: `Welcoming the incoming batch of 5-Year Integrated M.Sc. Physics students for the academic year 2026-2027. 
-
-This orientation program provides freshers and their parents with comprehensive guidance on academic curricula, credit rules, laboratory facilities, library access, and campus safety protocols.`,
-    agenda: [
-      '10:00 AM - Introductory Remarks & Department Tour',
-      '11:00 AM - Mentorship Allocation & Curriculum Breakdown',
-      '11:45 AM - Student Club Showcase & Open Q&A'
-    ],
-    applyLink: 'https://forms.gle/sample-event-registration-e4',
-  },
-  'e5': {
-    id: 'e5',
-    title: 'Alumni Meet 2026: Physics Department Silver Jubilee',
-    category: 'Conference',
-    date: '05 Aug 2025',
-    time: '11:00 AM - 04:00 PM',
-    venue: 'Department Foyer & Seminar Hall',
-    image: '/phy_dept.png',
-    speaker: 'Alumni Executive Committee',
-    speakerTitle: 'CUSAT Physics Alumni Association',
-    desc: 'A grand alumni reunion celebrating the silver jubilee of the department. Alumni working in prestigious global institutions shared their journeys.',
-    fullDetails: `Reconnecting alumni from past decades! Featuring keynote sharing by distinguished alumni in academia, industry, and scientific research labs globally.`,
-    agenda: [
-      '11:00 AM - Inaugural Lamp Lighting & Welcome Speech',
-      '12:00 PM - Panel Discussion: Industry & Global Academia Trends',
-      '02:00 PM - Campus Walk & Department Reminiscence Session'
-    ],
-  }
-};
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -346,77 +215,66 @@ export default function EventDetailPage({ params }: PageProps) {
   const eventId = resolvedParams.id;
 
   const [liveEvent, setLiveEvent] = useState<EventItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    async function loadLiveEvent() {
-      try {
-        const res = await fetch(`/api/events/${eventId}`);
-        if (res.ok) {
-          const item = await res.json();
-          const d = new Date(item.date);
-          const dateStr = !isNaN(d.getTime()) 
-            ? d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
-            : 'Upcoming Date';
-          const timeStr = !isNaN(d.getTime()) 
-            ? d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
-            : '10:00 AM - 01:00 PM';
+    const controller = new AbortController();
 
-          setLiveEvent({
-            id: String(item.id),
-            title: item.title,
-            category: 'Seminar',
-            date: dateStr,
-            time: timeStr,
-            venue: item.venue || 'Department of Physics, CUSAT',
-            image: item.image || '/eventssss.jpg',
-            desc: item.description,
-            fullDetails: item.description,
-            applyLink: item.apply_link || undefined,
-            galleryImages: Array.isArray(item.images) ? item.images : [],
-          });
+    async function loadLiveEvent() {
+      setLoading(true);
+      setNotFound(false);
+      setLiveEvent(null);
+
+      try {
+        const res = await fetch(`/api/events/${eventId}`, {
+          cache: 'no-store',
+          signal: controller.signal,
+        });
+        if (!res.ok) {
+          setNotFound(true);
+          return;
         }
+
+        const item = await res.json();
+        const eventDate = new Date(item.date);
+        const hasValidDate = !Number.isNaN(eventDate.getTime());
+
+        setLiveEvent({
+          id: String(item.id),
+          title: typeof item.title === 'string' ? item.title : '',
+          date: hasValidDate
+            ? eventDate.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
+            : '',
+          time: hasValidDate
+            ? eventDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+            : '',
+          venue: typeof item.venue === 'string' ? item.venue : '',
+          image: typeof item.image === 'string' ? item.image : '',
+          desc: typeof item.description === 'string' ? item.description : '',
+          fullDetails: typeof item.description === 'string' ? item.description : '',
+          applyLink: typeof item.apply_link === 'string' ? item.apply_link : undefined,
+          galleryImages: Array.isArray(item.images) ? item.images : [],
+        });
       } catch (err) {
+        if (controller.signal.aborted) return;
         console.error('Error loading live event details:', err);
+        setNotFound(true);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
       }
     }
     loadLiveEvent();
+    return () => controller.abort();
   }, [eventId]);
-
-  // Retrieve event from dummy dataset or create fallback
-  const fallbackEvent = DUMMY_EVENTS[eventId] || {
-    id: eventId,
-    title: `Department Event (${eventId})`,
-    category: 'Seminar' as const,
-    date: 'Upcoming Date',
-    time: '10:00 AM - 01:00 PM',
-    venue: 'Department of Physics, CUSAT',
-    image: '/eventssss.jpg',
-    speaker: 'Guest Resource Person',
-    speakerTitle: 'Department of Physics, CUSAT',
-    desc: 'Detailed information regarding this specific event program, schedule, and registration details will be published here.',
-    fullDetails: `Welcome to the official event page for event **${eventId}**. 
-
-### About This Program
-This event is organized by the Department of Physics, Cochin University of Science and Technology (CUSAT). It brings together faculty, researchers, and students to explore key developments in physical sciences.
-
-For further information regarding schedule or venue arrangements, please contact the department office.`,
-    agenda: [
-      '10:00 AM - Program Commencement',
-      '11:30 AM - Key Session & Technical Presentation',
-      '12:30 PM - Interactive Q&A Session'
-    ],
-    applyLink: 'https://cusat.ac.in',
-  };
-
-  const event = liveEvent || fallbackEvent;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (lightboxIndex === null || !event.galleryImages || event.galleryImages.length === 0) return;
+      if (lightboxIndex === null || !liveEvent?.galleryImages || liveEvent.galleryImages.length === 0) return;
       if (e.key === 'ArrowLeft' && lightboxIndex > 0) {
         setLightboxIndex(lightboxIndex - 1);
-      } else if (e.key === 'ArrowRight' && lightboxIndex < event.galleryImages.length - 1) {
+      } else if (e.key === 'ArrowRight' && lightboxIndex < liveEvent.galleryImages.length - 1) {
         setLightboxIndex(lightboxIndex + 1);
       } else if (e.key === 'Escape') {
         setLightboxIndex(null);
@@ -424,17 +282,29 @@ For further information regarding schedule or venue arrangements, please contact
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [lightboxIndex, event.galleryImages]);
+  }, [lightboxIndex, liveEvent]);
 
-  const [copied, setCopied] = useState(false);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-oxford border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
-  const handleShare = () => {
-    if (typeof window !== 'undefined') {
-      navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2500);
-    }
-  };
+  if (notFound || !liveEvent) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-4 px-6 text-center">
+        <h1 className="text-3xl font-bold text-oxford">Event Not Found</h1>
+        <p className="text-slate-500">The requested event is not available.</p>
+        <Link href="/events" className="text-cyan-dark font-semibold hover:underline">
+          Back to Events
+        </Link>
+      </div>
+    );
+  }
+
+  const event = liveEvent;
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans pb-20">
@@ -444,7 +314,7 @@ For further information regarding schedule or venue arrangements, please contact
         title={event.title}
         badge="HOME > EVENTS"
         subtitle=""
-        bgImage={event.image || '/eventssss.jpg'}
+        bgImage={event.image}
         align="center"
       />
 
@@ -579,7 +449,7 @@ For further information regarding schedule or venue arrangements, please contact
                   Event Registration
                 </div>
                 <a
-                  href={event.applyLink}
+                  href={sanitizeWebUrl(event.applyLink, false) || '#'}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-oxford hover:bg-cyan-900 text-white font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all duration-300 group cursor-pointer"

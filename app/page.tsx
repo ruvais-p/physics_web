@@ -1,10 +1,85 @@
 import Link from 'next/link';
 import Hero from '@/components/Hero';
 import NotificationsTicker from '@/components/NotificationsTicker';
-import HomeEvents from '@/components/HomeEvents';
+import HomeEvents, { type HomeEventItem } from '@/components/HomeEvents';
 import JournalCard from '@/components/JournalCard';
-import { RESEARCH_LABS, PUBLICATIONS } from '@/lib/data';
+import { RESEARCH_LABS, type Publication } from '@/lib/data';
+import { prisma } from '@/lib/prisma';
 import { ChevronRight, ArrowRight } from 'lucide-react';
+
+export const dynamic = 'force-dynamic';
+
+async function getHomeEvents(): Promise<HomeEventItem[]> {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const select = {
+      id: true,
+      title: true,
+      description: true,
+      image: true,
+      date: true,
+      venue: true,
+      apply_link: true,
+    } as const;
+
+    const upcomingEvents = await prisma.event.findMany({
+      where: { date: { gte: today } },
+      select,
+      orderBy: { date: 'asc' },
+      take: 3,
+    });
+
+    const remainingSlots = 3 - upcomingEvents.length;
+    const pastEvents = remainingSlots > 0
+      ? await prisma.event.findMany({
+          where: { date: { lt: today } },
+          select,
+          orderBy: { date: 'desc' },
+          take: remainingSlots,
+        })
+      : [];
+
+    return [...upcomingEvents, ...pastEvents].map((event) => ({
+      ...event,
+      date: event.date.toISOString(),
+    }));
+  } catch (error) {
+    console.error('Failed to fetch home page events from the database:', error);
+    return [];
+  }
+}
+
+async function getHomePublications(): Promise<Publication[]> {
+  try {
+    const publications = await prisma.facultyPublication.findMany({
+      orderBy: [
+        { publicationDate: { sort: 'desc', nulls: 'last' } },
+        { createdAt: 'desc' },
+      ],
+      take: 4,
+    });
+
+    return publications.map((publication) => ({
+      id: publication.id,
+      title: publication.title,
+      authors: publication.authors
+        ? publication.authors.split(',').map((author) => author.trim()).filter(Boolean)
+        : [],
+      journal: publication.journal || '',
+      year: publication.publicationDate?.getFullYear() ?? publication.createdAt.getFullYear(),
+      volume: '',
+      doi: publication.doi || '',
+      citations: 0,
+      category: publication.category || '',
+      abstract: publication.description || '',
+    }));
+  } catch (error) {
+    console.error('Failed to fetch home page publications from the database:', error);
+    return [];
+  }
+}
 
 function LabCard({ lab, className = "h-64" }: { lab: typeof RESEARCH_LABS[0]; className?: string }) {
   const isLogo = lab.image === '/dop-logo.svg';
@@ -43,7 +118,12 @@ function LabCard({ lab, className = "h-64" }: { lab: typeof RESEARCH_LABS[0]; cl
   );
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [homeEvents, homePublications] = await Promise.all([
+    getHomeEvents(),
+    getHomePublications(),
+  ]);
+
   return (
     <div className="space-y-0 pb-0">
 
@@ -80,11 +160,11 @@ export default function HomePage() {
               Dive into world-class programs &amp; research
             </h3>
 
-            <p className="text-base sm:text-lg text-slate-700 leading-relaxed font-normal">
+            <p className="text-base sm:text-lg text-slate-700 leading-relaxed font-normal text-justify">
               Established in 1971, the Department of Physics, CUSAT has maintained the highest standards in postgraduate education and scientific research. Over the years, the Department has become the premier destination for students in Kerala and across India seeking advanced studies in Physics. Our postgraduates and researchers are consistently placed in top faculty, postdoctoral, and Ph.D. positions at world-renowned research centers across the globe.
             </p>
 
-            <p className="text-base sm:text-lg text-slate-700 leading-relaxed font-normal">
+            <p className="text-base sm:text-lg text-slate-700 leading-relaxed font-normal text-justify">
               Going forward, the Department envisions continuing its mission of providing quality advanced training in Physics through its M.Sc., Integrated M.Sc., and Ph.D. research programs, driving fundamental scientific breakthroughs in materials science, quantum technology, and photonics.
             </p>
           </div>
@@ -93,34 +173,36 @@ export default function HomePage() {
       </section>
 
       {/* Events Section */}
-      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-low/30 border-b border-surface-mid/30">
-        <div className="max-w-[1536px] mx-auto space-y-12">
+      {homeEvents.length > 0 && (
+        <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-low/30 border-b border-surface-mid/30">
+          <div className="max-w-[1536px] mx-auto space-y-12">
 
-          {/* Section Header */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-slate-200 pb-6">
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block">
-                Department Activities
-              </span>
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
-                UPCOMING &amp; FEATURED EVENTS
-              </h2>
+            {/* Section Header */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-slate-200 pb-6">
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block">
+                  Department Activities
+                </span>
+                <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
+                  UPCOMING &amp; FEATURED EVENTS
+                </h2>
+              </div>
+
+              <Link
+                href="/events"
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors self-start sm:self-auto shrink-0"
+              >
+                <span>View All Events</span>
+                <ChevronRight className="w-4 h-4" />
+              </Link>
             </div>
 
-            <Link
-              href="/events"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors self-start sm:self-auto shrink-0"
-            >
-              <span>View All Events</span>
-              <ChevronRight className="w-4 h-4" />
-            </Link>
+            {/* Dynamic Events Cards Grid Fetched Live from PostgreSQL DB */}
+            <HomeEvents events={homeEvents} />
+
           </div>
-
-          {/* Dynamic Events Cards Grid Fetched Live from PostgreSQL DB */}
-          <HomeEvents />
-
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Featured Research Laboratories */}
       <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-lowest border-y border-surface-low/60">
@@ -271,6 +353,7 @@ export default function HomePage() {
       </section>
 
       {/* Featured Publications Section */}
+      {homePublications.length > 0 && (
       <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-lowest border-t border-slate-200">
         <div className="max-w-[1536px] mx-auto space-y-10 sm:space-y-12">
 
@@ -296,7 +379,7 @@ export default function HomePage() {
 
           {/* Publications Cards Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
-            {PUBLICATIONS.slice(0, 4).map((pub) => (
+            {homePublications.slice(0, 4).map((pub) => (
               <JournalCard key={pub.id} publication={pub} />
             ))}
           </div>
@@ -315,6 +398,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      )}
 
 
 

@@ -39,68 +39,26 @@ export type Slide = {
   ctaLink?: string;
 };
 
-const DEFAULT_SLIDES: Slide[] = [
-  {
-    id: 'rnd',
-    tab: 'R & D',
-    badge: 'DEPARTMENT OF PHYSICS • CUSAT',
-    title: ['Quantum Frontiers &', 'Nanomaterials'],
-    subtitle: 'Pioneering research in magnetic nanocomposites, quantum transport, and 2D topological insulator heterostructures.',
-    image: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=1920&auto=format&fit=crop',
-    overlay: 'rgba(0, 0, 0, 0.55)',
-    titleColor: '#0284c7',
-    ctaText: 'Explore Laboratories',
-    ctaLink: '/research',
-  },
-  {
-    id: 'academics',
-    tab: 'Academics',
-    badge: 'DEPARTMENT OF PHYSICS • CUSAT',
-    title: ['Advanced Degree', 'Programs'],
-    subtitle: 'Choice-Based Credit System (CBCS) offering M.Sc., Ph.D., and 5-Year Integrated M.Sc. degree programs.',
-    image: '/faculty.png',
-    overlay: 'rgba(0, 0, 0, 0.55)',
-    titleColor: '#0284c7',
-    ctaText: 'View Degree Programs',
-    ctaLink: '/courses',
-  },
-  {
-    id: 'instrumentation',
-    tab: 'Instrumentation',
-    badge: 'DEPARTMENT OF PHYSICS • CUSAT',
-    title: ['World-Class', 'Central Facilities'],
-    subtitle: 'Equipped with FE-SEM, XRD Diffractometer, Confocal Raman Spectrometer, and VSM Magnetometers.',
-    image: '/phy_dept.png',
-    overlay: 'rgba(0, 0, 0, 0.55)',
-    titleColor: '#0284c7',
-    ctaText: 'Book Central Facilities',
-    ctaLink: '/facilities',
-  },
-  {
-    id: 'photonics',
-    tab: 'Photonics & Lasers',
-    badge: 'DEPARTMENT OF PHYSICS • CUSAT',
-    title: ['Optoelectronics &', 'Nonlinear Optics'],
-    subtitle: 'Laser-matter interactions, Z-scan optical limiting, and rare-earth doped photothermal sensors.',
-    image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1920&auto=format&fit=crop',
-    overlay: 'rgba(0, 0, 0, 0.55)',
-    titleColor: '#0284c7',
-    ctaText: 'Read Publications',
-    ctaLink: '/journals',
-  },
-  {
-    id: 'cosmology',
-    tab: 'Cosmology',
-    badge: 'DEPARTMENT OF PHYSICS • CUSAT',
-    title: ['Theoretical Physics &', 'Cosmology'],
-    subtitle: 'Modeling dark energy dynamics, entropic gravity, black hole thermodynamics, and FLRW expanding spacetimes.',
-    image: 'https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=1920&auto=format&fit=crop',
-    overlay: 'rgba(0, 0, 0, 0.55)',
-    titleColor: '#0284c7',
-    ctaText: 'Meet Our Faculty',
-    ctaLink: '/people',
-  },
-];
+interface CmsHeroSlide {
+  id: string | number;
+  title: string;
+  description: string;
+  image: string;
+  badge?: string;
+}
+
+function isCmsHeroSlide(value: unknown): value is CmsHeroSlide {
+  if (!value || typeof value !== 'object') return false;
+
+  const item = value as Record<string, unknown>;
+  return (
+    (typeof item.id === 'string' || typeof item.id === 'number') &&
+    typeof item.title === 'string' &&
+    typeof item.description === 'string' &&
+    typeof item.image === 'string' &&
+    (item.badge === undefined || typeof item.badge === 'string')
+  );
+}
 
 const SLIDE_DURATION_MS = 6000;
 
@@ -110,8 +68,6 @@ interface HeroProps {
   subtitle?: string;
   primaryCtaText?: string;
   primaryCtaLink?: string;
-  secondaryCtaText?: string;
-  secondaryCtaLink?: string;
   bgImage?: string;
   slides?: Slide[];
   align?: 'left' | 'center';
@@ -123,21 +79,28 @@ export default function Hero({
   subtitle,
   primaryCtaText,
   primaryCtaLink,
-  secondaryCtaText,
-  secondaryCtaLink,
   bgImage,
   slides,
   align = 'left',
 }: HeroProps) {
   const [dynamicSlides, setDynamicSlides] = useState<Slide[] | null>(null);
+  const isCustomHero = title !== undefined;
 
   useEffect(() => {
-    // Fetch live visible hero records from database
-    fetch('/api/public/hero')
+    if (isCustomHero) return;
+
+    const controller = new AbortController();
+
+    fetch('/api/public/hero', {
+      cache: 'no-store',
+      signal: controller.signal,
+    })
       .then((res) => (res.ok ? res.json() : []))
-      .then((data: any[]) => {
-        if (Array.isArray(data) && data.length > 0) {
-          const mapped: Slide[] = data.map((item, idx) => ({
+      .then((data: unknown) => {
+        const validSlides = Array.isArray(data) ? data.filter(isCmsHeroSlide) : [];
+
+        if (validSlides.length > 0) {
+          const mapped: Slide[] = validSlides.map((item, idx) => ({
             id: String(item.id),
             tab: `Slide ${idx + 1}`,
             badge: item.badge,
@@ -153,24 +116,27 @@ export default function Hero({
         }
       })
       .catch((err) => {
+        if (controller.signal.aborted) return;
         console.error('Failed to fetch public hero slides:', err);
         setDynamicSlides([]);
       });
-  }, []);
+
+    return () => controller.abort();
+  }, [isCustomHero]);
 
   // Determine active slides array
   const baseSlides = dynamicSlides && dynamicSlides.length > 0 ? dynamicSlides : (slides || []);
 
-  // If custom title is provided without custom slides array, render single header slide mode
-  const effectiveSlides: Slide[] = title
+  // An explicitly supplied title (including an empty DB value) selects custom mode.
+  const effectiveSlides: Slide[] = isCustomHero
     ? [
       {
         id: 'custom',
         tab: 'Overview',
         badge: badge,
-        title: [title],
+        title: [title ?? ''],
         subtitle: subtitle || '',
-        image: bgImage || 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=1920&auto=format&fit=crop',
+        image: bgImage ?? 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?q=80&w=1920&auto=format&fit=crop',
         overlay: 'rgba(0, 0, 0, 0.55)',
         titleColor: '#ffffff',
         ctaText: primaryCtaText,
@@ -226,14 +192,16 @@ export default function Hero({
             }}
             aria-hidden={i !== index}
           >
-            <Image
-              src={s.image}
-              alt={s.tab}
-              fill
-              priority={i === 0}
-              sizes="100vw"
-              className="object-cover object-center"
-            />
+            {s.image ? (
+              <Image
+                src={s.image}
+                alt={s.tab}
+                fill
+                priority={i === 0}
+                sizes="100vw"
+                className="object-cover object-center"
+              />
+            ) : null}
             {/* Color Overlay */}
             <div
               className="absolute inset-0 transition-colors duration-700"

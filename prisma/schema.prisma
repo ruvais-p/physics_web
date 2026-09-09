@@ -16,6 +16,15 @@ model Admin {
   updatedAt DateTime @updatedAt
 }
 
+model GeneralSettings {
+  id                         String   @id @default("general")
+  departmentEmail            String?
+  departmentEmailAppPassword String?  @db.Text
+  hodEmail                   String?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+}
+
 model Notification {
   id        String   @id @default(uuid())
   title     String
@@ -227,4 +236,4 @@ model CurriculumScheme {
   updatedAt DateTime @updatedAt
 
   @@index([courseId])
-}
+}

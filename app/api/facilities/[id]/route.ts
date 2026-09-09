@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
-import { verifyAdminToken, verifyFacultyToken, verifyAuthToken } from '@/lib/auth';
+import { getAdminSession } from '@/lib/api-auth';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
+import { sanitizeWebUrl } from '@/lib/url-security';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -15,24 +15,7 @@ async function ensureDirExists() {
 }
 
 async function verifyAnyUserToken() {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get('auth_token')?.value ||
-    cookieStore.get('admin_token')?.value ||
-    cookieStore.get('faculty_token')?.value;
-
-  if (!token) return null;
-
-  const authUser = await verifyAuthToken(token);
-  if (authUser) return authUser;
-
-  const admin = await verifyAdminToken(token);
-  if (admin) return { ...admin, role: 'admin' as const };
-
-  const faculty = await verifyFacultyToken(token);
-  if (faculty) return { ...faculty, role: 'faculty' as const };
-
-  return null;
+  return getAdminSession();
 }
 
 // GET /api/facilities/[id] (Public)
@@ -46,6 +29,7 @@ export async function GET(
       where: { id },
       include: {
         faculties: {
+          where: { isActive: true },
           select: {
             id: true,
             name: true,
@@ -74,7 +58,7 @@ export async function GET(
   }
 }
 
-// PUT /api/facilities/[id] (Admin/Faculty update)
+// PUT /api/facilities/[id] (Admin only)
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -104,7 +88,11 @@ export async function PUT(
     let newImagePath = existingFacility.image;
 
     if (imageUrlInput && imageUrlInput.trim() !== '') {
-      newImagePath = imageUrlInput.trim();
+      const safeImageUrl = sanitizeWebUrl(imageUrlInput);
+      if (!safeImageUrl) {
+        return NextResponse.json({ error: 'Image URL must use http, https, or a local path.' }, { status: 400 });
+      }
+      newImagePath = safeImageUrl;
     }
 
     if (imageFile && imageFile.size > 0) {
@@ -170,7 +158,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/facilities/[id] (Admin/Faculty delete)
+// DELETE /api/facilities/[id] (Admin only)
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }

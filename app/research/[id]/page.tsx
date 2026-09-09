@@ -17,7 +17,8 @@ import {
   FileText,
   CheckCircle2,
 } from 'lucide-react';
-import { RESEARCH_LABS, FACULTY_MEMBERS, FacultyMember } from '@/lib/data';
+import type { FacultyMember } from '@/lib/data';
+import { sanitizeWebUrl } from '@/lib/url-security';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -164,7 +165,7 @@ function parseInlineMarkdown(text: string): React.ReactNode {
       const [, before, label, url, after] = linkMatch;
       if (before) parts.push(parseFormatting(before, keyIdx++));
       parts.push(
-        <a key={keyIdx++} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-accent hover:underline font-semibold inline-flex items-center gap-0.5">
+        <a key={keyIdx++} href={sanitizeWebUrl(url) || '#'} target="_blank" rel="noopener noreferrer" className="text-cyan-accent hover:underline font-semibold inline-flex items-center gap-0.5">
           <span>{label}</span>
           <ExternalLink className="w-3.5 h-3.5 opacity-80" />
         </a>
@@ -228,24 +229,6 @@ export default function ResearchLabDetailPage({ params }: PageProps) {
         console.error('Failed to fetch research lab details:', err);
       }
 
-      // Static fallback
-      const staticLab = RESEARCH_LABS.find((l) => l.id === id);
-      if (staticLab) {
-        setLab({
-          id: staticLab.id,
-          name: staticLab.name,
-          category: staticLab.category,
-          description: staticLab.description,
-          image: staticLab.image,
-          faculties: FACULTY_MEMBERS.slice(0, 3).map((f) => ({
-            id: f.id,
-            name: f.name,
-            email: f.email,
-            designation: f.designation,
-            image: f.image,
-          })),
-        });
-      }
       setLoading(false);
     }
 
@@ -456,4 +439,3 @@ export default function ResearchLabDetailPage({ params }: PageProps) {
     </div>
   );
 }
-

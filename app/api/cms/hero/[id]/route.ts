@@ -1,26 +1,15 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyAuthToken } from '@/lib/auth';
-import { cookies } from 'next/headers';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get('auth_token')?.value ||
-    cookieStore.get('admin_token')?.value ||
-    cookieStore.get('faculty_token')?.value;
-
-  if (!token) return null;
-  return verifyAuthToken(token);
-}
+import { getAdminSession } from '@/lib/api-auth';
+import { sanitizeWebUrl } from '@/lib/url-security';
 
 // PUT update hero slide
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await checkAuth();
+  const user = await getAdminSession();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -68,14 +57,14 @@ export async function PUT(
         );
         imagePath = relativePath;
       } else if (imageUrlInput) {
-        imagePath = imageUrlInput;
+        imagePath = sanitizeWebUrl(imageUrlInput) || '';
       }
     } else {
       const body = await request.json();
       if (body.title !== undefined) title = (body.title || '').trim();
       if (body.description !== undefined) description = (body.description || '').trim();
       if (body.is_visible !== undefined) is_visible = Boolean(body.is_visible);
-      if (body.image !== undefined && body.image.trim()) imagePath = body.image.trim();
+      if (body.image !== undefined && body.image.trim()) imagePath = sanitizeWebUrl(body.image) || imagePath;
     }
 
     if (!title) {
@@ -116,7 +105,7 @@ export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const user = await checkAuth();
+  const user = await getAdminSession();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

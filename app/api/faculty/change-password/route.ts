@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
-import { verifyFacultyToken, verifyPassword, hashPassword } from '@/lib/auth';
+import { verifyFacultyToken, verifyPassword, hashPassword, signFacultyToken } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -20,9 +20,9 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { currentPassword, newPassword, confirmPassword } = body;
 
-    if (!newPassword || newPassword.length < 6) {
+    if (typeof newPassword !== 'string' || newPassword.length < 12 || newPassword.length > 128) {
       return NextResponse.json(
-        { error: 'New password must be at least 6 characters long.' },
+        { error: 'New password must be between 12 and 128 characters.' },
         { status: 400 }
       );
     }
@@ -43,21 +43,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Faculty account not found.' }, { status: 404 });
     }
 
-    // If currentPassword provided, verify it
-    if (currentPassword) {
-      const isMatch = await verifyPassword(currentPassword, faculty.password);
-      if (!isMatch) {
-        return NextResponse.json(
-          { error: 'Current predefined password is incorrect.' },
-          { status: 400 }
-        );
-      }
+    if (typeof currentPassword !== 'string' || !(await verifyPassword(currentPassword, faculty.password))) {
+      return NextResponse.json(
+        { error: 'Current password is incorrect.' },
+        { status: 400 }
+      );
     }
 
     // Hash new password and set mustChangePassword = false
     const newHashedPassword = await hashPassword(newPassword);
 
-    await prisma.faculty.update({
+    const updatedFaculty = await prisma.faculty.update({
       where: { id: payload.id },
       data: {
         password: newHashedPassword,
@@ -65,10 +61,26 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({
+    const newToken = await signFacultyToken({
+      id: updatedFaculty.id,
+      email: updatedFaculty.email,
+      name: updatedFaculty.name,
+    }, updatedFaculty.password);
+
+    const response = NextResponse.json({
       success: true,
       message: 'Password updated successfully!',
     });
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' as const,
+      maxAge: 60 * 60 * 24,
+      path: '/',
+    };
+    response.cookies.set('auth_token', newToken, cookieOptions);
+    response.cookies.set('faculty_token', newToken, cookieOptions);
+    return response;
   } catch (error) {
     console.error('Change password error:', error);
     return NextResponse.json(

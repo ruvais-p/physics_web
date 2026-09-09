@@ -39,7 +39,7 @@ export default function PublicationsTable({
           </thead>
           <tbody className="divide-y divide-slate-100 text-sm">
             {publications.map((pub, index) => {
-              const authorsText = pub.authors ? pub.authors.join(', ') : 'Department Researchers';
+              const authorsText = pub.authors?.join(', ') || '';
               const doiUrl = pub.doi
                 ? pub.doi.startsWith('http')
                   ? pub.doi
@@ -73,9 +73,11 @@ export default function PublicationsTable({
                           {pub.title}
                         </span>
                       )}
-                      <p className="text-xs text-slate-500 font-medium line-clamp-1">
-                        {authorsText}
-                      </p>
+                      {authorsText && (
+                        <p className="text-xs text-slate-500 font-medium line-clamp-1">
+                          {authorsText}
+                        </p>
+                      )}
                     </div>
                   </td>
 

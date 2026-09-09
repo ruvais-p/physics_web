@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sanitizeWebUrl } from '@/lib/url-security';
 
 // GET /api/public/faculty/[id] - Fetch single faculty member or scholar
 export async function GET(
@@ -10,8 +11,8 @@ export async function GET(
     const { id } = await params;
 
     // 1. Try finding Faculty by ID
-    const faculty = await prisma.faculty.findUnique({
-      where: { id },
+    const faculty = await prisma.faculty.findFirst({
+      where: { id, isActive: true },
       include: {
         profile: true,
         documents: true,
@@ -83,7 +84,7 @@ export async function GET(
           startDate: p.startDate ? p.startDate.toISOString().slice(0, 10) : null,
           endDate: p.endDate ? p.endDate.toISOString().slice(0, 10) : null,
           status: isOngoing ? 'Ongoing' : 'Completed',
-          externalLink: p.externalLink,
+          externalLink: sanitizeWebUrl(p.externalLink, false),
           otherFaculty: p.otherFaculty,
           isCoFaculty: false,
         };
@@ -114,7 +115,7 @@ export async function GET(
           startDate: p.startDate ? p.startDate.toISOString().slice(0, 10) : null,
           endDate: p.endDate ? p.endDate.toISOString().slice(0, 10) : null,
           status: isOngoing ? 'Ongoing' : 'Completed',
-          externalLink: p.externalLink,
+          externalLink: sanitizeWebUrl(p.externalLink, false),
           otherFaculty: `PI: ${p.faculty.name}${p.otherFaculty ? `, ${p.otherFaculty}` : ''}`,
           isCoFaculty: true,
         };
@@ -131,7 +132,7 @@ export async function GET(
         room: 'Department Building',
         bio: faculty.descriptionRecord?.description || faculty.bio || 'Faculty member in the Department of Physics.',
         image: faculty.documents?.image || '/faculty.png',
-        cvUrl: faculty.documents?.cv || null,
+        cvUrl: sanitizeWebUrl(faculty.documents?.cv) || null,
         socialLinks,
         customProfiles,
         type: 'faculty' as const,
@@ -155,7 +156,7 @@ export async function GET(
           authors: pub.authors,
           publicationDate: pub.publicationDate ? pub.publicationDate.toISOString().slice(0, 10) : null,
           year: pub.publicationDate ? new Date(pub.publicationDate).getFullYear() : null,
-          externalLink: pub.externalLink,
+          externalLink: sanitizeWebUrl(pub.externalLink, false),
           doi: pub.doi,
           category: pub.category || 'Journal Article',
           description: pub.description,
@@ -164,8 +165,8 @@ export async function GET(
     }
 
     // 2. Try finding Guided Student by UID
-    const student = await prisma.facultyStudent.findUnique({
-      where: { uid: id },
+    const student = await prisma.facultyStudent.findFirst({
+      where: { uid: id, faculty: { isActive: true } },
       include: { faculty: true },
     });
 

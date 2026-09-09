@@ -1,23 +1,12 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyAuthToken } from '@/lib/auth';
-import { cookies } from 'next/headers';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get('auth_token')?.value ||
-    cookieStore.get('admin_token')?.value ||
-    cookieStore.get('faculty_token')?.value;
-
-  if (!token) return null;
-  return verifyAuthToken(token);
-}
+import { getAdminSession } from '@/lib/api-auth';
+import { sanitizeWebUrl } from '@/lib/url-security';
 
 // GET all hero items (CMS Panel)
 export async function GET() {
-  const user = await checkAuth();
+  const user = await getAdminSession();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -42,7 +31,7 @@ export async function GET() {
 
 // POST create new hero slide (Max 10 records, title <= 80, description <= 200)
 export async function POST(request: Request) {
-  const user = await checkAuth();
+  const user = await getAdminSession();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -83,14 +72,14 @@ export async function POST(request: Request) {
         );
         imagePath = relativePath;
       } else if (imageUrlInput) {
-        imagePath = imageUrlInput;
+        imagePath = sanitizeWebUrl(imageUrlInput) || '';
       }
     } else {
       const body = await request.json();
       title = (body.title || '').trim();
       description = (body.description || '').trim();
       is_visible = body.is_visible !== false;
-      imagePath = (body.image || '').trim();
+      imagePath = sanitizeWebUrl(body.image) || '';
     }
 
     if (!title) {

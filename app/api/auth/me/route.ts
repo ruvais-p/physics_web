@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
-
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'physics_dept_super_secret_jwt_key_2026_cusat'
-);
+import { verifyAuthToken } from '@/lib/auth';
 
 export async function GET() {
   try {
@@ -19,17 +15,17 @@ export async function GET() {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(token, JWT_SECRET);
+    const payload = await verifyAuthToken(token);
 
-    if (!payload || !payload.role) {
+    if (!payload) {
       return NextResponse.json({ error: 'Invalid session token' }, { status: 401 });
     }
 
-    const role = payload.role as 'admin' | 'faculty';
+    const role = payload.role;
 
     if (role === 'admin') {
       const admin = await prisma.admin.findUnique({
-        where: { id: payload.id as string },
+        where: { id: payload.id },
         select: { id: true, email: true, name: true },
       });
 
@@ -50,7 +46,7 @@ export async function GET() {
 
     if (role === 'faculty') {
       const faculty = await prisma.faculty.findUnique({
-        where: { id: payload.id as string },
+        where: { id: payload.id },
         select: {
           id: true,
           email: true,

@@ -5,12 +5,12 @@ async function getSharpPipeline(inputBuffer: Buffer) {
   try {
     const sharpMod = await import('sharp');
     const sharp = sharpMod.default || sharpMod;
-    return sharp(inputBuffer, { failOn: 'none' });
+    return sharp(inputBuffer, { failOn: 'error', limitInputPixels: 40_000_000 });
   } catch {
     // Fallback for CommonJS runtime
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const sharp = require('sharp');
-    return sharp(inputBuffer, { failOn: 'none' });
+    return sharp(inputBuffer, { failOn: 'error', limitInputPixels: 40_000_000 });
   }
 }
 
@@ -79,6 +79,9 @@ export async function convertToWebpBuffer(
   let inputBuffer: Buffer;
 
   if (typeof (input as File)?.arrayBuffer === 'function') {
+    if ((input as File).size > 10 * 1024 * 1024) {
+      throw new Error('Image size exceeds the 10 MB upload limit.');
+    }
     const ab = await (input as File).arrayBuffer();
     inputBuffer = Buffer.from(ab);
   } else if (input instanceof ArrayBuffer) {
@@ -131,8 +134,13 @@ export async function saveImageAsWebp(
 }> {
   // Ensure target directory exists
   const resolvedTargetDir = path.isAbsolute(targetDir)
-    ? targetDir
-    : path.join(process.cwd(), targetDir);
+    ? path.resolve(targetDir)
+    : path.resolve(process.cwd(), targetDir);
+  const uploadsRoot = path.resolve(process.cwd(), 'public', 'uploads');
+
+  if (resolvedTargetDir !== uploadsRoot && !resolvedTargetDir.startsWith(`${uploadsRoot}${path.sep}`)) {
+    throw new Error('Image target must be inside public/uploads.');
+  }
 
   await fs.mkdir(resolvedTargetDir, { recursive: true });
 

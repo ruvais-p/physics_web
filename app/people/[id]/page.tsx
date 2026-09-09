@@ -3,9 +3,10 @@
 import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FACULTY_MEMBERS, SCHOLARS, FacultyMember, Scholar } from '@/lib/data';
 import FacultyCard from '@/components/FacultyCard';
 import { Mail, Phone, MapPin, BookOpen, ExternalLink, Download, User } from 'lucide-react';
+import { sanitizeWebUrl } from '@/lib/url-security';
+import type { Scholar } from '@/lib/data';
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -124,7 +125,7 @@ function parseInlineMarkdown(text: string): React.ReactNode {
       const [, before, label, url, after] = linkMatch;
       if (before) parts.push(parseFormatting(before, keyIdx++));
       parts.push(
-        <a key={keyIdx++} href={url} target="_blank" rel="noopener noreferrer" className="text-cyan-dark hover:underline font-medium inline-flex items-center gap-0.5 text-base">
+        <a key={keyIdx++} href={sanitizeWebUrl(url) || '#'} target="_blank" rel="noopener noreferrer" className="text-cyan-dark hover:underline font-medium inline-flex items-center gap-0.5 text-base">
           <span>{label}</span>
           <ExternalLink className="w-3.5 h-3.5 opacity-70" />
         </a>
@@ -192,24 +193,11 @@ export default function ProfilePage({ params }: PageProps) {
             setPerson(data);
           }
         } else {
-          // Fallback to static data (faculty only)
-          const fStatic = FACULTY_MEMBERS.find((f) => f.id === id);
-
-          if (fStatic) {
-            setPerson(fStatic);
-          } else {
-            setNotFoundState(true);
-          }
+          setNotFoundState(true);
         }
       } catch (err) {
         console.error('Failed to load profile details:', err);
-        const fStatic = FACULTY_MEMBERS.find((f) => f.id === id);
-
-        if (fStatic) {
-          setPerson(fStatic);
-        } else {
-          setNotFoundState(true);
-        }
+        setNotFoundState(true);
       } finally {
         setLoading(false);
       }
@@ -241,38 +229,7 @@ export default function ProfilePage({ params }: PageProps) {
 
   const isFaculty = person.type === 'faculty';
   const supervisedScholars = isFaculty ? person.students || [] : [];
-  const facultyProjects = isFaculty ? person.projects || [
-    {
-      id: 'p1',
-      title: 'Development of Advanced Functional Materials for Energy Harvesting & Optoelectronics',
-      agency: 'DST-SERB',
-      role: 'Principal Investigator',
-      duration: '2023 – 2026',
-      amount: '₹48.50 Lakhs',
-      status: 'Ongoing',
-      description: 'Design and synthesis of novel oxide nanocomposites and 2D materials for high-efficiency solar cells and thermoelectric devices.',
-    },
-    {
-      id: 'p2',
-      title: 'Spectroscopic and Quantum Transport Investigation of Metamaterial Systems',
-      agency: 'CSIR',
-      role: 'Principal Investigator',
-      duration: '2021 – 2024',
-      amount: '₹32.00 Lakhs',
-      status: 'Ongoing',
-      description: 'Experimental study of nonlinear optical phenomena and electronic transport anomalies in topological insulators.',
-    },
-    {
-      id: 'p3',
-      title: 'Synthesis and Characterization of Conducting Polymer Multiferroic Hybrids',
-      agency: 'UGC-DAE CSR',
-      role: 'Co-Principal Investigator',
-      duration: '2019 – 2022',
-      amount: '₹24.00 Lakhs',
-      status: 'Completed',
-      description: 'Investigation of magnetoelectric coupling in flexible polymer-ceramic composite thin films.',
-    },
-  ] : [];
+  const facultyProjects = isFaculty ? person.projects || [] : [];
   const facultyPublications = isFaculty ? person.publications || [] : [];
 
   return (
@@ -355,7 +312,7 @@ export default function ProfilePage({ params }: PageProps) {
                 <p className="pt-2">
                   <strong className="text-oxford font-bold">Curriculum Vitae:</strong>{' '}
                   <a
-                    href={person.cvUrl}
+                    href={sanitizeWebUrl(person.cvUrl) || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-cyan-dark hover:text-cyan-accent underline font-bold"
@@ -372,7 +329,7 @@ export default function ProfilePage({ params }: PageProps) {
               <div className="pt-4 flex flex-wrap gap-2.5">
                 {person.socialLinks?.scholar && (
                   <a
-                    href={person.socialLinks.scholar}
+                    href={sanitizeWebUrl(person.socialLinks.scholar, false) || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-600 transition-all shadow-sm"
@@ -383,7 +340,7 @@ export default function ProfilePage({ params }: PageProps) {
                 )}
                 {person.socialLinks?.scopus && (
                   <a
-                    href={person.socialLinks.scopus}
+                    href={sanitizeWebUrl(person.socialLinks.scopus, false) || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-600 transition-all shadow-sm"
@@ -394,7 +351,7 @@ export default function ProfilePage({ params }: PageProps) {
                 )}
                 {person.socialLinks?.orcid && (
                   <a
-                    href={person.socialLinks.orcid}
+                    href={sanitizeWebUrl(person.socialLinks.orcid, false) || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-600 transition-all shadow-sm"
@@ -405,7 +362,7 @@ export default function ProfilePage({ params }: PageProps) {
                 )}
                 {person.socialLinks?.linkedin && (
                   <a
-                    href={person.socialLinks.linkedin}
+                    href={sanitizeWebUrl(person.socialLinks.linkedin, false) || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-600 transition-all shadow-sm"
@@ -416,7 +373,7 @@ export default function ProfilePage({ params }: PageProps) {
                 )}
                 {person.socialLinks?.website && (
                   <a
-                    href={person.socialLinks.website}
+                    href={sanitizeWebUrl(person.socialLinks.website, false) || '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-600 transition-all shadow-sm"
@@ -429,7 +386,7 @@ export default function ProfilePage({ params }: PageProps) {
                   person.customProfiles.map((cp: any, idx: number) => (
                     <a
                       key={idx}
-                      href={cp.url}
+                      href={sanitizeWebUrl(cp.url, false) || '#'}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold px-4 py-2 rounded-xl border border-blue-600 transition-all shadow-sm"
@@ -581,7 +538,7 @@ export default function ProfilePage({ params }: PageProps) {
                               {proj.externalLink && (
                                 <div>
                                   <a
-                                    href={proj.externalLink}
+                                    href={sanitizeWebUrl(proj.externalLink, false) || '#'}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:underline"
@@ -694,7 +651,7 @@ export default function ProfilePage({ params }: PageProps) {
                               {pub.externalLink && (
                                 <div>
                                   <a
-                                    href={pub.externalLink}
+                                    href={sanitizeWebUrl(pub.externalLink, false) || '#'}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all shadow-xs"

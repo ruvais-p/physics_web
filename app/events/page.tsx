@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import Hero from '@/components/Hero';
 import { 
@@ -10,12 +9,12 @@ import {
   MapPin, 
   User, 
   X, 
-  Sparkles, 
   CheckCircle2, 
-  BookOpen, 
   Info,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   ArrowUpRight,
   ArrowLeft,
   ArrowRight
@@ -38,7 +37,19 @@ interface EventItem {
   fullDetails?: string;
   agenda?: string[];
   isFeatured?: boolean;
+  timestamp?: number;
 }
+
+interface DatabaseEvent {
+  id: number;
+  title: string;
+  description: string;
+  image: string;
+  date: string;
+  venue?: string | null;
+}
+
+const EVENTS_PER_PAGE = 3;
 
 const CURRENT_EVENTS: EventItem[] = [
   {
@@ -197,10 +208,63 @@ const PAST_EVENTS: EventItem[] = [
   },
 ];
 
+function EventGridCard({ item }: { item: EventItem }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const description = item.desc.trim();
+  const hasLongDescription = description.length > 200;
+  const displayedDescription = hasLongDescription && !isExpanded
+    ? `${description.slice(0, 200).trimEnd()}…`
+    : description;
+
+  return (
+    <article className="space-y-3 group">
+      <Link href={`/events/${item.id}`} className="block">
+        <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-slate-900 shadow-sm border border-slate-100">
+          <img
+            src={item.image}
+            alt={item.title}
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+          />
+        </div>
+      </Link>
+
+      <div className="space-y-1.5">
+        <div className="text-xs font-bold text-cyan-accent uppercase tracking-wider font-sans">
+          {item.date}
+        </div>
+        <Link href={`/events/${item.id}`} className="block">
+          <h3 className="font-sans text-lg sm:text-xl font-bold text-oxford leading-snug group-hover:text-cyan-accent transition-colors">
+            {item.title}
+          </h3>
+        </Link>
+        <p className="text-slate-600 text-xs sm:text-sm leading-relaxed font-sans">
+          {displayedDescription}
+        </p>
+
+        {hasLongDescription && (
+          <button
+            type="button"
+            onClick={() => setIsExpanded((current) => !current)}
+            className="inline-flex items-center gap-1 text-xs font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors pt-1 cursor-pointer"
+            aria-expanded={isExpanded}
+          >
+            <span>{isExpanded ? 'Show Less' : 'Read More'}</span>
+            {isExpanded ? (
+              <ChevronUp className="w-3.5 h-3.5" />
+            ) : (
+              <ChevronDown className="w-3.5 h-3.5" />
+            )}
+          </button>
+        )}
+      </div>
+    </article>
+  );
+}
+
 export default function EventsPage() {
   const [dbEvents, setDbEvents] = useState<EventItem[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<number>(0);
+  const [upcomingPageIndex, setUpcomingPageIndex] = useState<number>(0);
   const [pastPageIndex, setPastPageIndex] = useState<number>(0);
   const [activeModalEvent, setActiveModalEvent] = useState<EventItem | null>(null);
 
@@ -209,9 +273,9 @@ export default function EventsPage() {
       try {
         const res = await fetch('/api/events');
         if (res.ok) {
-          const data = await res.json();
+          const data: DatabaseEvent[] = await res.json();
           if (Array.isArray(data) && data.length > 0) {
-            const formatted: EventItem[] = data.map((item: any) => {
+            const formatted: EventItem[] = data.map((item) => {
               const d = new Date(item.date);
               const dateStr = !isNaN(d.getTime()) 
                 ? d.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
@@ -229,6 +293,7 @@ export default function EventsPage() {
                 image: item.image || '/eventssss.jpg',
                 desc: item.description,
                 fullDetails: item.description,
+                timestamp: d.getTime(),
               };
             });
             setDbEvents(formatted);
@@ -236,15 +301,38 @@ export default function EventsPage() {
         }
       } catch (err) {
         console.error('Failed to fetch public events:', err);
-      } finally {
-        setLoading(false);
       }
     }
     loadEvents();
   }, []);
 
-  const displayCurrentEvents = dbEvents.length > 0 ? dbEvents : CURRENT_EVENTS;
-  const displayPastEvents = dbEvents.length > 3 ? dbEvents.slice(3) : PAST_EVENTS;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const displayUpcomingEvents = dbEvents.length > 0
+    ? dbEvents
+        .filter((event) => (event.timestamp ?? 0) >= today.getTime())
+        .sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0))
+    : CURRENT_EVENTS;
+  const displayPastEvents = dbEvents.length > 0
+    ? dbEvents
+        .filter((event) => (event.timestamp ?? 0) < today.getTime())
+        .sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0))
+    : PAST_EVENTS;
+  const displayCurrentEvents = displayUpcomingEvents.length > 0
+    ? displayUpcomingEvents
+    : displayPastEvents;
+
+  const upcomingPageCount = Math.ceil(displayUpcomingEvents.length / EVENTS_PER_PAGE);
+  const pastPageCount = Math.ceil(displayPastEvents.length / EVENTS_PER_PAGE);
+  const visibleUpcomingEvents = displayUpcomingEvents.slice(
+    upcomingPageIndex * EVENTS_PER_PAGE,
+    (upcomingPageIndex + 1) * EVENTS_PER_PAGE
+  );
+  const visiblePastEvents = displayPastEvents.slice(
+    pastPageIndex * EVENTS_PER_PAGE,
+    (pastPageIndex + 1) * EVENTS_PER_PAGE
+  );
 
   const activeCurrentEvent = displayCurrentEvents[activeTab] || displayCurrentEvents[0];
 
@@ -283,7 +371,7 @@ export default function EventsPage() {
             {/* Carousel Slider Arrows */}
             <button
               type="button"
-              onClick={() => setActiveTab((prev) => (prev > 0 ? prev - 1 : CURRENT_EVENTS.length - 1))}
+              onClick={() => setActiveTab((prev) => (prev > 0 ? prev - 1 : displayCurrentEvents.length - 1))}
               className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-cyan-accent hover:text-oxford text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all z-20"
               aria-label="Previous Event"
             >
@@ -292,7 +380,7 @@ export default function EventsPage() {
 
             <button
               type="button"
-              onClick={() => setActiveTab((prev) => (prev < CURRENT_EVENTS.length - 1 ? prev + 1 : 0))}
+              onClick={() => setActiveTab((prev) => (prev < displayCurrentEvents.length - 1 ? prev + 1 : 0))}
               className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-cyan-accent hover:text-oxford text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all z-20"
               aria-label="Next Event"
             >
@@ -344,77 +432,92 @@ export default function EventsPage() {
           </div>
         </div>
 
-
         {/* ------------------------------------------------------------- */}
-        {/* 2. BOTTOM SECTION: PAST EVENTS (WITH BLUE CIRCULAR ARROWS)    */}
+        {/* 2. UPCOMING EVENTS                                             */}
         {/* ------------------------------------------------------------- */}
-        <div className="space-y-6 pt-4">
-          {/* Section Header with Blue Circular Navigation Arrows */}
-          <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-            <h2 className="font-serif text-3xl sm:text-4xl font-extrabold text-oxford">
-              Past Events
-            </h2>
+        {displayUpcomingEvents.length > 0 && (
+          <div className="space-y-6 pt-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h2 className="font-serif text-3xl sm:text-4xl font-extrabold text-oxford">
+                Upcoming Events
+              </h2>
 
-            {/* Circular Blue Navigation Arrow Buttons (Matching User Diagram) */}
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setPastPageIndex((prev) => (prev > 0 ? prev - 1 : Math.max(0, Math.ceil(displayPastEvents.length / 3) - 1)))}
-                className="w-10 h-10 rounded-full border border-oxford text-oxford hover:bg-oxford hover:text-white transition-all flex items-center justify-center shadow-sm"
-                aria-label="Previous Past Events"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setPastPageIndex((prev) => (prev < Math.ceil(displayPastEvents.length / 3) - 1 ? prev + 1 : 0))}
-                className="w-10 h-10 rounded-full border border-oxford text-oxford hover:bg-oxford hover:text-white transition-all flex items-center justify-center shadow-sm"
-                aria-label="Next Past Events"
-              >
-                <ArrowRight className="w-5 h-5" />
-              </button>
+              {upcomingPageCount > 1 && (
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setUpcomingPageIndex((prev) => (
+                      prev > 0 ? prev - 1 : upcomingPageCount - 1
+                    ))}
+                    className="w-10 h-10 rounded-full border border-oxford text-oxford hover:bg-oxford hover:text-white transition-all flex items-center justify-center shadow-sm"
+                    aria-label="Previous Upcoming Events"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUpcomingPageIndex((prev) => (
+                      prev < upcomingPageCount - 1 ? prev + 1 : 0
+                    ))}
+                    className="w-10 h-10 rounded-full border border-oxford text-oxford hover:bg-oxford hover:text-white transition-all flex items-center justify-center shadow-sm"
+                    aria-label="Next Upcoming Events"
+                  >
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {visibleUpcomingEvents.map((item) => (
+                <EventGridCard key={item.id} item={item} />
+              ))}
             </div>
           </div>
+        )}
 
-          {/* 3 Column Grid for Past Events */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {displayPastEvents.map((item) => (
-              <Link 
-                key={item.id}
-                id={item.id}
-                href={`/events/${item.id}`}
-                className="space-y-3 cursor-pointer group block"
-              >
-                {/* Event Image Block (Rounded corners) */}
-                <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-slate-900 shadow-sm border border-slate-100">
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
+
+        {/* ------------------------------------------------------------- */}
+        {/* 3. BOTTOM SECTION: PAST EVENTS (WITH BLUE CIRCULAR ARROWS)    */}
+        {/* ------------------------------------------------------------- */}
+        {displayPastEvents.length > 0 && (
+          <div className="space-y-6 pt-4">
+            {/* Section Header with Blue Circular Navigation Arrows */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h2 className="font-serif text-3xl sm:text-4xl font-extrabold text-oxford">
+                Past Events
+              </h2>
+
+              {pastPageCount > 1 && (
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setPastPageIndex((prev) => (prev > 0 ? prev - 1 : pastPageCount - 1))}
+                    className="w-10 h-10 rounded-full border border-oxford text-oxford hover:bg-oxford hover:text-white transition-all flex items-center justify-center shadow-sm"
+                    aria-label="Previous Past Events"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPastPageIndex((prev) => (prev < pastPageCount - 1 ? prev + 1 : 0))}
+                    className="w-10 h-10 rounded-full border border-oxford text-oxford hover:bg-oxford hover:text-white transition-all flex items-center justify-center shadow-sm"
+                    aria-label="Next Past Events"
+                  >
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
                 </div>
+              )}
+            </div>
 
-                {/* Content below image */}
-                <div className="space-y-1.5">
-                  {/* Date below image */}
-                  <div className="text-xs font-bold text-cyan-accent uppercase tracking-wider font-sans">
-                    {item.date}
-                  </div>
-
-                  {/* Event Name */}
-                  <h3 className="font-sans text-lg sm:text-xl font-bold text-oxford leading-snug group-hover:text-cyan-accent transition-colors">
-                    {item.title}
-                  </h3>
-
-                  {/* Event description text ("event was conducted as such...") */}
-                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed font-sans">
-                    {item.desc}
-                  </p>
-                </div>
-              </Link>
-            ))}
+            {/* 3 Column Grid for Past Events */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {visiblePastEvents.map((item) => (
+                <EventGridCard key={item.id} item={item} />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
       </section>
 

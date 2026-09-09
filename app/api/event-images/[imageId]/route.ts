@@ -1,21 +1,9 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyAuthToken } from '@/lib/auth';
-import { cookies } from 'next/headers';
-import { unlink } from 'fs/promises';
-import path from 'path';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
-
-async function checkAuth() {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get('auth_token')?.value ||
-    cookieStore.get('admin_token')?.value ||
-    cookieStore.get('faculty_token')?.value;
-
-  if (!token) return null;
-  return verifyAuthToken(token);
-}
+import { getAdminSession } from '@/lib/api-auth';
+import { deleteUploadedFile } from '@/lib/file-security';
+import { sanitizeWebUrl } from '@/lib/url-security';
 
 interface Params {
   params: Promise<{ imageId: string }>;
@@ -23,9 +11,9 @@ interface Params {
 
 // PUT /api/event-images/[imageId] - Replace existing gallery image
 export async function PUT(request: Request, { params }: Params) {
-  const user = await checkAuth();
+  const user = await getAdminSession();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized. Admin or Faculty session required.' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
   }
 
   try {
@@ -69,12 +57,12 @@ export async function PUT(request: Request, { params }: Params) {
         );
         newImagePath = relativePath;
       } else if (imageUrlInput) {
-        newImagePath = imageUrlInput;
+        newImagePath = sanitizeWebUrl(imageUrlInput) || '';
       }
     } else {
       const body = await request.json();
       if (body.imageUrl && body.imageUrl.trim()) {
-        newImagePath = body.imageUrl.trim();
+        newImagePath = sanitizeWebUrl(body.imageUrl) || '';
       }
     }
 
@@ -85,8 +73,7 @@ export async function PUT(request: Request, { params }: Params) {
     // Clean up old physical file if it was stored in local uploads directory
     if (existingImage.imagePath.startsWith('/uploads/')) {
       try {
-        const oldFilePath = path.join(process.cwd(), 'public', existingImage.imagePath);
-        await unlink(oldFilePath);
+        await deleteUploadedFile(existingImage.imagePath, 'events');
       } catch (err) {
         console.warn('Could not delete old file:', existingImage.imagePath);
       }
@@ -107,9 +94,9 @@ export async function PUT(request: Request, { params }: Params) {
 
 // DELETE /api/event-images/[imageId] - Delete single gallery image
 export async function DELETE(request: Request, { params }: Params) {
-  const user = await checkAuth();
+  const user = await getAdminSession();
   if (!user) {
-    return NextResponse.json({ error: 'Unauthorized. Admin or Faculty session required.' }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
   }
 
   try {
@@ -131,8 +118,7 @@ export async function DELETE(request: Request, { params }: Params) {
     // Unlink physical file from disk if stored in /uploads/
     if (existingImage.imagePath.startsWith('/uploads/')) {
       try {
-        const filePath = path.join(process.cwd(), 'public', existingImage.imagePath);
-        await unlink(filePath);
+        await deleteUploadedFile(existingImage.imagePath, 'events');
       } catch (err) {
         console.warn('File removal warning:', existingImage.imagePath);
       }

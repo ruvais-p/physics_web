@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import path from 'path';
-import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
 import { verifyAdminToken } from '@/lib/auth';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
+import { deleteUploadedFile } from '@/lib/file-security';
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
 const STUDENTS_DIR = path.join(process.cwd(), 'public', 'uploads', 'faculty', 'students');
@@ -19,13 +19,9 @@ async function authenticateAdmin() {
 async function deletePhysicalFile(relativeWebPath: string | null) {
   if (!relativeWebPath || relativeWebPath.includes('faculty.png')) return;
   try {
-    const cleanPath = relativeWebPath.replace(/^\//, '');
-    const absolutePath = path.join(process.cwd(), 'public', cleanPath);
-    await fs.unlink(absolutePath);
-  } catch (err: any) {
-    if (err.code !== 'ENOENT') {
-      console.error(`Failed to delete student image ${relativeWebPath}:`, err);
-    }
+    await deleteUploadedFile(relativeWebPath, 'faculty/students');
+  } catch (error) {
+    console.error(`Failed to delete student image ${relativeWebPath}:`, error);
   }
 }
 

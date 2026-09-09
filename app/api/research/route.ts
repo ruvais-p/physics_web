@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
-import { verifyAdminToken, verifyFacultyToken, verifyAuthToken } from '@/lib/auth';
+import { getAdminSession } from '@/lib/api-auth';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
+import { sanitizeWebUrl } from '@/lib/url-security';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -15,24 +15,7 @@ async function ensureDirExists() {
 }
 
 async function verifyAnyUserToken() {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get('auth_token')?.value ||
-    cookieStore.get('admin_token')?.value ||
-    cookieStore.get('faculty_token')?.value;
-
-  if (!token) return null;
-
-  const authUser = await verifyAuthToken(token);
-  if (authUser) return authUser;
-
-  const admin = await verifyAdminToken(token);
-  if (admin) return { ...admin, role: 'admin' as const };
-
-  const faculty = await verifyFacultyToken(token);
-  if (faculty) return { ...faculty, role: 'faculty' as const };
-
-  return null;
+  return getAdminSession();
 }
 
 // GET /api/research (Public)
@@ -41,6 +24,7 @@ export async function GET() {
     const labs = await prisma.researchLab.findMany({
       include: {
         faculties: {
+          where: { isActive: true },
           select: {
             id: true,
             name: true,
@@ -65,7 +49,7 @@ export async function GET() {
   }
 }
 
-// POST /api/research (Admin/Faculty Create)
+// POST /api/research (Admin only)
 export async function POST(request: Request) {
   try {
     const user = await verifyAnyUserToken();
@@ -91,7 +75,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Laboratory Description is required.' }, { status: 400 });
     }
 
-    let finalImagePath = imageUrlInput || 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80';
+    let finalImagePath = imageUrlInput ? sanitizeWebUrl(imageUrlInput) : null;
+
+    if (imageUrlInput && !finalImagePath) {
+      return NextResponse.json({ error: 'Image URL must use http, https, or a local path.' }, { status: 400 });
+    }
 
     if (imageFile && imageFile.size > 0) {
       if (!isAllowedImageType(imageFile.type) && !isAllowedImageType(imageFile.name)) {

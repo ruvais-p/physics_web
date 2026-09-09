@@ -1,8 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAdminSession } from '@/lib/api-auth';
+import { sanitizeWebUrl } from '@/lib/url-security';
 
 // GET: Fetch all notifications for Admin Dashboard
 export async function GET() {
+  if (!(await getAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const notifications = await prisma.notification.findMany({
       select: {
@@ -27,20 +33,24 @@ export async function GET() {
 
 // POST: Add a new notification
 export async function POST(request: Request) {
+  if (!(await getAdminSession())) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { title, category, link, isActive, content } = body;
 
-    if (!title) {
+    if (typeof title !== 'string' || !title.trim() || title.length > 200) {
       return NextResponse.json({ error: 'Title is required' }, { status: 400 });
     }
 
     const newNotification = await prisma.notification.create({
       data: {
-        title,
-        category: category || 'General',
-        link: link || null,
-        content: content || null,
+        title: title.trim(),
+        category: typeof category === 'string' ? category.trim().slice(0, 80) || 'General' : 'General',
+        link: link ? sanitizeWebUrl(link) : null,
+        content: typeof content === 'string' ? content.trim().slice(0, 10_000) || null : null,
         isActive: isActive !== undefined ? Boolean(isActive) : true,
       },
     });

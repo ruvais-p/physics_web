@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
-import { verifyAdminToken, verifyFacultyToken, verifyAuthToken } from '@/lib/auth';
+import { getAdminSession } from '@/lib/api-auth';
+import { hasPdfSignature } from '@/lib/file-security';
+import { sanitizeWebUrl } from '@/lib/url-security';
 
 const ALLOWED_PDF_TYPES = ['application/pdf'];
 const MAX_PDF_SIZE = 15 * 1024 * 1024; // 15 MB
@@ -14,24 +15,7 @@ async function ensureDirExists() {
 }
 
 async function verifyAnyUserToken() {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get('auth_token')?.value ||
-    cookieStore.get('admin_token')?.value ||
-    cookieStore.get('faculty_token')?.value;
-
-  if (!token) return null;
-
-  const authUser = await verifyAuthToken(token);
-  if (authUser) return authUser;
-
-  const admin = await verifyAdminToken(token);
-  if (admin) return { ...admin, role: 'admin' as const };
-
-  const faculty = await verifyFacultyToken(token);
-  if (faculty) return { ...faculty, role: 'faculty' as const };
-
-  return null;
+  return getAdminSession();
 }
 
 // GET /api/courses/schemes (Public)
@@ -57,7 +41,7 @@ export async function GET(request: Request) {
   }
 }
 
-// POST /api/courses/schemes (Admin/Faculty create)
+// POST /api/courses/schemes (Admin only)
 export async function POST(request: Request) {
   try {
     const user = await verifyAnyUserToken();
@@ -88,7 +72,10 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Target course not found.' }, { status: 404 });
     }
 
-    let finalPdfUrl = externalPdfUrl || '/cvs/cv_placeholder.pdf';
+    let finalPdfUrl = externalPdfUrl ? sanitizeWebUrl(externalPdfUrl) : null;
+    if (externalPdfUrl && !finalPdfUrl) {
+      return NextResponse.json({ error: 'PDF URL must use http, https, or a local path.' }, { status: 400 });
+    }
 
     // Handle PDF upload if file provided
     if (pdfFile && pdfFile.size > 0) {
@@ -107,12 +94,16 @@ export async function POST(request: Request) {
       }
 
       const timestamp = Date.now();
-      const sanitizedName = pdfFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const fileName = `scheme_${courseId}_${timestamp}_${sanitizedName}`;
+      const sanitizedName = path.parse(pdfFile.name).name.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 80);
+      const fileName = `scheme_${courseId}_${timestamp}_${sanitizedName || 'document'}.pdf`;
       const filePath = path.join(CURRICULUM_DIR, fileName);
 
       const bytes = await pdfFile.arrayBuffer();
-      await fs.writeFile(filePath, Buffer.from(bytes));
+      const buffer = Buffer.from(bytes);
+      if (!hasPdfSignature(buffer)) {
+        return NextResponse.json({ error: 'The uploaded file is not a valid PDF.' }, { status: 400 });
+      }
+      await fs.writeFile(filePath, buffer);
 
       finalPdfUrl = `/uploads/curriculum/${fileName}`;
     }
@@ -124,7 +115,7 @@ export async function POST(request: Request) {
         courseId,
         year,
         scheme,
-        pdfUrl: finalPdfUrl,
+        pdfUrl: finalPdfUrl || '',
         sortOrder,
         createdBy: user.id,
       },

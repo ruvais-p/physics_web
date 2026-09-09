@@ -90,8 +90,15 @@ export async function PUT(
     if (isActive !== undefined) updateData.isActive = Boolean(isActive);
 
     // Reset password if requested by Admin
-    if (newPredefinedPassword && newPredefinedPassword.trim().length >= 6) {
-      updateData.password = await hashPassword(newPredefinedPassword.trim());
+    if (newPredefinedPassword !== undefined) {
+      const cleanPassword = String(newPredefinedPassword).trim();
+      if (cleanPassword.length < 12 || cleanPassword.length > 128) {
+        return NextResponse.json(
+          { error: 'Predefined Password must be between 12 and 128 characters' },
+          { status: 400 },
+        );
+      }
+      updateData.password = await hashPassword(cleanPassword);
       updateData.mustChangePassword = true;
     }
 

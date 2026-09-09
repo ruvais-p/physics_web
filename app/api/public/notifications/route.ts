@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { sanitizeWebUrl } from '@/lib/url-security';
 
 export async function GET() {
   try {
@@ -24,7 +25,7 @@ export async function GET() {
         id: item.id,
         title: item.title,
         category: item.category,
-        link: item.link || '#',
+        link: sanitizeWebUrl(item.link) || '#',
         isActive: item.isActive,
         date: new Date(item.date).toLocaleDateString('en-US', {
           month: 'short',

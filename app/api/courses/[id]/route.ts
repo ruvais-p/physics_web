@@ -1,27 +1,9 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
-import { verifyAdminToken, verifyFacultyToken, verifyAuthToken } from '@/lib/auth';
+import { getAdminSession } from '@/lib/api-auth';
 
 async function verifyAuthorizedUser() {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get('auth_token')?.value ||
-    cookieStore.get('admin_token')?.value ||
-    cookieStore.get('faculty_token')?.value;
-
-  if (!token) return null;
-
-  const authUser = await verifyAuthToken(token);
-  if (authUser) return authUser;
-
-  const admin = await verifyAdminToken(token);
-  if (admin) return { ...admin, role: 'admin' as const };
-
-  const faculty = await verifyFacultyToken(token);
-  if (faculty) return { ...faculty, role: 'faculty' as const };
-
-  return null;
+  return getAdminSession();
 }
 
 // GET /api/courses/[id] - Fetch specific course details
@@ -51,7 +33,7 @@ export async function GET(
   }
 }
 
-// PUT /api/courses/[id] - Update course details (Admin or Faculty authorized)
+// PUT /api/courses/[id] - Update course details (Admin only)
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -59,7 +41,7 @@ export async function PUT(
   try {
     const user = await verifyAuthorizedUser();
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized. Admin or Faculty login required.' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized. Admin login required.' }, { status: 401 });
     }
 
     const { id } = await params;
@@ -96,7 +78,7 @@ export async function PUT(
   }
 }
 
-// DELETE /api/courses/[id] - Delete a course (Admin or Faculty authorized)
+// DELETE /api/courses/[id] - Delete a course (Admin only)
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -104,7 +86,7 @@ export async function DELETE(
   try {
     const user = await verifyAuthorizedUser();
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized. Admin or Faculty login required.' }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized. Admin login required.' }, { status: 401 });
     }
 
     const { id } = await params;

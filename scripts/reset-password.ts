@@ -4,10 +4,16 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function resetPassword() {
-  const email = 'faculty@physics.cusat.ac.in';
-  const newPassword = 'facultypassword123';
+  const email = process.env.RESET_FACULTY_EMAIL?.trim().toLowerCase();
+  const newPassword = process.env.RESET_FACULTY_PASSWORD;
 
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
+  if (!email || !newPassword || newPassword.length < 12 || newPassword.length > 128) {
+    throw new Error(
+      'Set RESET_FACULTY_EMAIL and RESET_FACULTY_PASSWORD (12-128 characters) before running this script.',
+    );
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 12);
 
   const existingFaculty = await prisma.faculty.findUnique({
     where: { email },
@@ -18,11 +24,11 @@ async function resetPassword() {
       where: { email },
       data: {
         password: hashedPassword,
-        mustChangePassword: false,
+        mustChangePassword: true,
         isActive: true,
       },
     });
-    console.log(`Successfully reset password for ${email} to '${newPassword}'`);
+    console.log(`Successfully reset the password for ${email}.`);
   } else {
     await prisma.faculty.create({
       data: {
@@ -31,11 +37,11 @@ async function resetPassword() {
         password: hashedPassword,
         designation: 'Professor & Head',
         department: 'Department of Physics',
-        mustChangePassword: false,
+        mustChangePassword: true,
         isActive: true,
       },
     });
-    console.log(`Created user ${email} with password '${newPassword}'`);
+    console.log(`Created faculty user ${email}; a password change is required at first login.`);
   }
 }
 

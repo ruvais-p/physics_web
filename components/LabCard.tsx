@@ -3,6 +3,15 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
+interface ResearchLabFaculty {
+  id: string;
+  name: string;
+  email?: string;
+  designation?: string | null;
+  department?: string | null;
+  documents?: { image?: string | null } | null;
+}
+
 export interface ResearchLabItem {
   id: string;
   name: string;
@@ -10,7 +19,7 @@ export interface ResearchLabItem {
   shortDesc?: string | null;
   description: string;
   image?: string | null;
-  faculties?: any[];
+  faculties?: ResearchLabFaculty[];
 }
 
 interface LabCardProps {
@@ -21,7 +30,7 @@ interface LabCardProps {
 // Helper to extract a short description snippet without markdown tags (matching FacilityCard)
 function getShortDescription(text: string, shortDesc?: string | null): string {
   if (shortDesc && shortDesc.trim()) return shortDesc.trim();
-  if (!text) return 'Research Laboratory in the Department of Physics.';
+  if (!text) return '';
 
   const cleanText = text
     .replace(/^#+\s+/gm, '') // Remove Markdown headers
@@ -39,7 +48,6 @@ function getShortDescription(text: string, shortDesc?: string | null): string {
 }
 
 export default function LabCard({ lab }: LabCardProps) {
-  const displayImage = lab.image || 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80';
   const shortDescription = getShortDescription(lab.description, lab.shortDesc);
 
   return (
@@ -49,15 +57,17 @@ export default function LabCard({ lab }: LabCardProps) {
     >
       <div>
         {/* Laboratory Image */}
-        <div className="relative h-52 w-full overflow-hidden bg-slate-900">
-          <Image
-            src={displayImage}
-            alt={lab.name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        </div>
+        {lab.image && (
+          <div className="relative h-52 w-full overflow-hidden bg-slate-900">
+            <Image
+              src={lab.image}
+              alt={lab.name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
+        )}
 
         {/* Laboratory Content */}
         <div className="p-6 space-y-3">

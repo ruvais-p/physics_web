@@ -23,8 +23,6 @@ interface FacilityCardProps {
 }
 
 export default function FacilityCard({ facility }: FacilityCardProps) {
-  const imageSrc = facility.image || 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80';
-
   // Helper to extract a short description snippet without markdown tags
   const getShortDescription = (text: string) => {
     if (!text) return '';
@@ -50,15 +48,17 @@ export default function FacilityCard({ facility }: FacilityCardProps) {
     >
       <div>
         {/* Facility Image (No badges) */}
-        <div className="relative h-52 w-full overflow-hidden bg-slate-900">
-          <Image
-            src={imageSrc}
-            alt={facility.name}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-          />
-        </div>
+        {facility.image && (
+          <div className="relative h-52 w-full overflow-hidden bg-slate-900">
+            <Image
+              src={facility.image}
+              alt={facility.name}
+              fill
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            />
+          </div>
+        )}
 
         {/* Facility Content */}
         <div className="p-6 space-y-3">
@@ -79,5 +79,4 @@ export default function FacilityCard({ facility }: FacilityCardProps) {
     </Link>
   );
 }
-
 
