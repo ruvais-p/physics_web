@@ -1,0 +1,77 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { Bell } from 'lucide-react';
+
+interface NotificationItem {
+  id: string;
+  title: string;
+  category: string;
+  link: string;
+  date: string;
+}
+
+export default function NotificationsTicker() {
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
+  useEffect(() => {
+    async function fetchNotifications() {
+      try {
+        const res = await fetch('/api/public/notifications');
+        if (res.ok) {
+          const data = await res.json();
+          setNotifications(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch announcements from DB:', err);
+      }
+    }
+
+    fetchNotifications();
+  }, []);
+
+  if (notifications.length === 0) return null;
+
+  // Ensure enough items for seamless infinite marquee animation
+  const repeatedList = notifications.length < 5
+    ? [...notifications, ...notifications, ...notifications, ...notifications]
+    : [...notifications, ...notifications];
+
+  return (
+    <section className="w-full relative z-20">
+      <div className="w-full bg-white border-y border-slate-200/80 shadow-md px-6 sm:px-12 lg:px-16 py-3.5 sm:py-4 flex items-center gap-4 overflow-hidden">
+        {/* Badge */}
+        <div className="flex items-center space-x-2 shrink-0 bg-heritage-red border border-heritage-red px-3.5 py-2 rounded-lg text-white z-10 shadow-md animate-pulse">
+          <Bell className="w-4 h-4 text-white fill-white/20 animate-bounce" />
+          <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider whitespace-nowrap font-sans">
+            Announcements
+          </span>
+        </div>
+
+        {/* Running Continuous Marquee Ticker */}
+        <div className="overflow-hidden whitespace-nowrap flex-1 py-1 relative">
+          <div className="animate-marquee inline-flex space-x-16 items-center text-slate-800 font-sans text-base">
+            {repeatedList.map((item, idx) => (
+              <Link
+                key={`notif-${item.id}-${idx}`}
+                href={item.link || '#'}
+                className="hover:text-cyan-accent transition-colors duration-200 flex items-center space-x-3 group"
+              >
+                <span className="bg-sky-50 text-sky-800 text-[11px] sm:text-[12px] font-extrabold px-3 py-1 rounded-md border border-sky-200 font-sans tracking-wide uppercase shrink-0">
+                  {item.category}
+                </span>
+                <span className="group-hover:underline text-[15px] sm:text-[16px] font-semibold leading-none tracking-wide text-slate-800">
+                  {item.title}
+                </span>
+                <span className="text-slate-500 text-[12px] sm:text-[13px] font-mono shrink-0">({item.date})</span>
+                <span className="text-slate-300 font-bold ml-6 shrink-0 select-none">✦</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
