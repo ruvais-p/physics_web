@@ -35,6 +35,7 @@ export interface EventDetailItem {
   fullDetails?: string;
   agenda?: string[];
   applyLink?: string;
+  brochure?: string;
   isFeatured?: boolean;
   galleryImages?: { id: number; imagePath: string; sortOrder: number }[];
 }
@@ -376,37 +377,45 @@ export default function EventDetailPageClient({ liveEvent }: { liveEvent: EventD
           <div className="space-y-10 lg:pl-4">
 
             {/* Event Participation / Registration & Brochure */}
-            <div className="space-y-3 pb-8 border-b border-slate-200 font-sans">
-              <div className="text-xs font-bold text-cyan-accent uppercase tracking-widest">
-                Event Participation &amp; Brochure
+            {(event.applyLink || event.brochure) && (
+              <div className="space-y-3 pb-8 border-b border-slate-200 font-sans">
+                <div className="text-xs font-bold text-cyan-accent uppercase tracking-widest">
+                  {event.applyLink && event.brochure
+                    ? 'Event Participation & Brochure'
+                    : event.applyLink
+                    ? 'Event Registration'
+                    : 'Event Brochure'}
+                </div>
+                <div className="space-y-2.5">
+                  {event.applyLink && (
+                    <a
+                      href={sanitizeWebUrl(event.applyLink, true) || event.applyLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-oxford hover:bg-cyan-900 text-white font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all duration-300 group cursor-pointer"
+                    >
+                      <span>Register for Event</span>
+                      <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    </a>
+                  )}
+                  {event.brochure && (
+                    <a
+                      href={sanitizeWebUrl(event.brochure, true) || event.brochure}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-2xl bg-white hover:bg-cyan-50 border border-slate-300 hover:border-cyan-accent text-oxford font-bold text-sm sm:text-base shadow-xs hover:shadow-md transition-all duration-300 group cursor-pointer"
+                    >
+                      <FileText className="w-4 h-4 text-cyan-accent" />
+                      <span>Download Event Brochure (PDF)</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                    </a>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 text-center">
+                  Open for students, researchers, faculty, and academic participants.
+                </p>
               </div>
-              <div className="space-y-2.5">
-                {event.applyLink && (
-                  <a
-                    href={sanitizeWebUrl(event.applyLink, false) || '#'}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-oxford hover:bg-cyan-900 text-white font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all duration-300 group cursor-pointer"
-                  >
-                    <span>Register for Event</span>
-                    <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                  </a>
-                )}
-                <a
-                  href={event.image || '/cvs/cv_placeholder.pdf'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-2xl bg-white hover:bg-cyan-50 border border-slate-300 hover:border-cyan-accent text-oxford font-bold text-sm sm:text-base shadow-xs hover:shadow-md transition-all duration-300 group cursor-pointer"
-                >
-                  <FileText className="w-4 h-4 text-cyan-accent" />
-                  <span>Download Event Brochure</span>
-                  <ArrowUpRight className="w-3.5 h-3.5 opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                </a>
-              </div>
-              <p className="text-xs text-slate-500 text-center">
-                Open for students, researchers, faculty, and academic participants.
-              </p>
-            </div>
+            )}
 
             {/* Resource Person / Speaker */}
             {event.speaker && (

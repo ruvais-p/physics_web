@@ -202,6 +202,7 @@ model Event {
   endDate     DateTime?    @map("end_date")
   venue       String?
   apply_link  String?
+  brochure    String?      @map("brochure")
   broadcastId String?      @map("broadcast_id")
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")

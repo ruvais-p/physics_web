@@ -26,7 +26,7 @@ export default async function EventDetailPage({ params }: PageProps) {
   if (Number.isInteger(eventId)) {
     try {
       const items = await prisma.$queryRaw<any[]>`
-        SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link
+        SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, brochure
         FROM events
         WHERE id = ${eventId}
         LIMIT 1
@@ -62,7 +62,8 @@ export default async function EventDetailPage({ params }: PageProps) {
           image: item.image || '',
           desc: item.description,
           fullDetails: item.description,
-          applyLink: sanitizeWebUrl(item.apply_link, false) || undefined,
+          applyLink: sanitizeWebUrl(item.apply_link, true) || undefined,
+          brochure: sanitizeWebUrl(item.brochure, true) || undefined,
           galleryImages: item.images,
         };
       }

@@ -9,7 +9,7 @@ export default async function EventsPage() {
 
   const [records, heroData] = await Promise.all([
     prisma.$queryRaw<any[]>`
-      SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue
+      SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, brochure
       FROM events
       ORDER BY start_date DESC
     `.catch((error: any) => {
@@ -39,6 +39,7 @@ export default async function EventsPage() {
       image: item.image || '/eventssss.jpg',
       desc: item.description,
       fullDetails: item.description,
+      brochure: item.brochure || null,
       timestamp: sDate.getTime(),
     };
   });

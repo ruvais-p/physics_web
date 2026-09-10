@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import path from 'path';
+import fs from 'fs/promises';
 import { saveImageAsWebp } from '@/lib/image';
 import { getAdminSession } from '@/lib/api-auth';
 import { sanitizeWebUrl } from '@/lib/url-security';
 import { revalidatePublicPages } from '@/lib/public-cache';
+import { hasPdfSignature } from '@/lib/file-security';
 
 // GET /api/events - Fetch all events ordered by startDate desc
 export async function GET() {
   try {
     const events = await prisma.$queryRaw<any[]>`
-      SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, created_at AS "createdAt", updated_at AS "updatedAt"
+      SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, brochure, created_at AS "createdAt", updated_at AS "updatedAt"
       FROM events
       ORDER BY start_date DESC
     `;
@@ -36,6 +38,7 @@ export async function POST(request: Request) {
     let endDateStr = '';
     let venue: string | null = null;
     let apply_link: string | null = null;
+    let brochurePath: string | null = null;
     let imagePath = '';
 
     if (contentType.includes('multipart/form-data')) {
@@ -63,6 +66,30 @@ export async function POST(request: Request) {
       } else if (imageUrlInput) {
         imagePath = sanitizeWebUrl(imageUrlInput) || '';
       }
+
+      // Handle optional PDF brochure file or URL
+      const brochureFile = formData.get('brochure') as File | null;
+      const brochureUrlInput = (formData.get('brochureUrl') as string || '').trim();
+
+      if (brochureFile && brochureFile.size > 0) {
+        if (!brochureFile.name.toLowerCase().endsWith('.pdf') && brochureFile.type !== 'application/pdf') {
+          return NextResponse.json({ error: 'Only PDF documents are allowed for event brochure.' }, { status: 400 });
+        }
+        const bytes = await brochureFile.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        if (!hasPdfSignature(buffer)) {
+          return NextResponse.json({ error: 'Uploaded brochure is not a valid PDF file.' }, { status: 400 });
+        }
+        const timestamp = Date.now();
+        const sanitizedName = path.parse(brochureFile.name).name.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50);
+        const fileName = `brochure_${timestamp}_${sanitizedName || 'document'}.pdf`;
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'events');
+        await fs.mkdir(uploadDir, { recursive: true });
+        await fs.writeFile(path.join(uploadDir, fileName), buffer);
+        brochurePath = `/uploads/events/${fileName}`;
+      } else if (brochureUrlInput) {
+        brochurePath = sanitizeWebUrl(brochureUrlInput, false);
+      }
     } else {
       const body = await request.json();
       title = (body.title || '').trim();
@@ -71,6 +98,7 @@ export async function POST(request: Request) {
       endDateStr = (body.endDate || '').trim();
       venue = body.venue ? String(body.venue).trim() : null;
       apply_link = body.apply_link ? sanitizeWebUrl(body.apply_link, false) : null;
+      brochurePath = body.brochure ? sanitizeWebUrl(body.brochure, false) : null;
       imagePath = sanitizeWebUrl(body.image) || '';
     }
 
@@ -101,9 +129,9 @@ export async function POST(request: Request) {
     }
 
     const result = await prisma.$queryRaw<any[]>`
-      INSERT INTO events (title, description, image, start_date, end_date, venue, apply_link, created_at, updated_at)
-      VALUES (${title}, ${description}, ${imagePath}, ${eventStartDate}, ${eventEndDate}, ${venue}, ${apply_link}, NOW(), NOW())
-      RETURNING id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, created_at AS "createdAt", updated_at AS "updatedAt"
+      INSERT INTO events (title, description, image, start_date, end_date, venue, apply_link, brochure, created_at, updated_at)
+      VALUES (${title}, ${description}, ${imagePath}, ${eventStartDate}, ${eventEndDate}, ${venue}, ${apply_link}, ${brochurePath}, NOW(), NOW())
+      RETURNING id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, brochure, created_at AS "createdAt", updated_at AS "updatedAt"
     `;
 
     revalidatePublicPages();
