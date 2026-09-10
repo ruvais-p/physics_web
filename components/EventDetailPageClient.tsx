@@ -12,6 +12,7 @@ import {
   ArrowLeft, 
   CheckCircle2, 
   ExternalLink,
+  ArrowUpRight,
   Building2,
   FileText,
   Images,
@@ -374,26 +375,38 @@ export default function EventDetailPageClient({ liveEvent }: { liveEvent: EventD
           {/* Right Column (1/3 Sidebar): Speaker Info & Department Contact */}
           <div className="space-y-10 lg:pl-4">
 
-            {/* Event Registration / Apply Link (Placed Above Resource Person) */}
-            {event.applyLink && (
-              <div className="space-y-3 pb-8 border-b border-slate-200 font-sans">
-                <div className="text-xs font-bold text-cyan-accent uppercase tracking-widest">
-                  Event Registration
-                </div>
+            {/* Event Participation / Registration & Brochure */}
+            <div className="space-y-3 pb-8 border-b border-slate-200 font-sans">
+              <div className="text-xs font-bold text-cyan-accent uppercase tracking-widest">
+                Event Participation &amp; Brochure
+              </div>
+              <div className="space-y-2.5">
+                {event.applyLink && (
+                  <a
+                    href={sanitizeWebUrl(event.applyLink, false) || '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-oxford hover:bg-cyan-900 text-white font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all duration-300 group cursor-pointer"
+                  >
+                    <span>Register for Event</span>
+                    <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </a>
+                )}
                 <a
-                  href={sanitizeWebUrl(event.applyLink, false) || '#'}
+                  href={event.image || '/cvs/cv_placeholder.pdf'}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-oxford hover:bg-cyan-900 text-white font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all duration-300 group cursor-pointer"
+                  className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-2xl bg-white hover:bg-cyan-50 border border-slate-300 hover:border-cyan-accent text-oxford font-bold text-sm sm:text-base shadow-xs hover:shadow-md transition-all duration-300 group cursor-pointer"
                 >
-                  <span>Register for Event</span>
-                  <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  <FileText className="w-4 h-4 text-cyan-accent" />
+                  <span>Download Event Brochure</span>
+                  <ArrowUpRight className="w-3.5 h-3.5 opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </a>
-                <p className="text-xs text-slate-500 text-center">
-                  Registration open for students, scholars, and faculty.
-                </p>
               </div>
-            )}
+              <p className="text-xs text-slate-500 text-center">
+                Open for students, researchers, faculty, and academic participants.
+              </p>
+            </div>
 
             {/* Resource Person / Speaker */}
             {event.speaker && (

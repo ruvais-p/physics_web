@@ -257,18 +257,18 @@ export default function Hero({
 
           {/* Headline */}
           <h1
-            className={`font-serif text-2xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[1.08] drop-shadow-2xl w-full ${
-              align === 'center' ? 'text-center flex flex-col items-center justify-center' : 'text-left'
+            className={`font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight leading-[1.12] drop-shadow-2xl w-full break-words ${
+              align === 'center' ? 'text-center flex flex-col items-center justify-center max-w-5xl mx-auto' : 'text-left max-w-5xl'
             }`}
             style={{ color: currentSlide.titleColor || '#ffffff' }}
           >
             {currentSlide.title.map((line, idx) => (
-              <span key={idx} className={`block w-full sm:whitespace-nowrap ${align === 'center' ? 'text-center flex justify-center' : ''}`}>
+              <span key={idx} className={`block w-full ${align === 'center' ? 'text-center flex justify-center' : ''}`}>
                 <TextReveal
                   text={line}
                   animKey={`${index}-${idx}`}
                   delay={idx * 0.15}
-                  className={`sm:flex-nowrap sm:whitespace-nowrap ${align === 'center' ? 'justify-center text-center' : ''}`}
+                  className={align === 'center' ? 'justify-center text-center' : ''}
                 />
               </span>
             ))}
@@ -276,7 +276,7 @@ export default function Hero({
 
           {/* Subtitle */}
           {currentSlide.subtitle && (
-            <p className={`font-sans text-base sm:text-xl text-slate-200 leading-snug max-w-3xl font-normal drop-shadow-md w-full mt-1 sm:mt-1.5 ${
+            <p className={`font-sans text-base sm:text-lg lg:text-xl text-slate-200 leading-snug max-w-3xl font-normal drop-shadow-md w-full mt-2 sm:mt-3 ${
               align === 'center' ? 'text-center mx-auto' : 'text-left'
             }`}>
               {currentSlide.subtitle}

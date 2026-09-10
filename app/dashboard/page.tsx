@@ -4348,7 +4348,7 @@ export default function UnifiedDashboardPage() {
               className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs hover:border-oxford/50 hover:shadow-sm transition-all duration-200 cursor-pointer group"
             >
               <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-500 font-sans uppercase tracking-wider">Guided Scholars</span>
+                <span className="text-xs font-bold text-slate-500 font-sans uppercase tracking-wider">Research Scholars</span>
                 <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-700 group-hover:bg-oxford group-hover:text-white group-hover:border-oxford transition-all">
                   <GraduationCap className="w-4 h-4" />
                 </div>
@@ -4616,7 +4616,7 @@ export default function UnifiedDashboardPage() {
             <div>
               <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
                 <GraduationCap className="w-7 h-7 text-oxford" />
-                <span>Guided Scholars & Research Students ({studentsList.length})</span>
+                <span>Research Scholars &amp; Research Students ({studentsList.length})</span>
               </h2>
               <p className="text-slate-600 text-sm mt-1 font-sans">
                 Manage research scholars, Ph.D. candidates, and project students under your supervision.
@@ -4632,7 +4632,7 @@ export default function UnifiedDashboardPage() {
             {studentsList.length === 0 ? (
               <div className="p-12 text-center text-slate-500 space-y-3">
                 <GraduationCap className="w-10 h-10 mx-auto text-slate-400" />
-                <p className="text-base font-semibold text-slate-800">No guided scholars listed yet.</p>
+                <p className="text-base font-semibold text-slate-800">No research scholars listed yet.</p>
                 <p className="text-xs text-slate-500 font-sans">Click "Add Research Scholar" to register student research profiles.</p>
               </div>
             ) : (

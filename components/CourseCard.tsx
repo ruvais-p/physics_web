@@ -1,7 +1,7 @@
 'use client';
 
 import { Course } from '@/lib/data';
-import { Clock, GraduationCap } from 'lucide-react';
+import { Clock, GraduationCap, FileText, ArrowUpRight } from 'lucide-react';
 
 export interface CourseSchemeItem {
   id?: string;
@@ -87,8 +87,6 @@ export default function CourseCard({ course }: CourseCardProps) {
             {course.description}
           </p>
         )}
-
-
       </div>
 
       {/* Curriculum Scheme & Regulation Table */}
@@ -97,21 +95,17 @@ export default function CourseCard({ course }: CourseCardProps) {
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-oxford border-b border-slate-100 pb-2">
             Curriculum Scheme &amp; Regulation
           </h2>
-
         </div>
 
         <div className="overflow-hidden border border-slate-200/90 rounded-2xl shadow-md bg-white">
           <table className="min-w-full divide-y divide-slate-200 text-left font-sans text-base">
             <thead className="bg-slate-50 text-oxford font-bold uppercase tracking-wider text-xs sm:text-sm">
               <tr>
-                <th scope="col" className="px-8 py-5">
+                <th scope="col" className="px-6 sm:px-8 py-4 sm:py-5">
                   Year / Level
                 </th>
-                <th scope="col" className="px-8 py-5">
-                  Curriculum Scheme
-                </th>
-                <th scope="col" className="px-8 py-5 text-right">
-                  Action
+                <th scope="col" className="px-6 sm:px-8 py-4 sm:py-5 text-right">
+                  Curriculum Scheme &amp; Syllabus
                 </th>
               </tr>
             </thead>
@@ -119,27 +113,22 @@ export default function CourseCard({ course }: CourseCardProps) {
               {schemes.map((item, idx) => (
                 <tr
                   key={idx}
-                  onClick={() => window.open(item.pdfUrl, '_blank')}
-                  className="hover:bg-cyan-50/40 cursor-pointer transition-colors duration-150 group"
+                  className="hover:bg-cyan-50/40 transition-colors duration-150 group"
                 >
-                  <td className="px-8 py-6 text-slate-800 font-bold text-base sm:text-lg">
+                  <td className="px-6 sm:px-8 py-5 sm:py-6 text-slate-800 font-bold text-base sm:text-lg">
                     {item.year}
                   </td>
-                  <td className="px-8 py-6 text-slate-600">
-                    <span className="inline-flex items-center px-3.5 py-1 rounded-full text-xs sm:text-sm font-bold bg-sky-50 text-sky-850 border border-sky-200">
-                      {item.scheme}
-                    </span>
-                  </td>
-                  <td className="px-8 py-6 text-right">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        window.open(item.pdfUrl, '_blank');
-                      }}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 group-hover:bg-cyan-accent group-hover:text-white text-slate-800 transition-all duration-200 cursor-pointer shadow-sm"
+                  <td className="px-6 sm:px-8 py-5 sm:py-6 text-right">
+                    <a
+                      href={item.pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-sky-50 text-sky-900 border border-sky-200/80 hover:bg-cyan-accent hover:text-white hover:border-cyan-accent transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer group/btn"
                     >
-                      Open PDF
-                    </button>
+                      <FileText className="w-4 h-4 text-cyan-accent group-hover/btn:text-white transition-colors" />
+                      <span>{item.scheme}</span>
+                      <ArrowUpRight className="w-3.5 h-3.5 opacity-70 group-hover/btn:opacity-100 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-all" />
+                    </a>
                   </td>
                 </tr>
               ))}

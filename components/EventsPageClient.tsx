@@ -11,6 +11,7 @@ import {
   X, 
   CheckCircle2, 
   Info,
+  FileText,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -247,6 +248,26 @@ function EventGridCard({ item }: { item: EventItem }) {
             )}
           </button>
         )}
+
+        {/* Action Row: Details & Brochure */}
+        <div className="flex items-center justify-between gap-3 pt-3 border-t border-slate-100">
+          <Link
+            href={`/events/${item.id}`}
+            className="text-xs font-bold text-oxford hover:text-cyan-accent uppercase tracking-wider transition-colors inline-flex items-center gap-1"
+          >
+            <span>View Details</span>
+            <ArrowRight className="w-3.5 h-3.5" />
+          </Link>
+          <a
+            href={item.image || '/cvs/cv_placeholder.pdf'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors inline-flex items-center gap-1.5 bg-cyan-50/80 hover:bg-cyan-100/80 px-2.5 py-1.5 rounded-lg border border-cyan-200/60"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>Brochure</span>
+          </a>
+        </div>
       </div>
     </article>
   );
@@ -356,8 +377,8 @@ export default function EventsPageClient({ events }: { events: EventItem[] }) {
                 <span>{activeCurrentEvent.venue}</span>
               </p>
 
-              {/* Action Button: Know More ↗ */}
-              <div className="pt-2">
+              {/* Action Buttons: Know More ↗ & Brochure */}
+              <div className="pt-2 flex flex-wrap items-center gap-3">
                 <Link
                   href={`/events/${activeCurrentEvent.id}`}
                   className="bg-cyan-accent hover:bg-white text-oxford font-extrabold text-xs sm:text-sm px-6 py-3 rounded-xl inline-flex items-center gap-2 transition-all shadow-xl uppercase tracking-wider"
@@ -365,6 +386,15 @@ export default function EventsPageClient({ events }: { events: EventItem[] }) {
                   <span>Know more</span>
                   <ArrowUpRight className="w-4 h-4 stroke-[3]" />
                 </Link>
+                <a
+                  href={activeCurrentEvent.image || '/cvs/cv_placeholder.pdf'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-white/20 hover:bg-white text-white hover:text-oxford backdrop-blur-md border border-white/30 font-bold text-xs sm:text-sm px-5 py-3 rounded-xl inline-flex items-center gap-2 transition-all shadow-md uppercase tracking-wider"
+                >
+                  <FileText className="w-4 h-4" />
+                  <span>Brochure</span>
+                </a>
               </div>
             </div>
 

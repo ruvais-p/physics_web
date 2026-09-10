@@ -196,97 +196,79 @@ export default function AboutPageClient({
 
 
           <div className="space-y-6">
-              {renderMarkdown(aboutData?.content || '')}
+            {renderMarkdown(aboutData?.content || '')}
 
-              {/* Quick Navigation / Discover More Section */}
-              <div className="pt-16 border-t border-slate-200 mt-16 space-y-8 font-sans">
-                <div className="space-y-2 text-left">
-                  <div className="text-xs font-bold uppercase tracking-widest text-cyan-dark flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-cyan-accent" />
-                    <span>Explore Department</span>
-                  </div>
-                  <h3 className="font-serif text-2xl sm:text-3xl font-extrabold text-oxford">
-                    Discover More at Physics CUSAT
-                  </h3>
-                  <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
-                    Explore our research frontiers, meet our academic community, and stay updated with upcoming scientific lectures and workshops.
-                  </p>
-                </div>
+            {/* Quick Navigation / Discover More Section */}
+            <div className="pt-16 border-t border-slate-200 mt-16 space-y-8 font-sans">
+              <div className="space-y-2 text-left">
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
-                  {/* Research Card */}
-                  <Link
-                    href="/research"
-                    className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-slate-50 hover:bg-white border border-slate-200/90 hover:border-cyan-500/50 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
-                  >
-                    <div className="space-y-4">
-                      <div className="w-12 h-12 rounded-2xl bg-oxford/10 text-oxford group-hover:bg-oxford group-hover:text-cyan-accent flex items-center justify-center transition-colors duration-300 shadow-xs">
-                        <FlaskConical className="w-6 h-6" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <h4 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-dark transition-colors">
-                          Research &amp; Labs
-                        </h4>
-                        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                          Pioneering breakthroughs in quantum materials, photonics, and condensed matter physics.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="pt-6 flex items-center gap-2 text-xs sm:text-sm font-bold text-oxford group-hover:text-cyan-dark transition-colors">
-                      <span>Explore Laboratories</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </Link>
-
-                  {/* People Card */}
-                  <Link
-                    href="/people"
-                    className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-slate-50 hover:bg-white border border-slate-200/90 hover:border-cyan-500/50 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
-                  >
-                    <div className="space-y-4">
-                      <div className="w-12 h-12 rounded-2xl bg-cyan-accent/15 text-cyan-dark group-hover:bg-oxford group-hover:text-cyan-accent flex items-center justify-center transition-colors duration-300 shadow-xs">
-                        <Users className="w-6 h-6" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <h4 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-dark transition-colors">
-                          Faculty &amp; Scholars
-                        </h4>
-                        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                          Distinguished faculty, principal investigators, and passionate Ph.D. research scholars.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="pt-6 flex items-center gap-2 text-xs sm:text-sm font-bold text-oxford group-hover:text-cyan-dark transition-colors">
-                      <span>Meet Our People</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </Link>
-
-                  {/* Events Card */}
-                  <Link
-                    href="/events"
-                    className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-slate-50 hover:bg-white border border-slate-200/90 hover:border-cyan-500/50 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
-                  >
-                    <div className="space-y-4">
-                      <div className="w-12 h-12 rounded-2xl bg-oxford/10 text-oxford group-hover:bg-oxford group-hover:text-cyan-accent flex items-center justify-center transition-colors duration-300 shadow-xs">
-                        <Calendar className="w-6 h-6" />
-                      </div>
-                      <div className="space-y-1.5">
-                        <h4 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-dark transition-colors">
-                          News &amp; Events
-                        </h4>
-                        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                          Memorial lectures, conferences, hands-on workshops, and national symposiums.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="pt-6 flex items-center gap-2 text-xs sm:text-sm font-bold text-oxford group-hover:text-cyan-dark transition-colors">
-                      <span>View Upcoming Events</span>
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </Link>
-                </div>
+                <h3 className="font-serif text-2xl sm:text-3xl font-extrabold text-oxford">
+                  Discover More at Physics CUSAT
+                </h3>
+                <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
+                  Explore our research frontiers, meet our academic community, and stay updated with upcoming scientific lectures and workshops.
+                </p>
               </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+                {/* Research Card */}
+                <Link
+                  href="/research"
+                  className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-slate-50 hover:bg-white border border-slate-200/90 hover:border-cyan-500/50 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+                >
+                  <div className="space-y-2">
+                    <h4 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-dark transition-colors">
+                      Research &amp; Labs
+                    </h4>
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                      Pioneering breakthroughs in quantum materials, photonics, and condensed matter physics.
+                    </p>
+                  </div>
+                  <div className="pt-6 flex items-center gap-2 text-xs sm:text-sm font-bold text-oxford group-hover:text-cyan-dark transition-colors">
+                    <span>Explore Laboratories</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+
+                {/* People Card */}
+                <Link
+                  href="/people"
+                  className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-slate-50 hover:bg-white border border-slate-200/90 hover:border-cyan-500/50 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+                >
+                  <div className="space-y-2">
+                    <h4 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-dark transition-colors">
+                      Faculty &amp; Scholars
+                    </h4>
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                      Distinguished faculty, principal investigators, and passionate Ph.D. research scholars.
+                    </p>
+                  </div>
+                  <div className="pt-6 flex items-center gap-2 text-xs sm:text-sm font-bold text-oxford group-hover:text-cyan-dark transition-colors">
+                    <span>Meet Our People</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+
+                {/* Events Card */}
+                <Link
+                  href="/events"
+                  className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-slate-50 hover:bg-white border border-slate-200/90 hover:border-cyan-500/50 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+                >
+                  <div className="space-y-2">
+                    <h4 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-dark transition-colors">
+                      News &amp; Events
+                    </h4>
+                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                      Memorial lectures, conferences, hands-on workshops, and national symposiums.
+                    </p>
+                  </div>
+                  <div className="pt-6 flex items-center gap-2 text-xs sm:text-sm font-bold text-oxford group-hover:text-cyan-dark transition-colors">
+                    <span>View Upcoming Events</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
