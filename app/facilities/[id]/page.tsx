@@ -1,7 +1,4 @@
-'use client';
-
-import React, { use, useState, useEffect } from 'react';
-import Image from 'next/image';
+import React from 'react';
 import Link from 'next/link';
 import Hero from '@/components/Hero';
 import FacultyCard from '@/components/FacultyCard';
@@ -10,18 +7,28 @@ import {
   Users,
   MapPin,
   Building2,
-  User,
   ArrowLeft,
   ExternalLink,
-  ChevronRight,
   FileText,
-  CheckCircle2,
 } from 'lucide-react';
 import type { FacultyMember } from '@/lib/data';
 import { sanitizeWebUrl } from '@/lib/url-security';
+import { prisma } from '@/lib/prisma';
+
+export const revalidate = 300;
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateStaticParams() {
+  try {
+    const facilities = await prisma.facility.findMany({ select: { id: true } });
+    return facilities.map((facility) => ({ id: facility.id }));
+  } catch (error) {
+    console.error('Failed to generate facility routes:', error);
+    return [];
+  }
 }
 
 interface FacultyAssociated {
@@ -209,40 +216,34 @@ function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
   return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
 }
 
-export default function FacilityDetailPage({ params }: PageProps) {
-  const { id } = use(params);
-  const [facility, setFacility] = useState<FacilityDetailData | null>(null);
-  const [loading, setLoading] = useState(true);
+export default async function FacilityDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  let facility: FacilityDetailData | null = null;
 
-  useEffect(() => {
-    async function fetchFacilityDetail() {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/facilities/${id}`);
-        if (res.ok) {
-          const data = await res.json();
-          setFacility(data);
-          return;
-        }
-      } catch (err) {
-        console.error('Failed to fetch facility details:', err);
-      }
-
-      setLoading(false);
-    }
-
-    fetchFacilityDetail().finally(() => setLoading(false));
-  }, [id]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center py-20 font-sans text-slate-800">
-        <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-4 border-oxford border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm font-semibold">Loading Facility Details...</p>
-        </div>
-      </div>
-    );
+  try {
+    facility = await prisma.facility.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        image: true,
+        faculties: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            designation: true,
+            department: true,
+            bio: true,
+            documents: { select: { image: true } },
+          },
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Failed to fetch facility details:', error);
   }
 
   if (!facility) {

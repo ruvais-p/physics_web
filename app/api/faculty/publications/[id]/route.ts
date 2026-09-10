@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyFacultyToken } from '@/lib/auth';
 
 // PUT /api/faculty/publications/[id] - Update a publication
@@ -51,6 +52,7 @@ export async function PUT(
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json(updatedPublication);
   } catch (error) {
     console.error('PUT /api/faculty/publications/[id] error:', error);
@@ -89,6 +91,7 @@ export async function DELETE(
       where: { id },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ message: 'Publication deleted successfully' });
   } catch (error) {
     console.error('DELETE /api/faculty/publications/[id] error:', error);

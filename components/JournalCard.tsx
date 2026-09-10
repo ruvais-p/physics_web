@@ -7,7 +7,7 @@ interface JournalCardProps {
 
 export default function JournalCard({ publication }: JournalCardProps) {
   return (
-    <div className="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 hover:border-cyan-accent/50 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between space-y-4 group">
+    <div className="render-lazy bg-white rounded-2xl p-6 sm:p-7 border border-slate-200/90 hover:border-cyan-accent/50 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between space-y-4 group">
       <div className="space-y-3.5">
         {/* Top Meta: Journal Name & Year Tag */}
         <div className="flex items-center justify-between gap-3">

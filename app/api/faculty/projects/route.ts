@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyFacultyToken } from '@/lib/auth';
 
 // Helper to determine project status based on endDate
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json(newProject, { status: 201 });
   } catch (error) {
     console.error('POST /api/faculty/projects error:', error);

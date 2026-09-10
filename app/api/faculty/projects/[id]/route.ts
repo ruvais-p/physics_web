@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyFacultyToken } from '@/lib/auth';
 
 // Helper to determine project status based on endDate
@@ -68,6 +69,7 @@ export async function PUT(
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json(updatedProject);
   } catch (error) {
     console.error('PUT /api/faculty/projects/[id] error:', error);
@@ -106,6 +108,7 @@ export async function DELETE(
       where: { id },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ message: 'Project deleted successfully' });
   } catch (error) {
     console.error('DELETE /api/faculty/projects/[id] error:', error);

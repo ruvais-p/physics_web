@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Bell } from 'lucide-react';
 
-interface NotificationItem {
+export interface NotificationItem {
   id: string;
   title: string;
   category: string;
@@ -12,24 +12,11 @@ interface NotificationItem {
   date: string;
 }
 
-export default function NotificationsTicker() {
-  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-
-  useEffect(() => {
-    async function fetchNotifications() {
-      try {
-        const res = await fetch('/api/public/notifications');
-        if (res.ok) {
-          const data = await res.json();
-          setNotifications(Array.isArray(data) ? data : []);
-        }
-      } catch (err) {
-        console.error('Failed to fetch announcements from DB:', err);
-      }
-    }
-
-    fetchNotifications();
-  }, []);
+export default function NotificationsTicker({
+  notifications,
+}: {
+  notifications: NotificationItem[];
+}) {
 
   if (notifications.length === 0) return null;
 
@@ -74,4 +61,3 @@ export default function NotificationsTicker() {
     </section>
   );
 }
-

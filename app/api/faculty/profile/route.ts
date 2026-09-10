@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyFacultyToken } from '@/lib/auth';
 
 const PREDEFINED_KEYS = [
@@ -55,6 +56,7 @@ export async function GET() {
     const profileData = faculty.profile ? faculty.profile.profiles : {};
     const phoneData = faculty.profile?.phone || faculty.phone || '';
 
+    revalidatePublicPages();
     return NextResponse.json({
       uid: faculty.profile?.uid || null,
       facultyId: faculty.id,

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyFacultyToken } from '@/lib/auth';
 
 // Helper to extract clean plain-text snippet for Faculty.bio
@@ -39,6 +40,7 @@ export async function GET() {
       select: { bio: true },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({
       uid: doc?.uid || null,
       facultyId: payload.id,

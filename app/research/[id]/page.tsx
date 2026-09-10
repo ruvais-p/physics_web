@@ -1,7 +1,4 @@
-'use client';
-
-import React, { use, useState, useEffect } from 'react';
-import Image from 'next/image';
+import React from 'react';
 import Link from 'next/link';
 import Hero from '@/components/Hero';
 import FacultyCard from '@/components/FacultyCard';
@@ -10,18 +7,28 @@ import {
   Users,
   MapPin,
   Building2,
-  User,
   ArrowLeft,
   ExternalLink,
-  ChevronRight,
   FileText,
-  CheckCircle2,
 } from 'lucide-react';
 import type { FacultyMember } from '@/lib/data';
 import { sanitizeWebUrl } from '@/lib/url-security';
+import { prisma } from '@/lib/prisma';
+
+export const revalidate = 300;
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+export async function generateStaticParams() {
+  try {
+    const labs = await prisma.researchLab.findMany({ select: { id: true } });
+    return labs.map((lab) => ({ id: lab.id }));
+  } catch (error) {
+    console.error('Failed to generate research lab routes:', error);
+    return [];
+  }
 }
 
 interface FacultyAssociated {
@@ -210,40 +217,35 @@ function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
   return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
 }
 
-export default function ResearchLabDetailPage({ params }: PageProps) {
-  const { id } = use(params);
-  const [lab, setLab] = useState<LabDetailData | null>(null);
-  const [loading, setLoading] = useState(true);
+export default async function ResearchLabDetailPage({ params }: PageProps) {
+  const { id } = await params;
+  let lab: LabDetailData | null = null;
 
-  useEffect(() => {
-    async function fetchLabDetail() {
-      setLoading(true);
-      try {
-        const res = await fetch(`/api/research/${id}`);
-        if (res.ok) {
-          const data = await res.json();
-          setLab(data);
-          return;
-        }
-      } catch (err) {
-        console.error('Failed to fetch research lab details:', err);
-      }
-
-      setLoading(false);
-    }
-
-    fetchLabDetail().finally(() => setLoading(false));
-  }, [id]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center py-20 font-sans text-slate-800">
-        <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-4 border-oxford border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-sm font-semibold">Loading Laboratory Details...</p>
-        </div>
-      </div>
-    );
+  try {
+    lab = await prisma.researchLab.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        category: true,
+        description: true,
+        image: true,
+        faculties: {
+          where: { isActive: true },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            designation: true,
+            department: true,
+            bio: true,
+            documents: { select: { image: true } },
+          },
+        },
+      },
+    });
+  } catch (error) {
+    console.error('Failed to fetch research lab details:', error);
   }
 
   if (!lab) {

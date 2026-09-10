@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 import { getAdminSession } from '@/lib/api-auth';
 import { sanitizeWebUrl } from '@/lib/url-security';
+import { revalidatePublicPages } from '@/lib/public-cache';
 
 // PUT update hero slide
 export async function PUT(
@@ -87,6 +88,7 @@ export async function PUT(
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({
       success: true,
       slide: updatedSlide,
@@ -121,6 +123,7 @@ export async function DELETE(
       where: { id: heroId },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({
       success: true,
       message: 'Hero item deleted successfully',

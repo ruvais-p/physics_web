@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyFacultyToken } from '@/lib/auth';
 
 // GET /api/faculty/publications - Fetch logged-in faculty's publications
@@ -66,6 +67,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json(newPublication, { status: 201 });
   } catch (error) {
     console.error('POST /api/faculty/publications error:', error);

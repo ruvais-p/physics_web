@@ -4,7 +4,7 @@ import FacultyCard from '@/components/FacultyCard';
 import { prisma } from '@/lib/prisma';
 import type { FacultyMember, Scholar } from '@/lib/data';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 async function getPeople(): Promise<{
   faculty: FacultyMember[];

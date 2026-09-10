@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/api-auth';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 import { sanitizeWebUrl } from '@/lib/url-security';
+import { revalidatePublicPages } from '@/lib/public-cache';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -131,6 +132,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, lab: newLab });
   } catch (error) {
     console.error('POST /api/research error:', error);

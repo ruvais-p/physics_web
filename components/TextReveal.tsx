@@ -1,59 +1,12 @@
-'use client';
-
-import { motion, useReducedMotion, Variants } from 'framer-motion';
-
 interface TextRevealProps {
-  /** The text to animate. Split into words automatically. */
   text: string;
   className?: string;
-  /** Seconds to wait before the first word starts animating. */
   delay?: number;
-  /** Seconds between each word's animation start. */
   stagger?: number;
-  /** Change this whenever you want the animation to replay (e.g. slide index). */
   animKey?: string | number;
 }
 
-const containerVariants: Variants = {
-  hidden: {},
-  visible: (custom: { delay: number; stagger: number }) => ({
-    transition: {
-      delayChildren: custom.delay,
-      staggerChildren: custom.stagger,
-    },
-  }),
-};
-
-const wordVariants: Variants = {
-  hidden: { y: '110%' },
-  visible: {
-    y: '0%',
-    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
-  },
-};
-
-const reducedMotionVariants: Variants = {
-  hidden: { opacity: 0 },
-  visible: (custom: { delay: number; stagger: number }) => ({
-    opacity: 1,
-    transition: { delayChildren: custom.delay, staggerChildren: custom.stagger },
-  }),
-};
-
-const reducedMotionWord: Variants = {
-  hidden: { opacity: 0 },
-  visible: { opacity: 1, transition: { duration: 0.3 } },
-};
-
-/**
- * TextReveal — a masked, word-by-word slide-up reveal, the effect used on
- * the JAIN University hero ("BE THE CHANGE / BE THE FUTURE"): each word sits
- * in an overflow-hidden box and rises from below into place, staggered
- * left-to-right, so the headline appears to "unmask" itself.
- *
- * Pass a new `animKey` (e.g. the current slide index) to force a replay,
- * which is how the hero-slider transition below re-triggers the effect.
- */
+/** Lightweight CSS-only word reveal used by the hero slider. */
 export default function TextReveal({
   text,
   className = '',
@@ -61,32 +14,29 @@ export default function TextReveal({
   stagger = 0.08,
   animKey,
 }: TextRevealProps) {
-  const prefersReducedMotion = useReducedMotion();
   const words = text.split(' ');
 
-  const container = prefersReducedMotion ? reducedMotionVariants : containerVariants;
-  const word = prefersReducedMotion ? reducedMotionWord : wordVariants;
-
   return (
-    <motion.span
+    <span
       key={animKey}
       className={`inline-flex flex-wrap ${className}`}
-      variants={container}
-      initial="hidden"
-      animate="visible"
-      custom={{ delay, stagger }}
+      aria-label={text}
     >
-      {words.map((w, i) => (
+      {words.map((word, index) => (
         <span
-          key={`${w}-${i}`}
+          key={`${word}-${index}`}
           className="inline-block overflow-hidden pb-[0.08em]"
+          aria-hidden="true"
         >
-          <motion.span className="inline-block will-change-transform" variants={word}>
-            {w}
-            {i < words.length - 1 ? '\u00A0' : ''}
-          </motion.span>
+          <span
+            className="text-reveal-word inline-block"
+            style={{ animationDelay: `${delay + index * stagger}s` }}
+          >
+            {word}
+            {index < words.length - 1 ? '\u00A0' : ''}
+          </span>
         </span>
       ))}
-    </motion.span>
+    </span>
   );
 }

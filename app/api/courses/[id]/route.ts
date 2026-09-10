@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/api-auth';
+import { revalidatePublicPages } from '@/lib/public-cache';
 
 async function verifyAuthorizedUser() {
   return getAdminSession();
@@ -71,6 +72,7 @@ export async function PUT(
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, course: updatedCourse });
   } catch (error) {
     console.error('PUT /api/courses/[id] error:', error);
@@ -98,6 +100,7 @@ export async function DELETE(
     // Delete course (schemes cascade deleted in DB)
     await prisma.course.delete({ where: { id } });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, message: 'Course deleted successfully' });
   } catch (error) {
     console.error('DELETE /api/courses/[id] error:', error);

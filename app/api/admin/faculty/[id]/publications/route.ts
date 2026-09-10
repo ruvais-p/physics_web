@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyAdminToken } from '@/lib/auth';
 
 async function authenticateAdmin() {
@@ -74,6 +75,7 @@ export async function POST(
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json(newPublication, { status: 201 });
   } catch (error) {
     console.error('Admin POST faculty publication error:', error);

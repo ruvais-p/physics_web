@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyAdminToken, hashPassword } from '@/lib/auth';
 
 async function authenticateAdmin() {
@@ -154,6 +155,7 @@ export async function PUT(
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json(fullFaculty);
   } catch (error) {
     console.error('Error updating faculty record:', error);
@@ -178,6 +180,7 @@ export async function DELETE(
       where: { id },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, message: 'Faculty record deleted successfully' });
   } catch (error) {
     console.error('Error deleting faculty record:', error);

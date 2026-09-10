@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/api-auth';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { deleteUploadedFile, hasPdfSignature } from '@/lib/file-security';
 import { sanitizeWebUrl } from '@/lib/url-security';
 
@@ -111,6 +112,7 @@ export async function PUT(
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, scheme: updatedScheme });
   } catch (error) {
     console.error('PUT /api/courses/schemes/[id] error:', error);
@@ -146,6 +148,7 @@ export async function DELETE(
       where: { id },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, message: 'Curriculum scheme deleted successfully' });
   } catch (error) {
     console.error('DELETE /api/courses/schemes/[id] error:', error);

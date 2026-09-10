@@ -4,7 +4,7 @@ import type { ResearchPageData } from '@/components/ResearchContent';
 import { prisma } from '@/lib/prisma';
 import { sanitizeWebUrl } from '@/lib/url-security';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 async function getLabs(): Promise<ResearchPageData['labs']> {
   try {

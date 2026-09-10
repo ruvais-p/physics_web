@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyAdminToken } from '@/lib/auth';
 
 async function authenticateAdmin() {
@@ -68,6 +69,7 @@ export async function PUT(
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json(updatedProject);
   } catch (error) {
     console.error('Admin PUT faculty project error:', error);
@@ -100,6 +102,7 @@ export async function DELETE(
       where: { id: projectId },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, message: 'Project deleted successfully' });
   } catch (error) {
     console.error('Admin DELETE faculty project error:', error);

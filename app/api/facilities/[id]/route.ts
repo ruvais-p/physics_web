@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/api-auth';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 import { sanitizeWebUrl } from '@/lib/url-security';
+import { revalidatePublicPages } from '@/lib/public-cache';
 
 const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -151,6 +152,7 @@ export async function PUT(
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, facility: updatedFacility });
   } catch (error) {
     console.error('PUT /api/facilities/[id] error:', error);
@@ -178,6 +180,7 @@ export async function DELETE(
 
     await prisma.facility.delete({ where: { id } });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, message: 'Facility deleted successfully' });
   } catch (error) {
     console.error('DELETE /api/facilities/[id] error:', error);

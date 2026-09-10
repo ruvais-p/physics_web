@@ -87,7 +87,7 @@ export default function Hero({
   const isCustomHero = title !== undefined;
 
   useEffect(() => {
-    if (isCustomHero) return;
+    if (isCustomHero || slides !== undefined) return;
 
     const controller = new AbortController();
 
@@ -122,7 +122,7 @@ export default function Hero({
       });
 
     return () => controller.abort();
-  }, [isCustomHero]);
+  }, [isCustomHero, slides]);
 
   // Determine active slides array
   const baseSlides = dynamicSlides && dynamicSlides.length > 0 ? dynamicSlides : (slides || []);

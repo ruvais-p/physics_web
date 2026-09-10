@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyAdminToken, hashPassword } from '@/lib/auth';
 
 // Utility to verify admin authentication
@@ -109,6 +110,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json(newFaculty, { status: 201 });
   } catch (error) {
     console.error('Error creating faculty account:', error);

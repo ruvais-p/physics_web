@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import path from 'path';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyFacultyToken } from '@/lib/auth';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 import { deleteUploadedFile } from '@/lib/file-security';
@@ -109,6 +110,7 @@ export async function PUT(
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json(updatedStudent);
   } catch (error) {
     console.error('PUT /api/faculty/students/[id] error:', error);
@@ -158,6 +160,7 @@ export async function DELETE(
       where: { uid: id },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, message: 'Student record deleted successfully.' });
   } catch (error) {
     console.error('DELETE /api/faculty/students/[id] error:', error);

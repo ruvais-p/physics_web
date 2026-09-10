@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import path from 'path';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyFacultyToken } from '@/lib/auth';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 
@@ -95,6 +96,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json(newStudent, { status: 201 });
   } catch (error) {
     console.error('POST /api/faculty/students error:', error);

@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyAdminToken } from '@/lib/auth';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 import { deleteUploadedFile, hasPdfSignature } from '@/lib/file-security';
@@ -143,6 +144,7 @@ export async function POST(
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({
       success: true,
       image: updatedDoc.image,
@@ -195,6 +197,7 @@ export async function DELETE(
       });
     }
 
+    revalidatePublicPages();
     return NextResponse.json({
       success: true,
       message: `Faculty ${type === 'image' ? 'profile image' : 'CV document'} deleted successfully.`,

@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 import { getAdminSession } from '@/lib/api-auth';
 import { sanitizeWebUrl } from '@/lib/url-security';
+import { revalidatePublicPages } from '@/lib/public-cache';
 
 // GET all hero items (CMS Panel)
 export async function GET() {
@@ -112,6 +113,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({
       success: true,
       slide: newSlide,

@@ -53,7 +53,7 @@ export default function LabCard({ lab }: LabCardProps) {
   return (
     <Link
       href={`/research/${lab.id}`}
-      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md hover:border-cyan-accent/40 transition-all duration-300 flex flex-col justify-between group block font-sans"
+      className="render-lazy bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md hover:border-cyan-accent/40 transition-all duration-300 flex flex-col justify-between group block font-sans"
     >
       <div>
         {/* Laboratory Image */}

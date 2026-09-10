@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/api-auth';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { hasPdfSignature } from '@/lib/file-security';
 import { sanitizeWebUrl } from '@/lib/url-security';
 
@@ -121,6 +122,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, scheme: newScheme });
   } catch (error) {
     console.error('POST /api/courses/schemes error:', error);

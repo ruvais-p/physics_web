@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/api-auth';
+import { revalidatePublicPages } from '@/lib/public-cache';
 
 export async function PUT(request: Request) {
   const user = await getAdminSession();
@@ -25,6 +26,7 @@ export async function PUT(request: Request) {
       )
     );
 
+    revalidatePublicPages();
     return NextResponse.json({
       success: true,
       message: 'Hero slides reordered successfully',
