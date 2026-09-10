@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/api-auth';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { sanitizeWebUrl } from '@/lib/url-security';
 
 // GET: Fetch all notifications for Admin Dashboard
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json(newNotification, { status: 201 });
   } catch (error) {
     console.error('Error creating notification:', error);

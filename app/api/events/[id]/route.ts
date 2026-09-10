@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { saveImageAsWebp } from '@/lib/image';
 import { getAdminSession } from '@/lib/api-auth';
 import { sanitizeWebUrl } from '@/lib/url-security';
+import { revalidatePublicPages } from '@/lib/public-cache';
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -131,6 +132,7 @@ export async function PUT(request: Request, { params }: Params) {
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json(updatedEvent);
   } catch (error) {
     console.error('Error updating event:', error);
@@ -157,6 +159,7 @@ export async function DELETE(request: Request, { params }: Params) {
       where: { id: eventId },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, message: 'Event deleted successfully' });
   } catch (error) {
     console.error('Error deleting event:', error);

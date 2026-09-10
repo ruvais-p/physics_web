@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/api-auth';
+import { revalidatePublicPages } from '@/lib/public-cache';
 
 async function verifyAuthorizedUser() {
   return getAdminSession();
@@ -74,6 +75,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, course: newCourse }, { status: 201 });
   } catch (error) {
     console.error('POST /api/courses error:', error);

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { sanitizeWebUrl } from '@/lib/url-security';
 import {
@@ -60,12 +61,22 @@ import {
   ArrowRight,
   Settings,
 } from 'lucide-react';
-import AdminFacultyFullManageModal from '@/components/AdminFacultyFullManageModal';
-import EventGallerySection from '@/components/EventGallerySection';
-import CurriculumManagementSection from '@/components/CurriculumManagementSection';
-import ResearchLabManagementSection from '@/components/ResearchLabManagementSection';
-import FacilityManagementSection from '@/components/FacilityManagementSection';
-import GeneralSettingsSection from '@/components/GeneralSettingsSection';
+const AdminFacultyFullManageModal = dynamic(
+  () => import('@/components/AdminFacultyFullManageModal'),
+);
+const EventGallerySection = dynamic(() => import('@/components/EventGallerySection'));
+const CurriculumManagementSection = dynamic(
+  () => import('@/components/CurriculumManagementSection'),
+);
+const ResearchLabManagementSection = dynamic(
+  () => import('@/components/ResearchLabManagementSection'),
+);
+const FacilityManagementSection = dynamic(
+  () => import('@/components/FacilityManagementSection'),
+);
+const GeneralSettingsSection = dynamic(
+  () => import('@/components/GeneralSettingsSection'),
+);
 
 // Import Shadcn UI elements
 import {

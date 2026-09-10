@@ -29,7 +29,7 @@ export default function FacultyCard({ person, onClick, horizontal }: FacultyCard
     return (
       <div 
         onClick={onClick}
-        className={`group faculty-member-card transition-all duration-300 grid grid-cols-1 md:grid-cols-3 gap-10 sm:gap-12 lg:gap-14 items-start ${
+        className={`render-lazy group faculty-member-card transition-all duration-300 grid grid-cols-1 md:grid-cols-3 gap-10 sm:gap-12 lg:gap-14 items-start ${
           isClickable ? 'cursor-pointer' : 'cursor-default'
         }`}
       >
@@ -79,7 +79,7 @@ export default function FacultyCard({ person, onClick, horizontal }: FacultyCard
   return (
     <div 
       onClick={onClick}
-      className={`group faculty-member-card block transition-all duration-300 flex flex-col h-full space-y-3 ${
+      className={`render-lazy group faculty-member-card block transition-all duration-300 flex flex-col h-full space-y-3 ${
         isClickable ? 'cursor-pointer' : 'cursor-default'
       }`}
     >

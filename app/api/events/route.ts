@@ -4,6 +4,7 @@ import path from 'path';
 import { saveImageAsWebp } from '@/lib/image';
 import { getAdminSession } from '@/lib/api-auth';
 import { sanitizeWebUrl } from '@/lib/url-security';
+import { revalidatePublicPages } from '@/lib/public-cache';
 
 // GET /api/events - Fetch all events ordered by date desc
 export async function GET() {
@@ -97,6 +98,7 @@ export async function POST(request: Request) {
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json(newEvent, { status: 201 });
   } catch (error) {
     console.error('Error creating event:', error);

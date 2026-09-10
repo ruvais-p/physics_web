@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import type { Publication } from '@/lib/data';
 import { sanitizeWebUrl } from '@/lib/url-security';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
 
 async function getPublications(): Promise<Publication[]> {
   try {

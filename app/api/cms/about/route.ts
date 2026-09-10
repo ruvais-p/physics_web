@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/api-auth';
+<<<<<<< HEAD
+=======
+import { sanitizeWebUrl } from '@/lib/url-security';
+import { revalidatePublicPages } from '@/lib/public-cache';
+>>>>>>> 76adaae (Latency issue fixed)
 
 // GET CMS About Us record
 export async function GET() {
@@ -69,6 +74,7 @@ export async function POST(request: Request) {
       });
     }
 
+    revalidatePublicPages();
     return NextResponse.json({
       success: true,
       data: result,

@@ -44,7 +44,7 @@ export default function FacilityCard({ facility }: FacilityCardProps) {
   return (
     <Link
       href={`/facilities/${facility.id}`}
-      className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md hover:border-cyan-accent/40 transition-all duration-300 flex flex-col justify-between group block"
+      className="render-lazy bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md hover:border-cyan-accent/40 transition-all duration-300 flex flex-col justify-between group block"
     >
       <div>
         {/* Facility Image (No badges) */}
@@ -79,4 +79,3 @@ export default function FacilityCard({ facility }: FacilityCardProps) {
     </Link>
   );
 }
-

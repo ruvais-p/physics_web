@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminSession } from '@/lib/api-auth';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { sanitizeWebUrl } from '@/lib/url-security';
 
 // PUT: Update an existing notification
@@ -32,6 +33,7 @@ export async function PUT(
       },
     });
 
+    revalidatePublicPages();
     return NextResponse.json(updatedNotification);
   } catch (error) {
     console.error('Error updating notification:', error);
@@ -55,6 +57,7 @@ export async function DELETE(
       where: { id },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, message: 'Notification deleted' });
   } catch (error) {
     console.error('Error deleting notification:', error);

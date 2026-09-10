@@ -1,13 +1,63 @@
 import Link from 'next/link';
-import Hero from '@/components/Hero';
-import NotificationsTicker from '@/components/NotificationsTicker';
+import Image from 'next/image';
+import Hero, { type Slide } from '@/components/Hero';
+import NotificationsTicker, { type NotificationItem } from '@/components/NotificationsTicker';
 import HomeEvents, { type HomeEventItem } from '@/components/HomeEvents';
 import JournalCard from '@/components/JournalCard';
 import { RESEARCH_LABS, type Publication } from '@/lib/data';
 import { prisma } from '@/lib/prisma';
+import { sanitizeWebUrl } from '@/lib/url-security';
 import { ChevronRight, ArrowRight } from 'lucide-react';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
+
+async function getHomeHeroSlides(): Promise<Slide[]> {
+  try {
+    const slides = await prisma.hero.findMany({
+      where: { is_visible: true },
+      select: { id: true, title: true, description: true, image: true },
+      orderBy: [{ order: 'asc' }, { createdAt: 'asc' }],
+    });
+
+    return slides.map((slide, index) => ({
+      id: String(slide.id),
+      tab: `Slide ${index + 1}`,
+      title: [slide.title],
+      subtitle: slide.description,
+      image: slide.image,
+      overlay: 'rgba(0, 0, 0, 0.25)',
+      titleColor: '#ffffff',
+    }));
+  } catch (error) {
+    console.error('Failed to fetch home page hero slides:', error);
+    return [];
+  }
+}
+
+async function getHomeNotifications(): Promise<NotificationItem[]> {
+  try {
+    const notifications = await prisma.notification.findMany({
+      where: { isActive: true },
+      select: { id: true, title: true, category: true, link: true, date: true },
+      orderBy: { date: 'desc' },
+    });
+
+    return notifications.map((item) => ({
+      id: item.id,
+      title: item.title,
+      category: item.category,
+      link: sanitizeWebUrl(item.link) || '#',
+      date: item.date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: '2-digit',
+        year: 'numeric',
+      }),
+    }));
+  } catch (error) {
+    console.error('Failed to fetch home page notifications:', error);
+    return [];
+  }
+}
 
 async function getHomeEvents(): Promise<HomeEventItem[]> {
   try {
@@ -108,9 +158,11 @@ function LabCard({ lab, className = "h-64" }: { lab: typeof RESEARCH_LABS[0]; cl
           </svg>
         </div>
       ) : (
-        <img
+        <Image
           src={lab.image}
           alt={lab.name}
+          fill
+          sizes="(max-width: 768px) 100vw, 40vw"
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-2xl"
         />
       )}
@@ -119,7 +171,9 @@ function LabCard({ lab, className = "h-64" }: { lab: typeof RESEARCH_LABS[0]; cl
 }
 
 export default async function HomePage() {
-  const [homeEvents, homePublications] = await Promise.all([
+  const [heroSlides, notifications, homeEvents, homePublications] = await Promise.all([
+    getHomeHeroSlides(),
+    getHomeNotifications(),
     getHomeEvents(),
     getHomePublications(),
   ]);
@@ -128,10 +182,10 @@ export default async function HomePage() {
     <div className="space-y-0 pb-0">
 
       {/* Hero Section */}
-      <Hero />
+      <Hero slides={heroSlides} />
 
       {/* Announcements Alert Ticker (Fetched Live from PostgreSQL DB) */}
-      <NotificationsTicker />
+      <NotificationsTicker notifications={notifications} />
 
       {/* Department Legacy & Academics Section */}
       <section className="w-full px-6 sm:px-12 lg:px-16 py-12 sm:py-16 bg-gradient-to-b from-surface-lowest via-surface-low/30 to-surface-lowest">
@@ -140,9 +194,12 @@ export default async function HomePage() {
           {/* Department Building Image Column */}
           <div className="lg:col-span-5 flex justify-center items-center">
             <div className="relative w-full max-w-lg rounded-2xl overflow-hidden shadow-xl border border-slate-200/80 bg-slate-900 group">
-              <img
+              <Image
                 src="/building-black-and-white.webp"
                 alt="Department of Physics Building"
+                width={850}
+                height={610}
+                sizes="(max-width: 1024px) 100vw, 42vw"
                 className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700"
               />
             </div>

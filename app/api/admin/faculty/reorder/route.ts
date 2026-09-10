@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
+import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyAdminToken } from '@/lib/auth';
 
 async function authenticateAdmin() {
@@ -34,6 +35,7 @@ export async function PUT(request: Request) {
       )
     );
 
+    revalidatePublicPages();
     return NextResponse.json({
       success: true,
       message: 'Faculty members reordered successfully',
