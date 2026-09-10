@@ -1,22 +1,27 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import Hero from '@/components/Hero';
+import { getPageHero } from '@/lib/page-hero';
 
 export const metadata = {
   title: 'Library | Department of Physics, CUSAT',
   description: 'Explore library resources, reference collections, and digital access portals at the Department of Physics, CUSAT.',
 };
 
-export default function LibraryPage() {
+export const revalidate = 300;
+
+export default async function LibraryPage() {
+  const heroData = await getPageHero('library');
+
   return (
     <div className="pb-24 relative bg-[#000a1e] text-white min-h-screen">
       
       {/* Hero Header matching main homepage design */}
       <Hero
-        title="DEPARTMENT LIBRARY"
+        title={heroData.title}
         badge="HOME > LIBRARY"
-        subtitle="Over 5,000 reference textbooks, archived Ph.D. theses, and digital subscriptions to APS, IOP, and IEEE."
-        bgImage="/campus.jpg"
+        subtitle={heroData.subtitle}
+        bgImage={heroData.image}
       />
 
       {/* Main Content Area */}

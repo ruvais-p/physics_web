@@ -273,7 +273,13 @@ function EventGridCard({ item }: { item: EventItem }) {
   );
 }
 
-export default function EventsPageClient({ events }: { events: EventItem[] }) {
+export default function EventsPageClient({
+  events,
+  heroData,
+}: {
+  events: EventItem[];
+  heroData?: { title: string; subtitle: string; image: string };
+}) {
   const dbEvents = events;
   const [activeTab, setActiveTab] = useState<number>(0);
   const [upcomingPageIndex, setUpcomingPageIndex] = useState<number>(0);
@@ -315,10 +321,10 @@ export default function EventsPageClient({ events }: { events: EventItem[] }) {
       
       {/* Hero Header matching main homepage design */}
       <Hero
-        title="DEPARTMENT EVENTS"
+        title={heroData?.title || 'DEPARTMENT EVENTS'}
         badge="HOME > EVENTS"
-        subtitle="National seminars, international web-symposiums, technical workshops, and endowment lectures."
-        bgImage="/campus.jpg"
+        subtitle={heroData?.subtitle || 'National seminars, international web-symposiums, technical workshops, and endowment lectures.'}
+        bgImage={heroData?.image || '/campus.jpg'}
       />
 
       {/* Main Page Layout */}

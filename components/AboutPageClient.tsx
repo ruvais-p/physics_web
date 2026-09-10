@@ -173,19 +173,20 @@ function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
 
 export default function AboutPageClient({
   aboutData,
+  heroData,
 }: {
   aboutData: { content: string; image: string | null };
+  heroData?: { title: string; subtitle: string; image: string };
 }) {
-
-  const bannerImage = aboutData?.image || '/campus.jpg';
+  const bannerImage = heroData?.image || aboutData?.image || '/campus.jpg';
 
   return (
     <div className="pb-24 relative">
       {/* Hero Header matching main homepage design */}
       <Hero
-        title="ABOUT DEPARTMENT"
+        title={heroData?.title || 'ABOUT DEPARTMENT'}
         badge="HOME > ABOUT"
-        subtitle="Advancing fundamental physics, materials science, quantum technology, and photonics since 1963."
+        subtitle={heroData?.subtitle || 'Advancing fundamental physics, materials science, quantum technology, and photonics since 1963.'}
         bgImage={bannerImage}
       />
 

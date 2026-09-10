@@ -5,7 +5,13 @@ import Hero from '@/components/Hero';
 import CourseCard, { CourseWithSchemes } from '@/components/CourseCard';
 import { COURSES } from '@/lib/data';
 
-export default function CoursesPageClient({ courses }: { courses: CourseWithSchemes[] }) {
+export default function CoursesPageClient({
+  courses,
+  heroData,
+}: {
+  courses: CourseWithSchemes[];
+  heroData?: { title: string; subtitle: string; image: string };
+}) {
   const [activeCourseId, setActiveCourseId] = useState<string>('c1');
   const dynamicCourses = courses.length > 0 ? courses : COURSES;
 
@@ -47,10 +53,10 @@ export default function CoursesPageClient({ courses }: { courses: CourseWithSche
     <div className="space-y-12 pb-20 relative font-sans">
       {/* Hero Header matching main homepage design */}
       <Hero
-        title="ACADEMIC PROGRAMS"
+        title={heroData?.title || 'ACADEMIC PROGRAMS'}
         badge="HOME > COURSES"
-        subtitle="Choice-Based Credit System (CBCS) offering M.Sc., Ph.D., and 5-Year Integrated M.Sc. degree programs."
-        bgImage="/campus.jpg"
+        subtitle={heroData?.subtitle || 'Choice-Based Credit System (CBCS) offering M.Sc., Ph.D., and 5-Year Integrated M.Sc. degree programs.'}
+        bgImage={heroData?.image || '/campus.jpg'}
       />
 
       {/* Course Selector Bar - Styled like the glassmorphic navbar */}

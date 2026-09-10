@@ -2,6 +2,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Trophy, Award, Sparkles, Medal, Building2, Calendar, Star, ArrowUpRight } from 'lucide-react';
 import Hero from '@/components/Hero';
+import { getPageHero } from '@/lib/page-hero';
+
+export const revalidate = 300;
 
 export const metadata = {
   title: 'Department News & Awards',
@@ -116,16 +119,18 @@ const AWARDS_ITEMS: AwardItem[] = [
   },
 ];
 
-export default function NewsPage() {
+export default async function NewsPage() {
+  const heroData = await getPageHero('news');
+
   return (
     <div className="pb-24 relative bg-slate-50/50">
       
       {/* Hero Header */}
       <Hero
-        title="DEPARTMENT NEWS & AWARDS"
+        title={heroData.title}
         badge="HOME > NEWS"
-        subtitle="Latest updates on scientific breakthroughs, prestigious faculty accolades, research awards, and press releases."
-        bgImage="/campus.jpg"
+        subtitle={heroData.subtitle}
+        bgImage={heroData.image}
       />
 
       {/* Main Container */}

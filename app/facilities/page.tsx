@@ -3,6 +3,7 @@ import { Wrench } from 'lucide-react';
 import Hero from '@/components/Hero';
 import FacilityCard, { type FacilityItem } from '@/components/FacilityCard';
 import { prisma } from '@/lib/prisma';
+import { getPageHero } from '@/lib/page-hero';
 
 export const revalidate = 300;
 
@@ -24,15 +25,18 @@ async function getFacilities(): Promise<FacilityItem[]> {
 }
 
 export default async function FacilitiesPage() {
-  const facilities = await getFacilities();
+  const [facilities, heroData] = await Promise.all([
+    getFacilities(),
+    getPageHero('facilities'),
+  ]);
 
   return (
     <div className="space-y-12 pb-20 relative font-sans">
       <Hero
-        title="CENTRAL FACILITIES"
+        title={heroData.title}
         badge="HOME > FACILITIES"
-        subtitle="Equipped with advanced instrumentation supporting experimental research and materials characterization."
-        bgImage="/physics.png"
+        subtitle={heroData.subtitle}
+        bgImage={heroData.image}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center pt-2">

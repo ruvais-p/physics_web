@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { verifyAdminToken, verifyFacultyToken } from '@/lib/auth';
+import { verifyAdminToken, verifyFacultyToken, verifyAuthToken } from '@/lib/auth';
 
 export async function getAdminSession() {
   const cookieStore = await cookies();
@@ -15,4 +15,13 @@ export async function getFacultySession() {
     cookieStore.get('faculty_token')?.value ||
     cookieStore.get('auth_token')?.value;
   return token ? verifyFacultyToken(token) : null;
+}
+
+export async function getSessionUser() {
+  const cookieStore = await cookies();
+  const token =
+    cookieStore.get('auth_token')?.value ||
+    cookieStore.get('admin_token')?.value ||
+    cookieStore.get('faculty_token')?.value;
+  return token ? verifyAuthToken(token) : null;
 }

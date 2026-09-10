@@ -6,7 +6,13 @@ import Hero from '@/components/Hero';
 import ProjectsTable, { ProjectData } from '@/components/ProjectsTable';
 import { Search } from 'lucide-react';
 
-export default function ProjectsPageClient({ projects }: { projects: ProjectData[] }) {
+export default function ProjectsPageClient({
+  projects,
+  heroData,
+}: {
+  projects: ProjectData[];
+  heroData?: { title: string; subtitle: string; image: string };
+}) {
 
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -42,10 +48,10 @@ export default function ProjectsPageClient({ projects }: { projects: ProjectData
     <div className="space-y-12 pb-20 font-sans">
       {/* Hero Header matching main website design */}
       <Hero
-        title="RESEARCH PROJECTS"
+        title={heroData?.title || 'RESEARCH PROJECTS'}
         badge="HOME > RESEARCH > PROJECTS"
-        subtitle="Funded research initiatives, national and international grants from DST-SERB, ISRO, CSIR, BRNS, and UGC driving advanced physical science discoveries."
-        bgImage="/physics.png"
+        subtitle={heroData?.subtitle || 'Funded research initiatives, national and international grants from DST-SERB, ISRO, CSIR, BRNS, and UGC driving advanced physical science discoveries.'}
+        bgImage={heroData?.image || '/physics.png'}
       />
 
       {/* Tab Selector Bar - Glassmorphic Pill Tab */}

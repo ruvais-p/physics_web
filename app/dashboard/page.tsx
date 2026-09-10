@@ -77,6 +77,9 @@ const FacilityManagementSection = dynamic(
 const GeneralSettingsSection = dynamic(
   () => import('@/components/GeneralSettingsSection'),
 );
+const PageHeroManagementSection = dynamic(
+  () => import('@/components/PageHeroManagementSection'),
+);
 
 // Import Shadcn UI elements
 import {
@@ -2220,7 +2223,7 @@ export default function UnifiedDashboardPage() {
           </div>
 
           {/* Navigation List */}
-          <div className="flex-1 overflow-y-auto overflow-x-hidden my-3 pr-1 space-y-2">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden my-3 pr-1 space-y-2 no-scrollbar">
             <p className="text-[11px] font-sans font-bold text-indigo-300 uppercase tracking-widest px-2 mb-2 sticky top-0 bg-oxford py-1 z-10">Main Navigation</p>
             <TabsList className="flex flex-col h-auto bg-transparent p-0 space-y-1.5 w-full border-none rounded-none shadow-none">
               <TabsTrigger
@@ -2249,10 +2252,23 @@ export default function UnifiedDashboardPage() {
               >
                 <div className="flex items-center gap-3.5">
                   <Sliders className="w-4 h-4" />
-                  <span>Hero Carousel</span>
+                  <span>Home Hero Carousel</span>
                 </div>
                 <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
                   {heroSlides.length}/10
+                </Badge>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="page-heroes"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <ImageIcon className="w-4 h-4" />
+                  <span>Page Banners</span>
+                </div>
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                  13 Pages
                 </Badge>
               </TabsTrigger>
 
@@ -2912,6 +2928,11 @@ export default function UnifiedDashboardPage() {
                 </Table>
               )}
             </div>
+          </TabsContent>
+
+          {/* INNER PAGE BANNERS TAB */}
+          <TabsContent value="page-heroes" className="space-y-10 animate-fadeIn mt-0">
+            <PageHeroManagementSection />
           </TabsContent>
 
           {/* NOTIFICATIONS TAB */}
@@ -3994,7 +4015,7 @@ export default function UnifiedDashboardPage() {
         </div>
 
         {/* Navigation List (5 Options) */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden my-3 pr-1 space-y-2">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden my-3 pr-1 space-y-2 no-scrollbar">
           <p className="text-[11px] font-sans font-bold text-indigo-300 uppercase tracking-widest px-2 mb-2 sticky top-0 bg-oxford py-1 z-10">Faculty Menu</p>
           <TabsList className="flex flex-col h-auto bg-transparent p-0 space-y-1.5 w-full border-none rounded-none shadow-none">
             {/* Option 1: Overview */}

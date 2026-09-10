@@ -23,17 +23,19 @@ export interface AnnouncementItem {
 
 export default function AnnouncementsPageClient({
   announcements,
+  heroData,
 }: {
   announcements: AnnouncementItem[];
+  heroData?: { title: string; subtitle: string; image: string };
 }) {
   return (
     <div className="pb-24 relative min-h-screen bg-slate-50/50">
       {/* Hero Header */}
       <Hero
-        title="ANNOUNCEMENTS & NOTICES"
+        title={heroData?.title || 'ANNOUNCEMENTS & NOTICES'}
         badge="HOME > ANNOUNCEMENTS"
-        subtitle="Official circulars, examination schedules, academic notifications, and departmental announcements."
-        bgImage="/campus.jpg"
+        subtitle={heroData?.subtitle || 'Official circulars, examination schedules, academic notifications, and departmental announcements.'}
+        bgImage={heroData?.image || '/campus.jpg'}
       />
 
       {/* Main Container */}
