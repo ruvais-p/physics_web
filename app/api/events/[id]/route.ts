@@ -65,7 +65,8 @@ export async function PUT(request: Request, { params }: Params) {
     const contentType = request.headers.get('content-type') || '';
     let title = existingEvent.title;
     let description = existingEvent.description;
-    let dateStr = existingEvent.date.toISOString();
+    let startDateStr = existingEvent.startDate ? existingEvent.startDate.toISOString() : (existingEvent.date ? existingEvent.date.toISOString() : '');
+    let endDateStr = existingEvent.endDate ? existingEvent.endDate.toISOString() : '';
     let venue = existingEvent.venue;
     let apply_link = existingEvent.apply_link;
     let imagePath = existingEvent.image;
@@ -74,7 +75,9 @@ export async function PUT(request: Request, { params }: Params) {
       const formData = await request.formData();
       if (formData.has('title')) title = (formData.get('title') as string || '').trim();
       if (formData.has('description')) description = (formData.get('description') as string || '').trim();
-      if (formData.has('date')) dateStr = (formData.get('date') as string || '').trim();
+      if (formData.has('startDate')) startDateStr = (formData.get('startDate') as string || '').trim();
+      else if (formData.has('date')) startDateStr = (formData.get('date') as string || '').trim();
+      if (formData.has('endDate')) endDateStr = (formData.get('endDate') as string || '').trim();
       if (formData.has('venue')) {
         const venueVal = (formData.get('venue') as string || '').trim();
         venue = venueVal ? venueVal : null;
@@ -102,7 +105,9 @@ export async function PUT(request: Request, { params }: Params) {
       const body = await request.json();
       if (body.title !== undefined) title = String(body.title).trim();
       if (body.description !== undefined) description = String(body.description).trim();
-      if (body.date !== undefined) dateStr = String(body.date).trim();
+      if (body.startDate !== undefined) startDateStr = String(body.startDate).trim();
+      else if (body.date !== undefined) startDateStr = String(body.date).trim();
+      if (body.endDate !== undefined) endDateStr = String(body.endDate).trim();
       if (body.venue !== undefined) venue = body.venue ? String(body.venue).trim() : null;
       if (body.apply_link !== undefined) apply_link = body.apply_link ? sanitizeWebUrl(body.apply_link, false) : null;
       if (body.image !== undefined && body.image.trim()) imagePath = sanitizeWebUrl(body.image) || imagePath;
@@ -115,9 +120,17 @@ export async function PUT(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'Event description is required' }, { status: 400 });
     }
 
-    const eventDate = new Date(dateStr);
-    if (isNaN(eventDate.getTime())) {
-      return NextResponse.json({ error: 'Invalid event date format' }, { status: 400 });
+    const eventStartDate = new Date(startDateStr);
+    if (isNaN(eventStartDate.getTime())) {
+      return NextResponse.json({ error: 'Invalid event start date format' }, { status: 400 });
+    }
+
+    let eventEndDate: Date | null = null;
+    if (endDateStr) {
+      const parsedEndDate = new Date(endDateStr);
+      if (!isNaN(parsedEndDate.getTime())) {
+        eventEndDate = parsedEndDate;
+      }
     }
 
     const updatedEvent = await (prisma as any).event.update({
@@ -126,7 +139,8 @@ export async function PUT(request: Request, { params }: Params) {
         title,
         description,
         image: imagePath,
-        date: eventDate,
+        startDate: eventStartDate,
+        endDate: eventEndDate,
         venue,
         apply_link,
       },

@@ -30,10 +30,11 @@ model Notification {
   title     String
   content   String?
   category  String   @default("General")
-  link      String?
-  isActive  Boolean  @default(true)
-  date      DateTime @default(now())
-  createdAt DateTime @default(now())
+  link        String?
+  isActive    Boolean  @default(true)
+  broadcastId String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([isActive, date(sort: Desc)])
@@ -197,14 +198,16 @@ model Event {
   title       String
   description String       @db.Text
   image       String
-  date        DateTime
+  startDate   DateTime     @map("start_date")
+  endDate     DateTime?    @map("end_date")
   venue       String?
   apply_link  String?
+  broadcastId String?      @map("broadcast_id")
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")
   images      EventImage[]
 
-  @@index([date(sort: Desc)])
+  @@index([startDate(sort: Desc)])
   @@map("events")
 }
 
@@ -262,4 +265,32 @@ model PageHero {
   updatedAt   DateTime @updatedAt
 
   @@index([pageKey])
+}
+
+model Award {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @db.Text
+  image       String?
+  date        DateTime @default(now())
+  link        String?
+  broadcastId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date(sort: Desc), createdAt(sort: Desc)])
+}
+
+model News {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @db.Text
+  image       String?
+  date        DateTime @default(now())
+  link        String?
+  broadcastId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date(sort: Desc), createdAt(sort: Desc)])
 }

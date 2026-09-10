@@ -60,6 +60,9 @@ import {
   Info,
   ArrowRight,
   Settings,
+  Newspaper,
+  Sparkles,
+  Radio,
 } from 'lucide-react';
 const AdminFacultyFullManageModal = dynamic(
   () => import('@/components/AdminFacultyFullManageModal'),
@@ -79,6 +82,12 @@ const GeneralSettingsSection = dynamic(
 );
 const PageHeroManagementSection = dynamic(
   () => import('@/components/PageHeroManagementSection'),
+);
+const NewsAwardsManagementSection = dynamic(
+  () => import('@/components/NewsAwardsManagementSection'),
+);
+const MultiChannelBroadcastModal = dynamic(
+  () => import('@/components/MultiChannelBroadcastModal'),
 );
 
 // Import Shadcn UI elements
@@ -462,7 +471,8 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // ADMIN DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'events' | 'notifications' | 'faculty' | 'publications' | 'curriculum' | 'labs' | 'facilities' | 'settings'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'page-heroes' | 'events' | 'notifications' | 'news-awards' | 'faculty' | 'curriculum' | 'labs' | 'facilities' | 'settings'>('dashboard');
+  const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -475,7 +485,8 @@ export default function UnifiedDashboardPage() {
   const [eventFormData, setEventFormData] = useState({
     title: '',
     description: '',
-    date: '',
+    startDate: '',
+    endDate: '',
     venue: '',
     apply_link: '',
     imageFile: null as File | null,
@@ -504,12 +515,18 @@ export default function UnifiedDashboardPage() {
     setEventError(null);
     if (ev) {
       setEditingEvent(ev);
-      const d = new Date(ev.date);
-      const isoLocal = !isNaN(d.getTime()) ? new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '';
+      const startRaw = ev.startDate || ev.date;
+      const dStart = startRaw ? new Date(startRaw) : new Date();
+      const isoStart = !isNaN(dStart.getTime()) ? new Date(dStart.getTime() - dStart.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '';
+
+      const dEnd = ev.endDate ? new Date(ev.endDate) : null;
+      const isoEnd = dEnd && !isNaN(dEnd.getTime()) ? new Date(dEnd.getTime() - dEnd.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '';
+
       setEventFormData({
         title: ev.title || '',
         description: ev.description || '',
-        date: isoLocal,
+        startDate: isoStart,
+        endDate: isoEnd,
         venue: ev.venue || '',
         apply_link: ev.apply_link || '',
         imageFile: null,
@@ -521,7 +538,8 @@ export default function UnifiedDashboardPage() {
       setEventFormData({
         title: '',
         description: '',
-        date: new Date().toISOString().slice(0, 16),
+        startDate: new Date().toISOString().slice(0, 16),
+        endDate: '',
         venue: '',
         apply_link: '',
         imageFile: null,
@@ -550,8 +568,8 @@ export default function UnifiedDashboardPage() {
       setEventError('Event Description is required');
       return;
     }
-    if (!eventFormData.date.trim()) {
-      setEventError('Event Date is required');
+    if (!eventFormData.startDate.trim()) {
+      setEventError('Event Start Date & Time is required');
       return;
     }
     if (!editingEvent && !eventFormData.imageFile && !eventFormData.imageUrl.trim()) {
@@ -568,7 +586,10 @@ export default function UnifiedDashboardPage() {
       const formData = new FormData();
       formData.append('title', eventFormData.title.trim());
       formData.append('description', eventFormData.description.trim());
-      formData.append('date', eventFormData.date);
+      formData.append('startDate', eventFormData.startDate);
+      if (eventFormData.endDate.trim()) {
+        formData.append('endDate', eventFormData.endDate);
+      }
       formData.append('venue', eventFormData.venue.trim());
       formData.append('apply_link', eventFormData.apply_link.trim());
 
@@ -614,6 +635,9 @@ export default function UnifiedDashboardPage() {
 
   // About Us CMS States
   const [aboutContent, setAboutContent] = useState('');
+  const [aboutImageUrl, setAboutImageUrl] = useState('');
+  const [aboutImageFile, setAboutImageFile] = useState<File | null>(null);
+  const [aboutImagePreview, setAboutImagePreview] = useState<string | null>(null);
   const [aboutActiveTab, setAboutActiveTab] = useState<'write' | 'preview'>('write');
   const [loadingAbout, setLoadingAbout] = useState(false);
   const [savingAbout, setSavingAbout] = useState(false);
@@ -627,6 +651,8 @@ export default function UnifiedDashboardPage() {
       if (res.ok) {
         const data = await res.json();
         setAboutContent(data.content || '');
+        setAboutImageUrl(data.image || '');
+        setAboutImagePreview(data.image || null);
       }
     } catch (err) {
       console.error('Failed to fetch CMS about us:', err);
@@ -666,15 +692,30 @@ export default function UnifiedDashboardPage() {
     setSavingAbout(true);
 
     try {
-      const res = await fetch('/api/cms/about', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          content: aboutContent.trim(),
-        }),
-      });
+      let res;
+      if (aboutImageFile) {
+        const formData = new FormData();
+        formData.append('content', aboutContent.trim());
+        formData.append('image', aboutImageFile);
+        if (aboutImageUrl.trim()) {
+          formData.append('imageUrl', aboutImageUrl.trim());
+        }
+        res = await fetch('/api/cms/about', {
+          method: 'POST',
+          body: formData,
+        });
+      } else {
+        res = await fetch('/api/cms/about', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            content: aboutContent.trim(),
+            image: aboutImageUrl.trim() || null,
+          }),
+        });
+      }
 
       let data: any = {};
       try {
@@ -686,6 +727,12 @@ export default function UnifiedDashboardPage() {
 
       if (!res.ok) {
         throw new Error(data.error || 'Failed to save About Us content.');
+      }
+
+      setAboutImageFile(null);
+      if (data.data?.image) {
+        setAboutImageUrl(data.data.image);
+        setAboutImagePreview(data.data.image);
       }
 
       setAboutSuccess('About Us page content updated successfully!');
@@ -2299,6 +2346,16 @@ export default function UnifiedDashboardPage() {
               </TabsTrigger>
 
               <TabsTrigger
+                value="news-awards"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <Newspaper className="w-4 h-4" />
+                  <span>News & Honors</span>
+                </div>
+              </TabsTrigger>
+
+              <TabsTrigger
                 value="faculty"
                 className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
               >
@@ -2309,16 +2366,6 @@ export default function UnifiedDashboardPage() {
                 <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
                   {facultyList.length}
                 </Badge>
-              </TabsTrigger>
-
-              <TabsTrigger
-                value="publications"
-                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
-              >
-                <div className="flex items-center gap-3.5">
-                  <BookOpen className="w-4 h-4" />
-                  <span>Publications</span>
-                </div>
               </TabsTrigger>
 
               <TabsTrigger
@@ -2382,13 +2429,23 @@ export default function UnifiedDashboardPage() {
         <main className="flex-1 max-w-7xl w-full mx-auto p-6 md:p-10 space-y-12">
           {/* OVERVIEW TAB */}
           <TabsContent value="dashboard" className="space-y-12 animate-fadeIn mt-0">
-            <Card className="bg-transparent border-none rounded-none p-0 shadow-none relative overflow-visible">
+            <Card className="bg-transparent border-none rounded-none p-0 shadow-none relative overflow-visible flex flex-col md:flex-row md:items-center justify-between gap-4">
               <CardContent className="p-0">
                 <CardTitle className="text-3xl font-bold font-serif text-slate-900 leading-none mb-2">Welcome, Administrator ({currentUser?.name || 'Admin'})</CardTitle>
                 <CardDescription className="text-slate-600 text-base mt-1">
-                  Manage department announcements, faculty member accounts, and research profiles in real time.
+                  Manage department announcements, news broadcasts, faculty member accounts, and research profiles in real time.
                 </CardDescription>
               </CardContent>
+              <div className="flex items-center gap-3 shrink-0">
+                <Button
+                  variant="default"
+                  onClick={() => setIsBroadcastModalOpen(true)}
+                  className="flex items-center gap-2 py-3 px-5 font-semibold rounded-xl shadow-xs transition-all text-sm cursor-pointer"
+                >
+                  <Radio className="w-4 h-4 text-cyan-accent" />
+                  <span>Multi-Channel Broadcast</span>
+                </Button>
+              </div>
             </Card>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -2519,30 +2576,7 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
-              {/* Module 6: Publications */}
-              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
-                <CardContent className="p-0 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
-                      <BookOpen className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Publications</CardTitle>
-                  <CardDescription className="text-sm text-slate-600 leading-normal">
-                    Add and manage journal articles, conference papers, book chapters, publication dates, and DOI links by faculty member.
-                  </CardDescription>
-                </CardContent>
-                <Button
-                  variant="default"
-                  onClick={() => setAdminTab('publications')}
-                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
-                >
-                  <FilePlus className="w-4 h-4" />
-                  <span>Add Publications</span>
-                </Button>
-              </Card>
-
-              {/* Module 7: Curriculum & Regulations */}
+              {/* Module 6: Curriculum & Regulations */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2565,7 +2599,7 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
-              {/* Module 8: Research Laboratories */}
+              {/* Module 7: Research Laboratories */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2588,7 +2622,7 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
-              {/* Module 9: Facilities Management */}
+              {/* Module 8: Facilities Management */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2608,6 +2642,29 @@ export default function UnifiedDashboardPage() {
                 >
                   <Wrench className="w-4 h-4" />
                   <span>Central Facilities</span>
+                </Button>
+              </Card>
+
+              {/* Module 9: News & Honors */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <Newspaper className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">News & Honors</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Publish department news stories, press releases, research breakthroughs, faculty and student awards.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('news-awards')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <Newspaper className="w-4 h-4" />
+                  <span>Manage News & Honors</span>
                 </Button>
               </Card>
             </div>
@@ -2660,6 +2717,76 @@ export default function UnifiedDashboardPage() {
                 <span>{aboutSuccess}</span>
               </div>
             )}
+
+            {/* Department Building / Section Photo */}
+            <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+              <div className="border-b border-slate-100 pb-3">
+                <h3 className="text-xl font-bold font-serif text-slate-900 flex items-center gap-2">
+                  <ImageIcon className="w-5 h-5 text-oxford" />
+                  <span>Department Building & Section Photo</span>
+                </h3>
+                <p className="text-xs text-slate-500 font-sans">
+                  The featured image displayed alongside the About overview on the home page and About Us page.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                <div className="md:col-span-5">
+                  <div className="w-full aspect-[4/3] rounded-2xl bg-slate-900 overflow-hidden border border-slate-200 relative group shadow-sm flex items-center justify-center">
+                    {aboutImagePreview ? (
+                      <img
+                        src={aboutImagePreview}
+                        alt="About section preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-center p-6 text-slate-400 font-sans">
+                        <ImageIcon className="w-10 h-10 mx-auto mb-2 text-slate-500" />
+                        <span className="text-xs">Default building image used</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="md:col-span-7 space-y-4 font-sans text-sm">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Upload New Photo (PNG, JPG, WebP)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setAboutImageFile(file);
+                          setAboutImagePreview(URL.createObjectURL(file));
+                        }
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-oxford file:text-white hover:file:bg-oxford/90 cursor-pointer"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                      Or Image URL / Path
+                    </label>
+                    <Input
+                      type="text"
+                      placeholder="/building-black-and-white.webp or https://..."
+                      value={aboutImageUrl}
+                      onChange={(e) => {
+                        setAboutImageUrl(e.target.value);
+                        if (!aboutImageFile) {
+                          setAboutImagePreview(e.target.value || null);
+                        }
+                      }}
+                      className="font-sans text-xs"
+                    />
+                  </div>
+                </div>
+              </div>
+            </Card>
 
             {/* Markdown Text Editor & Live Preview */}
             <Card className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
@@ -3317,83 +3444,6 @@ export default function UnifiedDashboardPage() {
             </div>
           </TabsContent>
 
-          {/* PUBLICATIONS MANAGEMENT TAB */}
-          <TabsContent value="publications" className="space-y-8 animate-fadeIn mt-0">
-            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 pb-4">
-              <div>
-                <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
-                  <BookOpen className="w-7 h-7 text-oxford" />
-                  <span>Faculty Publications</span>
-                </h2>
-                <p className="text-slate-600 text-base mt-1 font-sans">
-                  Choose a faculty member to add or manage journal articles, conference papers, book chapters, and DOI links.
-                </p>
-              </div>
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={fetchFaculty}
-                className="h-11 w-11 text-slate-700 hover:text-slate-950"
-                title="Refresh Faculty Records"
-              >
-                <RefreshCw className={`w-4 h-4 ${loadingFaculty ? 'animate-spin' : ''}`} />
-              </Button>
-            </div>
-
-            <div className="relative max-w-2xl">
-              <Search className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
-              <Input
-                type="search"
-                placeholder="Search faculty by name, email, or designation..."
-                value={facultySearchTerm}
-                onChange={(event) => setFacultySearchTerm(event.target.value)}
-                className="pl-11 text-base h-12 w-full"
-              />
-            </div>
-
-            {loadingFaculty ? (
-              <div className="py-16 text-center text-slate-500 flex flex-col items-center gap-3">
-                <div className="w-8 h-8 border-2 border-oxford border-t-transparent rounded-full animate-spin" />
-                <span>Loading faculty member records...</span>
-              </div>
-            ) : filteredFaculty.length === 0 ? (
-              <div className="py-16 text-center text-slate-500 space-y-3 border-y border-slate-200">
-                <BookOpen className="w-10 h-10 mx-auto text-slate-400" />
-                <p className="text-base font-semibold text-slate-800">No faculty accounts found</p>
-                <p className="text-sm font-sans">Create a faculty account before adding publications.</p>
-              </div>
-            ) : (
-              <div className="border-y border-slate-200 divide-y divide-slate-200">
-                {filteredFaculty.map((faculty) => (
-                  <div
-                    key={faculty.id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-5 hover:bg-white/60 transition-colors"
-                  >
-                    <div className="min-w-0">
-                      <h3 className="text-lg font-bold font-serif text-slate-900 truncate">
-                        {faculty.name}
-                      </h3>
-                      <p className="text-sm text-slate-600 font-sans">
-                        {faculty.designation || 'Faculty Member'}
-                      </p>
-                      <p className="text-xs text-slate-500 font-mono mt-1 truncate">
-                        {faculty.email}
-                      </p>
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={() => openFullFacultyManager(faculty.id, 'publications')}
-                      className="shrink-0 flex items-center gap-2 px-5 font-semibold"
-                    >
-                      <BookOpen className="w-4 h-4" />
-                      <span>Manage Publications</span>
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
           {/* EVENTS MANAGEMENT TAB */}
           <TabsContent value="events" className="space-y-10 animate-fadeIn mt-0">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-transparent py-2 border-b border-slate-200 pb-4">
@@ -3463,13 +3513,18 @@ export default function UnifiedDashboardPage() {
                         </TableCell>
 
                         <TableCell className="font-mono text-sm text-slate-700 py-3 whitespace-nowrap">
-                          {new Date(ev.date).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          {(() => {
+                            const sRaw = ev.startDate || ev.date;
+                            const sDate = sRaw ? new Date(sRaw) : null;
+                            const eDate = ev.endDate ? new Date(ev.endDate) : null;
+                            const sStr = sDate && !isNaN(sDate.getTime())
+                              ? sDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                              : 'N/A';
+                            const eStr = eDate && !isNaN(eDate.getTime())
+                              ? eDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                              : null;
+                            return eStr ? `${sStr} to ${eStr}` : sStr;
+                          })()}
                         </TableCell>
 
                         <TableCell className="py-3">
@@ -3514,6 +3569,11 @@ export default function UnifiedDashboardPage() {
                 </Table>
               )}
             </div>
+          </TabsContent>
+
+          {/* NEWS & AWARDS TAB */}
+          <TabsContent value="news-awards" className="space-y-10 animate-fadeIn mt-0">
+            <NewsAwardsManagementSection />
           </TabsContent>
 
           {/* CURRICULUM TAB */}
@@ -3568,25 +3628,35 @@ export default function UnifiedDashboardPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-slate-700">Event Date & Time *</label>
+                  <label className="text-sm font-bold text-slate-700">Start Date & Time *</label>
                   <Input
                     type="datetime-local"
-                    value={eventFormData.date}
-                    onChange={(e) => setEventFormData({ ...eventFormData, date: e.target.value })}
+                    value={eventFormData.startDate}
+                    onChange={(e) => setEventFormData({ ...eventFormData, startDate: e.target.value })}
                     className="w-full text-sm font-mono"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-bold text-slate-700">Event Venue (Optional)</label>
+                  <label className="text-sm font-bold text-slate-700">End Date & Time (Optional)</label>
                   <Input
-                    type="text"
-                    placeholder="e.g. Department Auditorium, CUSAT"
-                    value={eventFormData.venue}
-                    onChange={(e) => setEventFormData({ ...eventFormData, venue: e.target.value })}
-                    className="w-full text-sm font-sans"
+                    type="datetime-local"
+                    value={eventFormData.endDate}
+                    onChange={(e) => setEventFormData({ ...eventFormData, endDate: e.target.value })}
+                    className="w-full text-sm font-mono"
                   />
                 </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Event Venue (Optional)</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Department Auditorium, CUSAT"
+                  value={eventFormData.venue}
+                  onChange={(e) => setEventFormData({ ...eventFormData, venue: e.target.value })}
+                  className="w-full text-sm font-sans"
+                />
               </div>
 
               <div className="space-y-1.5">
@@ -3987,6 +4057,16 @@ export default function UnifiedDashboardPage() {
             onFacultyUpdated={fetchFaculty}
           />
         )}
+
+        {/* Multi-Channel Broadcast Modal */}
+        <MultiChannelBroadcastModal
+          open={isBroadcastModalOpen}
+          onOpenChange={setIsBroadcastModalOpen}
+          onPublished={() => {
+            fetchNotifications();
+            fetchEvents();
+          }}
+        />
       </Tabs>
     );
   }
@@ -4988,13 +5068,18 @@ export default function UnifiedDashboardPage() {
                       </TableCell>
 
                       <TableCell className="font-mono text-sm text-slate-700 py-3 whitespace-nowrap">
-                        {new Date(ev.date).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        {(() => {
+                          const sRaw = ev.startDate || ev.date;
+                          const sDate = sRaw ? new Date(sRaw) : null;
+                          const eDate = ev.endDate ? new Date(ev.endDate) : null;
+                          const sStr = sDate && !isNaN(sDate.getTime())
+                            ? sDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                            : 'N/A';
+                          const eStr = eDate && !isNaN(eDate.getTime())
+                            ? eDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+                            : null;
+                          return eStr ? `${sStr} to ${eStr}` : sStr;
+                        })()}
                       </TableCell>
 
                       <TableCell className="py-3">
@@ -6084,25 +6169,35 @@ export default function UnifiedDashboardPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700">Event Date & Time *</label>
+                <label className="text-sm font-bold text-slate-700">Start Date & Time *</label>
                 <Input
                   type="datetime-local"
-                  value={eventFormData.date}
-                  onChange={(e) => setEventFormData({ ...eventFormData, date: e.target.value })}
+                  value={eventFormData.startDate}
+                  onChange={(e) => setEventFormData({ ...eventFormData, startDate: e.target.value })}
                   className="w-full text-sm font-mono"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700">Event Venue (Optional)</label>
+                <label className="text-sm font-bold text-slate-700">End Date & Time (Optional)</label>
                 <Input
-                  type="text"
-                  placeholder="e.g. Department Auditorium, CUSAT"
-                  value={eventFormData.venue}
-                  onChange={(e) => setEventFormData({ ...eventFormData, venue: e.target.value })}
-                  className="w-full text-sm font-sans"
+                  type="datetime-local"
+                  value={eventFormData.endDate}
+                  onChange={(e) => setEventFormData({ ...eventFormData, endDate: e.target.value })}
+                  className="w-full text-sm font-mono"
                 />
               </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">Event Venue (Optional)</label>
+              <Input
+                type="text"
+                placeholder="e.g. Department Auditorium, CUSAT"
+                value={eventFormData.venue}
+                onChange={(e) => setEventFormData({ ...eventFormData, venue: e.target.value })}
+                className="w-full text-sm font-sans"
+              />
             </div>
 
             <div className="space-y-1.5">

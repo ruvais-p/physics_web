@@ -10,7 +10,7 @@ interface PageProps {
 
 export async function generateStaticParams() {
   try {
-    const events = await prisma.event.findMany({ select: { id: true } });
+    const events = await prisma.$queryRaw<any[]>`SELECT id FROM events`;
     return events.map((event) => ({ id: String(event.id) }));
   } catch (error) {
     console.error('Failed to generate event routes:', error);
@@ -25,33 +25,36 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   if (Number.isInteger(eventId)) {
     try {
-      const item = await prisma.event.findUnique({
-        where: { id: eventId },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          image: true,
-          date: true,
-          venue: true,
-          apply_link: true,
-          images: {
-            select: { id: true, imagePath: true, sortOrder: true },
-            orderBy: { sortOrder: 'asc' },
-          },
-        },
-      });
+      const items = await prisma.$queryRaw<any[]>`
+        SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link
+        FROM events
+        WHERE id = ${eventId}
+        LIMIT 1
+      `;
+      const item = items[0] || null;
 
       if (item) {
+        const sDate = item.startDate ? new Date(item.startDate) : (item.date ? new Date(item.date) : new Date());
+        const eDate = item.endDate ? new Date(item.endDate) : null;
+        const startStr = sDate.toLocaleDateString('en-US', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        });
+        const endStr = eDate
+          ? eDate.toLocaleDateString('en-US', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            })
+          : null;
+        const dateDisplay = endStr && endStr !== startStr ? `${startStr} – ${endStr}` : startStr;
+
         liveEvent = {
           id: String(item.id),
           title: item.title,
-          date: item.date.toLocaleDateString('en-US', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          }),
-          time: item.date.toLocaleTimeString('en-US', {
+          date: dateDisplay,
+          time: sDate.toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit',
           }),

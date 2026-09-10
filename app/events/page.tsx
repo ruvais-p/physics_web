@@ -8,31 +8,40 @@ export default async function EventsPage() {
   let events: EventItem[] = [];
 
   const [records, heroData] = await Promise.all([
-    prisma.event.findMany({
-      select: { id: true, title: true, description: true, image: true, date: true, venue: true },
-      orderBy: { date: 'desc' },
-    }).catch((error) => {
+    prisma.$queryRaw<any[]>`
+      SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue
+      FROM events
+      ORDER BY start_date DESC
+    `.catch((error: any) => {
       console.error('Failed to fetch public events:', error);
       return [];
     }),
     getPageHero('events'),
   ]);
 
-  events = records.map((item) => ({
-    id: String(item.id),
-    title: item.title,
-    category: 'Seminar',
-    date: item.date.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }),
-    day: String(item.date.getDate()),
-    month: item.date.toLocaleDateString('en-US', { month: 'short' }),
-    year: String(item.date.getFullYear()),
-    time: item.date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
-    venue: item.venue || 'Department of Physics, CUSAT',
-    image: item.image || '/eventssss.jpg',
-    desc: item.description,
-    fullDetails: item.description,
-    timestamp: item.date.getTime(),
-  }));
+  events = records.map((item: any) => {
+    const sDate = item.startDate ? new Date(item.startDate) : new Date();
+    const eDate = item.endDate ? new Date(item.endDate) : null;
+    const startStr = sDate.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+    const endStr = eDate ? eDate.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
+    const dateDisplay = endStr && endStr !== startStr ? `${startStr} – ${endStr}` : startStr;
+
+    return {
+      id: String(item.id),
+      title: item.title,
+      category: 'Seminar' as const,
+      date: dateDisplay,
+      day: String(sDate.getDate()),
+      month: sDate.toLocaleDateString('en-US', { month: 'short' }),
+      year: String(sDate.getFullYear()),
+      time: sDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+      venue: item.venue || 'Department of Physics, CUSAT',
+      image: item.image || '/eventssss.jpg',
+      desc: item.description,
+      fullDetails: item.description,
+      timestamp: sDate.getTime(),
+    };
+  });
 
   return <EventsPageClient events={events} heroData={heroData} />;
 }
