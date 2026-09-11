@@ -32,6 +32,31 @@ async function hasValidSession(token: string) {
   }
 }
 
+function normalizeOrigin(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  try {
+    return new URL(value.trim()).origin;
+  } catch {
+    return null;
+  }
+}
+
+function getAllowedOrigins(request: NextRequest): Set<string> {
+  const configuredOrigins = [
+    normalizeOrigin(process.env.APP_URL),
+    normalizeOrigin(process.env.AUTH_URL),
+  ].filter((origin): origin is string => Boolean(origin));
+
+  // Production uses an explicit public URL. Falling back to nextUrl keeps
+  // local development usable when no application URL has been configured.
+  return new Set(
+    configuredOrigins.length > 0
+      ? configuredOrigins
+      : [request.nextUrl.origin],
+  );
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const authToken =
@@ -42,9 +67,10 @@ export async function proxy(request: NextRequest) {
   // Reject browser cross-site state-changing requests before they reach an API handler.
   if (pathname.startsWith('/api/') && !['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
     const fetchSite = request.headers.get('sec-fetch-site');
-    const origin = request.headers.get('origin');
+    const origin = normalizeOrigin(request.headers.get('origin'));
+    const allowedOrigins = getAllowedOrigins(request);
 
-    if (fetchSite === 'cross-site' || (origin && origin !== request.nextUrl.origin)) {
+    if (fetchSite === 'cross-site' || (origin && !allowedOrigins.has(origin))) {
       return NextResponse.json({ error: 'Cross-site request rejected' }, { status: 403 });
     }
 
