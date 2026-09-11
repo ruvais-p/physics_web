@@ -8,20 +8,28 @@ export default async function EventsPage() {
   let events: EventItem[] = [];
 
   const [records, heroData] = await Promise.all([
-    prisma.$queryRaw<any[]>`
-      SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, brochure
-      FROM events
-      ORDER BY start_date DESC
-    `.catch((error: any) => {
+    prisma.event.findMany({
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        image: true,
+        startDate: true,
+        endDate: true,
+        venue: true,
+        brochure: true,
+      },
+      orderBy: { startDate: 'desc' },
+    }).catch((error) => {
       console.error('Failed to fetch public events:', error);
       return [];
     }),
     getPageHero('events'),
   ]);
 
-  events = records.map((item: any) => {
-    const sDate = item.startDate ? new Date(item.startDate) : new Date();
-    const eDate = item.endDate ? new Date(item.endDate) : null;
+  events = records.map((item) => {
+    const sDate = item.startDate;
+    const eDate = item.endDate;
     const startStr = sDate.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
     const endStr = eDate ? eDate.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
     const dateDisplay = endStr && endStr !== startStr ? `${startStr} – ${endStr}` : startStr;
@@ -46,4 +54,3 @@ export default async function EventsPage() {
 
   return <EventsPageClient events={events} heroData={heroData} />;
 }
-

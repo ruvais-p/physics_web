@@ -116,7 +116,19 @@ export async function getPageHero(pageKey: string): Promise<{
   };
 
   try {
-    const record = await (prisma as any).pageHero.findUnique({
+    const pageHero = prisma.pageHero;
+
+    // A server process started before `prisma generate` may briefly retain an
+    // older client during hot reload. Defaults keep public pages available.
+    if (!pageHero) {
+      return {
+        title: defaults.title,
+        subtitle: defaults.subtitle,
+        image: defaults.image,
+      };
+    }
+
+    const record = await pageHero.findUnique({
       where: { pageKey },
       select: { title: true, subtitle: true, image: true },
     });

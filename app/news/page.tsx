@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import Link from 'next/link';
 import { Trophy, Sparkles, Medal, Calendar, ArrowUpRight, ExternalLink } from 'lucide-react';
 import Hero from '@/components/Hero';
 import { getPageHero } from '@/lib/page-hero';
@@ -116,12 +115,12 @@ const DEFAULT_AWARDS_ITEMS: AwardItem[] = [
 async function getNewsData(): Promise<{ news: NewsItem[]; awards: AwardItem[] }> {
   try {
     const [newsRecords, awardRecords] = await Promise.all([
-      prisma.$queryRaw<any[]>`SELECT * FROM "News" ORDER BY date DESC`,
-      prisma.$queryRaw<any[]>`SELECT * FROM "Award" ORDER BY date DESC`,
+      prisma.news.findMany({ orderBy: { date: 'desc' } }),
+      prisma.award.findMany({ orderBy: { date: 'desc' } }),
     ]);
 
     const news: NewsItem[] = newsRecords.length > 0
-      ? newsRecords.map((item: any) => {
+      ? newsRecords.map((item) => {
           const d = item.date ? new Date(item.date) : new Date();
           return {
             id: String(item.id),
@@ -138,7 +137,7 @@ async function getNewsData(): Promise<{ news: NewsItem[]; awards: AwardItem[] }>
       : DEFAULT_NEWS_ITEMS;
 
     const awards: AwardItem[] = awardRecords.length > 0
-      ? awardRecords.map((item: any) => {
+      ? awardRecords.map((item) => {
           const d = item.date ? new Date(item.date) : new Date();
           return {
             id: String(item.id),
@@ -226,10 +225,12 @@ export default async function NewsPage() {
                   {/* Optional Image */}
                   {award.image && (
                     <div className="relative aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
-                      <img
+                      <Image
                         src={award.image}
                         alt={award.title}
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        fill
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        className="object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                     </div>
                   )}
@@ -299,10 +300,12 @@ export default async function NewsPage() {
                       <span className="text-[9px] font-medium leading-none mt-0.5 text-slate-300">{item.year}</span>
                     </div>
                     
-                    <img
+                    <Image
                       src={item.image || '/cusat-building.png'}
                       alt={item.title}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      fill
+                      sizes="(max-width: 768px) 100vw, 50vw"
+                      className="object-cover transition-transform duration-700 group-hover:scale-105"
                     />
                   </div>
                   

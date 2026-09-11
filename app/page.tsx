@@ -62,21 +62,29 @@ async function getHomeNotifications(): Promise<NotificationItem[]> {
 
 async function getHomeEvents(): Promise<HomeEventItem[]> {
   try {
-    const events = await prisma.$queryRaw<any[]>`
-      SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link
-      FROM events
-      ORDER BY start_date DESC
-      LIMIT 3
-    `;
+    const events = await prisma.event.findMany({
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        image: true,
+        startDate: true,
+        endDate: true,
+        venue: true,
+        apply_link: true,
+      },
+      orderBy: { startDate: 'desc' },
+      take: 3,
+    });
 
-    return events.map((event: any) => ({
+    return events.map((event) => ({
       id: event.id,
       title: event.title,
       description: event.description,
       image: event.image,
-      startDate: event.startDate ? new Date(event.startDate).toISOString() : '',
-      endDate: event.endDate ? new Date(event.endDate).toISOString() : null,
-      date: event.startDate ? new Date(event.startDate).toISOString() : '',
+      startDate: event.startDate.toISOString(),
+      endDate: event.endDate?.toISOString() ?? null,
+      date: event.startDate.toISOString(),
       venue: event.venue,
       apply_link: event.apply_link,
     }));

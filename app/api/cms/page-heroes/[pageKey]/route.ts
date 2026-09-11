@@ -24,7 +24,7 @@ export async function GET(request: Request, context: RouteContext) {
   }
 
   try {
-    const record = await (prisma as any).pageHero.findUnique({
+    const record = await prisma.pageHero.findUnique({
       where: { pageKey },
     });
 
@@ -62,7 +62,7 @@ export async function POST(request: Request, context: RouteContext) {
     let subtitle = '';
     let imagePath = '';
 
-    const existing = await (prisma as any).pageHero.findUnique({
+    const existing = await prisma.pageHero.findUnique({
       where: { pageKey },
     });
 
@@ -103,7 +103,7 @@ export async function POST(request: Request, context: RouteContext) {
       return NextResponse.json({ error: 'Hero title is required' }, { status: 400 });
     }
 
-    const updated = await (prisma as any).pageHero.upsert({
+    const updated = await prisma.pageHero.upsert({
       where: { pageKey },
       update: {
         title,

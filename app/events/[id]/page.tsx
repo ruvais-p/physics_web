@@ -10,7 +10,7 @@ interface PageProps {
 
 export async function generateStaticParams() {
   try {
-    const events = await prisma.$queryRaw<any[]>`SELECT id FROM events`;
+    const events = await prisma.event.findMany({ select: { id: true } });
     return events.map((event) => ({ id: String(event.id) }));
   } catch (error) {
     console.error('Failed to generate event routes:', error);
@@ -25,16 +25,13 @@ export default async function EventDetailPage({ params }: PageProps) {
 
   if (Number.isInteger(eventId)) {
     try {
-      const items = await prisma.$queryRaw<any[]>`
-        SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, brochure
-        FROM events
-        WHERE id = ${eventId}
-        LIMIT 1
-      `;
-      const item = items[0] || null;
+      const item = await prisma.event.findUnique({
+        where: { id: eventId },
+        include: { images: { orderBy: { sortOrder: 'asc' } } },
+      });
 
       if (item) {
-        const sDate = item.startDate ? new Date(item.startDate) : (item.date ? new Date(item.date) : new Date());
+        const sDate = item.startDate;
         const eDate = item.endDate ? new Date(item.endDate) : null;
         const startStr = sDate.toLocaleDateString('en-US', {
           day: '2-digit',

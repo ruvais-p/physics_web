@@ -11,11 +11,11 @@ export async function GET() {
   }
 
   try {
-    const records = await (prisma as any).pageHero.findMany();
-    const recordMap = new Map(records.map((r: any) => [r.pageKey, r]));
+    const records = await prisma.pageHero.findMany();
+    const recordMap = new Map(records.map((record) => [record.pageKey, record]));
 
     const list = Object.values(DEFAULT_PAGE_HEROES).map((defaults) => {
-      const saved = recordMap.get(defaults.pageKey) as any;
+      const saved = recordMap.get(defaults.pageKey);
       return {
         pageKey: defaults.pageKey,
         pageName: defaults.pageName,
