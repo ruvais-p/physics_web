@@ -35,7 +35,7 @@ const NAV_ITEMS: NavItem[] = [
     iconType: 'chevron',
   },
   {
-    name: 'Courses',
+    name: 'Programs',
     href: '/courses',
     iconType: 'chevron',
     dropdown: [
@@ -59,6 +59,11 @@ const NAV_ITEMS: NavItem[] = [
     name: 'Events',
     href: '/events',
     iconType: 'chevron',
+    dropdown: [
+      { name: 'Events', href: '/events' },
+      { name: 'News', href: '/news' },
+      { name: 'Announcements', href: '/announcements' },
+    ],
   },
   {
     name: 'Contact',
@@ -67,13 +72,35 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
+const DARK_HERO_ROUTES = [
+  '/',
+  '/about',
+  '/people',
+  '/courses',
+  '/research',
+  '/facilities',
+  '/journals',
+  '/projects',
+  '/events',
+  '/news',
+  '/announcements',
+  '/contact',
+  '/alumni',
+  '/library',
+];
+
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
 
-  const isHome = pathname === '/';
+  // Check if current route has a dark full-bleed hero banner
+  const hasDarkHero =
+    DARK_HERO_ROUTES.includes(pathname) ||
+    pathname.startsWith('/events/') ||
+    pathname.startsWith('/research/') ||
+    pathname.startsWith('/facilities/');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -87,7 +114,7 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const isWhiteNav = isScrolled || mobileMenuOpen;
+  const isWhiteNav = !hasDarkHero || isScrolled || mobileMenuOpen;
 
   return (
     <header className="sticky top-0 z-50 w-full transition-all duration-300">
@@ -123,8 +150,10 @@ export default function Navbar() {
             {/* Desktop Navigation Links */}
             <nav id="desktop-navbar" className="hidden lg:flex items-center space-x-6 xl:space-x-8">
               {NAV_ITEMS.map((item) => {
-                const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href.split('#')[0]));
-                const hasDropdown = item.dropdown && item.dropdown.length > 0;
+                const isDirectActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href.split('#')[0]));
+                const isDropdownActive = Boolean(item.dropdown?.some((sub) => pathname === sub.href || (sub.href !== '/' && pathname.startsWith(sub.href.split('#')[0]))));
+                const isActive = isDirectActive || isDropdownActive;
+                const hasDropdown = Boolean(item.dropdown && item.dropdown.length > 0);
 
                 return (
                   <div
@@ -134,7 +163,7 @@ export default function Navbar() {
                     onMouseLeave={() => setActiveDropdown(null)}
                   >
                     <Link
-                      id={`nav-link-${item.name.toLowerCase()}`}
+                      id={`nav-link-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
                       href={item.href}
                       className={`flex items-center space-x-1.5 text-base sm:text-lg lg:text-lg font-semibold transition-colors ${isWhiteNav
                           ? isActive ? 'text-cyan-accent font-bold' : 'text-oxford hover:text-cyan-accent'
@@ -142,7 +171,9 @@ export default function Navbar() {
                         }`}
                     >
                       <span>{item.name}</span>
-
+                      {hasDropdown && (
+                        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${activeDropdown === item.name ? 'rotate-180 text-cyan-accent' : 'opacity-70'}`} />
+                      )}
                     </Link>
 
                     {/* Dropdown Menu */}
@@ -224,7 +255,7 @@ export default function Navbar() {
                 >
                   <span className="flex items-center gap-1.5">
                     {item.name}
-                    {item.iconType === 'dropdown' ? (
+                    {item.dropdown && item.dropdown.length > 0 ? (
                       <ChevronDown className="w-4 h-4 opacity-80" />
                     ) : (
                       <ChevronRight className="w-4 h-4 opacity-80" />

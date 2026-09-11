@@ -1,5 +1,6 @@
 import AboutPageClient from '@/components/AboutPageClient';
 import { prisma } from '@/lib/prisma';
+import { getPageHero } from '@/lib/page-hero';
 
 export const revalidate = 300;
 
@@ -12,15 +13,19 @@ The department has pioneered research in magnetic nanocomposites, quantum optics
 export default async function AboutPage() {
   let aboutData = { content: DEFAULT_CONTENT, image: '/campus.jpg' as string | null };
 
-  try {
-    const record = await prisma.aboutUs.findFirst({
+  const [record, heroData] = await Promise.all([
+    prisma.aboutUs.findFirst({
       select: { content: true, image: true },
       orderBy: { id: 'asc' },
-    });
-    if (record) aboutData = record;
-  } catch (error) {
-    console.error('Failed to fetch About Us content:', error);
-  }
+    }).catch((err) => {
+      console.error('Failed to fetch About Us content:', err);
+      return null;
+    }),
+    getPageHero('about'),
+  ]);
 
-  return <AboutPageClient aboutData={aboutData} />;
+  if (record) aboutData = record;
+
+  return <AboutPageClient aboutData={aboutData} heroData={heroData} />;
 }
+

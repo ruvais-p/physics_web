@@ -1,6 +1,7 @@
 import ProjectsPageClient from '@/components/ProjectsPageClient';
 import type { ProjectData } from '@/components/ProjectsTable';
 import { prisma } from '@/lib/prisma';
+import { getPageHero } from '@/lib/page-hero';
 import { sanitizeWebUrl } from '@/lib/url-security';
 
 export const revalidate = 300;
@@ -8,8 +9,8 @@ export const revalidate = 300;
 export default async function ProjectsPage() {
   let projects: ProjectData[] = [];
 
-  try {
-    const records = await prisma.facultyProject.findMany({
+  const [records, heroData] = await Promise.all([
+    prisma.facultyProject.findMany({
       where: { faculty: { isActive: true } },
       select: {
         id: true,
@@ -30,19 +31,22 @@ export default async function ProjectsPage() {
         },
       },
       orderBy: [{ startDate: 'desc' }, { createdAt: 'desc' }],
-    });
+    }).catch((error) => {
+      console.error('Failed to fetch public projects:', error);
+      return [];
+    }),
+    getPageHero('projects'),
+  ]);
 
-    projects = records.map((project) => ({
-      ...project,
-      startDate: project.startDate?.toISOString() || null,
-      endDate: project.endDate?.toISOString() || null,
-      createdAt: project.createdAt.toISOString(),
-      updatedAt: project.updatedAt.toISOString(),
-      externalLink: sanitizeWebUrl(project.externalLink, false),
-    }));
-  } catch (error) {
-    console.error('Failed to fetch public projects:', error);
-  }
+  projects = records.map((project) => ({
+    ...project,
+    startDate: project.startDate?.toISOString() || null,
+    endDate: project.endDate?.toISOString() || null,
+    createdAt: project.createdAt.toISOString(),
+    updatedAt: project.updatedAt.toISOString(),
+    externalLink: sanitizeWebUrl(project.externalLink, false),
+  }));
 
-  return <ProjectsPageClient projects={projects} />;
+  return <ProjectsPageClient projects={projects} heroData={heroData} />;
 }
+

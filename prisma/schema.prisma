@@ -30,16 +30,14 @@ model Notification {
   title     String
   content   String?
   category  String   @default("General")
-  link      String?
-  isActive  Boolean  @default(true)
-  date      DateTime @default(now())
-  createdAt DateTime @default(now())
+  link        String?
+  isActive    Boolean  @default(true)
+  broadcastId String?
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
   updatedAt DateTime @updatedAt
-<<<<<<< HEAD
-=======
 
   @@index([isActive, date(sort: Desc)])
->>>>>>> 76adaae (Latency issue fixed)
 }
 
 model ResearchLab {
@@ -51,11 +49,8 @@ model ResearchLab {
   faculties   Faculty[] @relation("FacultyResearchLabs")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-<<<<<<< HEAD
-=======
 
   @@index([createdAt(sort: Desc)])
->>>>>>> 76adaae (Latency issue fixed)
 }
 
 model Facility {
@@ -66,22 +61,6 @@ model Facility {
   faculties   Faculty[] @relation("FacultyFacilities")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-<<<<<<< HEAD
-}
-
-model Faculty {
-  id                 String              @id @default(uuid())
-  name               String
-  email              String              @unique
-  password           String
-  mustChangePassword Boolean             @default(true)
-  designation        String?             @default("Faculty Member")
-  department         String?             @default("Department of Physics")
-  phone              String?
-  bio                String?
-  isActive           Boolean             @default(true)
-  sortOrder          Int                 @default(0)
-=======
 
   @@index([createdAt(sort: Desc)])
 }
@@ -98,26 +77,18 @@ model Faculty {
   bio                String?
   isActive           Boolean              @default(true)
   sortOrder          Int                  @default(0)
->>>>>>> 76adaae (Latency issue fixed)
   profile            FacultyProfile?
   documents          FacultyDocument?
   descriptionRecord  FacultyDescription?
   students           FacultyStudent[]
   projects           FacultyProject[]
   publications       FacultyPublication[]
-<<<<<<< HEAD
-  researchLabs       ResearchLab[]       @relation("FacultyResearchLabs")
-  facilities         Facility[]          @relation("FacultyFacilities")
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-=======
   researchLabs       ResearchLab[]        @relation("FacultyResearchLabs")
   facilities         Facility[]           @relation("FacultyFacilities")
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
 
   @@index([isActive, sortOrder, createdAt])
->>>>>>> 76adaae (Latency issue fixed)
 }
 
 model FacultyProject {
@@ -138,10 +109,7 @@ model FacultyProject {
   updatedAt    DateTime  @updatedAt
 
   @@index([facultyId])
-<<<<<<< HEAD
-=======
   @@index([startDate(sort: Desc), createdAt(sort: Desc)])
->>>>>>> 76adaae (Latency issue fixed)
 }
 
 model FacultyPublication {
@@ -160,10 +128,7 @@ model FacultyPublication {
   updatedAt       DateTime  @updatedAt
 
   @@index([facultyId])
-<<<<<<< HEAD
-=======
   @@index([publicationDate(sort: Desc), createdAt(sort: Desc)])
->>>>>>> 76adaae (Latency issue fixed)
 }
 
 model FacultyProfile {
@@ -217,20 +182,14 @@ model Hero {
   order       Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-<<<<<<< HEAD
-=======
 
   @@index([is_visible, order, createdAt])
->>>>>>> 76adaae (Latency issue fixed)
 }
 
 model AboutUs {
   id        Int      @id @default(autoincrement())
   content   String   @db.Text
-<<<<<<< HEAD
-=======
   image     String?
->>>>>>> 76adaae (Latency issue fixed)
   updatedAt DateTime @updatedAt
 }
 
@@ -239,17 +198,17 @@ model Event {
   title       String
   description String       @db.Text
   image       String
-  date        DateTime
+  startDate   DateTime     @map("start_date")
+  endDate     DateTime?    @map("end_date")
   venue       String?
   apply_link  String?
+  brochure    String?      @map("brochure")
+  broadcastId String?      @map("broadcast_id")
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")
   images      EventImage[]
 
-<<<<<<< HEAD
-=======
-  @@index([date(sort: Desc)])
->>>>>>> 76adaae (Latency issue fixed)
+  @@index([startDate(sort: Desc)])
   @@map("events")
 }
 
@@ -262,10 +221,7 @@ model EventImage {
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
-<<<<<<< HEAD
-=======
   @@index([eventId, sortOrder])
->>>>>>> 76adaae (Latency issue fixed)
   @@map("event_images")
 }
 
@@ -298,8 +254,44 @@ model CurriculumScheme {
   updatedAt DateTime @updatedAt
 
   @@index([courseId])
-<<<<<<< HEAD
 }
-=======
+
+model PageHero {
+  id          String   @id @default(uuid())
+  pageKey     String   @unique
+  title       String
+  subtitle    String?  @db.Text
+  image       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([pageKey])
 }
->>>>>>> 76adaae (Latency issue fixed)
+
+model Award {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @db.Text
+  image       String?
+  date        DateTime @default(now())
+  link        String?
+  broadcastId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date(sort: Desc), createdAt(sort: Desc)])
+}
+
+model News {
+  id          String   @id @default(uuid())
+  title       String
+  description String   @db.Text
+  image       String?
+  date        DateTime @default(now())
+  link        String?
+  broadcastId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([date(sort: Desc), createdAt(sort: Desc)])
+}

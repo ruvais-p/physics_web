@@ -27,31 +27,31 @@ export default async function EventDetailPage({ params }: PageProps) {
     try {
       const item = await prisma.event.findUnique({
         where: { id: eventId },
-        select: {
-          id: true,
-          title: true,
-          description: true,
-          image: true,
-          date: true,
-          venue: true,
-          apply_link: true,
-          images: {
-            select: { id: true, imagePath: true, sortOrder: true },
-            orderBy: { sortOrder: 'asc' },
-          },
-        },
+        include: { images: { orderBy: { sortOrder: 'asc' } } },
       });
 
       if (item) {
+        const sDate = item.startDate;
+        const eDate = item.endDate ? new Date(item.endDate) : null;
+        const startStr = sDate.toLocaleDateString('en-US', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        });
+        const endStr = eDate
+          ? eDate.toLocaleDateString('en-US', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            })
+          : null;
+        const dateDisplay = endStr && endStr !== startStr ? `${startStr} – ${endStr}` : startStr;
+
         liveEvent = {
           id: String(item.id),
           title: item.title,
-          date: item.date.toLocaleDateString('en-US', {
-            day: '2-digit',
-            month: 'short',
-            year: 'numeric',
-          }),
-          time: item.date.toLocaleTimeString('en-US', {
+          date: dateDisplay,
+          time: sDate.toLocaleTimeString('en-US', {
             hour: '2-digit',
             minute: '2-digit',
           }),
@@ -59,7 +59,8 @@ export default async function EventDetailPage({ params }: PageProps) {
           image: item.image || '',
           desc: item.description,
           fullDetails: item.description,
-          applyLink: sanitizeWebUrl(item.apply_link, false) || undefined,
+          applyLink: sanitizeWebUrl(item.apply_link, true) || undefined,
+          brochure: sanitizeWebUrl(item.brochure, true) || undefined,
           galleryImages: item.images,
         };
       }

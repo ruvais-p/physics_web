@@ -1,3 +1,4 @@
+import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import Hero, { type Slide } from '@/components/Hero';
@@ -61,39 +62,31 @@ async function getHomeNotifications(): Promise<NotificationItem[]> {
 
 async function getHomeEvents(): Promise<HomeEventItem[]> {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const select = {
-      id: true,
-      title: true,
-      description: true,
-      image: true,
-      date: true,
-      venue: true,
-      apply_link: true,
-    } as const;
-
-    const upcomingEvents = await prisma.event.findMany({
-      where: { date: { gte: today } },
-      select,
-      orderBy: { date: 'asc' },
+    const events = await prisma.event.findMany({
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        image: true,
+        startDate: true,
+        endDate: true,
+        venue: true,
+        apply_link: true,
+      },
+      orderBy: { startDate: 'desc' },
       take: 3,
     });
 
-    const remainingSlots = 3 - upcomingEvents.length;
-    const pastEvents = remainingSlots > 0
-      ? await prisma.event.findMany({
-          where: { date: { lt: today } },
-          select,
-          orderBy: { date: 'desc' },
-          take: remainingSlots,
-        })
-      : [];
-
-    return [...upcomingEvents, ...pastEvents].map((event) => ({
-      ...event,
-      date: event.date.toISOString(),
+    return events.map((event) => ({
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      image: event.image,
+      startDate: event.startDate.toISOString(),
+      endDate: event.endDate?.toISOString() ?? null,
+      date: event.startDate.toISOString(),
+      venue: event.venue,
+      apply_link: event.apply_link,
     }));
   } catch (error) {
     console.error('Failed to fetch home page events from the database:', error);
@@ -129,6 +122,88 @@ async function getHomePublications(): Promise<Publication[]> {
     console.error('Failed to fetch home page publications from the database:', error);
     return [];
   }
+}
+
+const DEFAULT_ABOUT_CONTENT = `Established in 1971, the Department of Physics, CUSAT has maintained the highest standards in postgraduate education and scientific research. Over the years, the Department has become the premier destination for students in Kerala and across India seeking advanced studies in Physics. Our postgraduates and researchers are consistently placed in top faculty, postdoctoral, and Ph.D. positions at world-renowned research centers across the globe.
+
+Going forward, the Department envisions continuing its mission of providing quality advanced training in Physics through its M.Sc., Integrated M.Sc., and Ph.D. research programs, driving fundamental scientific breakthroughs in materials science, quantum technology, and photonics.`;
+
+async function getHomeAboutData(): Promise<{ content: string; image: string | null }> {
+  try {
+    const record = await prisma.aboutUs.findFirst({
+      select: { content: true, image: true },
+      orderBy: { id: 'asc' },
+    });
+
+    if (record && record.content && record.content.trim().length > 0) {
+      return {
+        content: record.content,
+        image: record.image || null,
+      };
+    }
+  } catch (error) {
+    console.error('Failed to fetch About Us data for home page:', error);
+  }
+
+  return {
+    content: DEFAULT_ABOUT_CONTENT,
+    image: '/building-black-and-white.webp',
+  };
+}
+
+function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
+  const elements: React.ReactNode[] = [];
+  const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      elements.push(text.substring(lastIndex, match.index));
+    }
+
+    if (match[1]) {
+      elements.push(<strong key={`${keyPrefix}_b_${match.index}`} className="font-bold text-slate-900">{match[2]}</strong>);
+    } else if (match[3]) {
+      elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-800">{match[4]}</em>);
+    } else if (match[5]) {
+      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-100 text-oxford px-1.5 py-0.5 rounded font-mono text-sm">{match[6]}</code>);
+    }
+
+    lastIndex = regex.lastIndex;
+  }
+
+  if (lastIndex < text.length) {
+    elements.push(text.substring(lastIndex));
+  }
+
+  return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
+}
+
+function parseMarkdownText(text: string): React.ReactNode[] {
+  let remaining = text;
+  let keyIdx = 0;
+  const parts: React.ReactNode[] = [];
+
+  while (remaining) {
+    const linkMatch = remaining.match(/^([\s\S]*?)\[([^\]]+)\]\(([^)]+)\)([\s\S]*)$/);
+    if (linkMatch) {
+      const [, before, label, url, after] = linkMatch;
+      if (before) parts.push(parseFormatting(before, keyIdx++));
+      parts.push(
+        <a key={keyIdx++} href={sanitizeWebUrl(url) || '#'} target="_blank" rel="noopener noreferrer" className="text-cyan-accent hover:underline font-semibold inline-flex items-center gap-0.5">
+          <span>{label}</span>
+        </a>
+      );
+      remaining = after;
+      continue;
+    }
+
+    parts.push(parseFormatting(remaining, keyIdx++));
+    break;
+  }
+
+  return parts;
 }
 
 function LabCard({ lab, className = "h-64" }: { lab: typeof RESEARCH_LABS[0]; className?: string }) {
@@ -171,11 +246,12 @@ function LabCard({ lab, className = "h-64" }: { lab: typeof RESEARCH_LABS[0]; cl
 }
 
 export default async function HomePage() {
-  const [heroSlides, notifications, homeEvents, homePublications] = await Promise.all([
+  const [heroSlides, notifications, homeEvents, homePublications, aboutData] = await Promise.all([
     getHomeHeroSlides(),
     getHomeNotifications(),
     getHomeEvents(),
     getHomePublications(),
+    getHomeAboutData(),
   ]);
 
   return (
@@ -195,7 +271,7 @@ export default async function HomePage() {
           <div className="lg:col-span-5 flex justify-center items-center">
             <div className="relative w-full max-w-lg rounded-2xl overflow-hidden shadow-xl border border-slate-200/80 bg-slate-900 group">
               <Image
-                src="/building-black-and-white.webp"
+                src={aboutData.image || '/building-black-and-white.webp'}
                 alt="Department of Physics Building"
                 width={850}
                 height={610}
@@ -217,17 +293,21 @@ export default async function HomePage() {
               Dive into world-class programs &amp; research
             </h3>
 
-            <p className="text-base sm:text-lg text-slate-700 leading-relaxed font-normal text-justify">
-              Established in 1971, the Department of Physics, CUSAT has maintained the highest standards in postgraduate education and scientific research. Over the years, the Department has become the premier destination for students in Kerala and across India seeking advanced studies in Physics. Our postgraduates and researchers are consistently placed in top faculty, postdoctoral, and Ph.D. positions at world-renowned research centers across the globe.
-            </p>
-
-            <p className="text-base sm:text-lg text-slate-700 leading-relaxed font-normal text-justify">
-              Going forward, the Department envisions continuing its mission of providing quality advanced training in Physics through its M.Sc., Integrated M.Sc., and Ph.D. research programs, driving fundamental scientific breakthroughs in materials science, quantum technology, and photonics.
-            </p>
+            <div className="space-y-4">
+              {aboutData.content
+                .split(/\n\s*\n/)
+                .filter((p) => p.trim().length > 0)
+                .map((para, idx) => (
+                  <p key={idx} className="text-base sm:text-lg text-slate-700 leading-relaxed font-normal text-justify">
+                    {parseMarkdownText(para)}
+                  </p>
+                ))}
+            </div>
           </div>
 
         </div>
       </section>
+
 
       {/* Events Section */}
       {homeEvents.length > 0 && (

@@ -87,6 +87,8 @@ export default function Footer() {
                 { label: 'Faculty & Scholars', href: '/people' },
                 { label: 'Research & Labs', href: '/research' },
                 { label: 'Central Facilities', href: '/facilities' },
+                { label: 'Department Library', href: '/library' },
+                { label: 'Global Alumni', href: '/alumni' },
                 { label: 'Publications & Journals', href: '/journals' },
                 { label: 'News & Events', href: '/events' },
               ].map((link) => (
@@ -198,11 +200,17 @@ export default function Footer() {
             <Link href="/about" className="hover:text-cyan-accent transition-colors">
               About Us
             </Link>
-            <Link href="/contact" className="hover:text-cyan-accent transition-colors">
-              Admissions &amp; Contact
+            <Link href="/library" className="hover:text-cyan-accent transition-colors">
+              Library
+            </Link>
+            <Link href="/alumni" className="hover:text-cyan-accent transition-colors">
+              Alumni
             </Link>
             <Link href="/facilities" className="hover:text-cyan-accent transition-colors">
               Instrumentation
+            </Link>
+            <Link href="/contact" className="hover:text-cyan-accent transition-colors">
+              Admissions &amp; Contact
             </Link>
             <a 
               href="https://iqac.cusat.ac.in" 

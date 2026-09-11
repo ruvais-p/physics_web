@@ -1,22 +1,27 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import Hero from '@/components/Hero';
+import { getPageHero } from '@/lib/page-hero';
 
 export const metadata = {
   title: 'Alumni | Department of Physics, CUSAT',
   description: 'Connect with the global alumni community of the Department of Physics, CUSAT.',
 };
 
-export default function AlumniPage() {
+export const revalidate = 300;
+
+export default async function AlumniPage() {
+  const heroData = await getPageHero('alumni');
+
   return (
     <div className="pb-24 relative bg-[#000a1e] text-white min-h-screen">
       
       {/* Hero Header matching main homepage design */}
       <Hero
-        title="GLOBAL ALUMNI NETWORK"
+        title={heroData.title}
         badge="HOME > ALUMNI"
-        subtitle="Since 1971, nurturing exceptional minds making significant contributions across academia, research labs, and industry worldwide."
-        bgImage="/campus.jpg"
+        subtitle={heroData.subtitle}
+        bgImage={heroData.image}
       />
 
       {/* Main Content Area */}

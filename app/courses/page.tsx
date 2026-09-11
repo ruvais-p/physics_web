@@ -1,14 +1,15 @@
 import CoursesPageClient from '@/components/CoursesPageClient';
 import type { CourseWithSchemes } from '@/components/CourseCard';
 import { prisma } from '@/lib/prisma';
+import { getPageHero } from '@/lib/page-hero';
 
 export const revalidate = 300;
 
 export default async function CoursesPage() {
   let courses: CourseWithSchemes[] = [];
 
-  try {
-    const records = await prisma.course.findMany({
+  const [records, heroData] = await Promise.all([
+    prisma.course.findMany({
       select: {
         id: true,
         code: true,
@@ -26,18 +27,21 @@ export default async function CoursesPage() {
         },
       },
       orderBy: { id: 'asc' },
-    });
+    }).catch((error) => {
+      console.error('Failed to fetch courses:', error);
+      return [];
+    }),
+    getPageHero('courses'),
+  ]);
 
-    courses = records.map((course) => ({
-      ...course,
-      code: course.code || '',
-      intake: course.intake || 0,
-      fees: course.fees || '',
-      eligibility: course.eligibility || '',
-    }));
-  } catch (error) {
-    console.error('Failed to fetch courses:', error);
-  }
+  courses = records.map((course) => ({
+    ...course,
+    code: course.code || '',
+    intake: course.intake || 0,
+    fees: course.fees || '',
+    eligibility: course.eligibility || '',
+  }));
 
-  return <CoursesPageClient courses={courses} />;
+  return <CoursesPageClient courses={courses} heroData={heroData} />;
 }
+

@@ -1409,7 +1409,7 @@ export default function AdminFacultyFullManageModal({
               {activeTab === 'students' && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-xs font-semibold uppercase text-slate-700">Guided Scholars & Students</h4>
+                    <h4 className="text-xs font-semibold uppercase text-slate-700">Research Scholars &amp; Students</h4>
                     <button
                       type="button"
                       onClick={() => openStudentModal()}
@@ -1423,7 +1423,7 @@ export default function AdminFacultyFullManageModal({
                   {studentsList.length === 0 ? (
                     <div className="p-8 border border-slate-200 rounded-2xl text-center text-slate-400 space-y-2">
                       <GraduationCap className="w-8 h-8 mx-auto opacity-50" />
-                      <p className="text-xs font-medium">No guided students recorded for this faculty member.</p>
+                      <p className="text-xs font-medium">No research scholars recorded for this faculty member.</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">

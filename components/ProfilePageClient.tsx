@@ -440,7 +440,7 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
                     : 'border-transparent text-slate-500 hover:text-oxford'
                 }`}
               >
-                Guided Scholars ({supervisedScholars.length})
+                Research Scholars ({supervisedScholars.length})
               </button>
             )}
 
@@ -485,7 +485,7 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
             {/* Supervised Scholars Tab */}
             {activeTab === 'scholars' && isFaculty && (
               <div className="space-y-8 text-left font-sans">
-                <h3 className="text-xl sm:text-2xl font-bold text-oxford font-serif">Guided Students &amp; Ph.D. Scholars</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-oxford font-serif">Research Scholars &amp; Ph.D. Students</h3>
 
                 {supervisedScholars.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -506,7 +506,7 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
                     })}
                   </div>
                 ) : (
-                  <p className="text-base text-slate-400 italic">No guided students or Ph.D. scholars currently listed.</p>
+                  <p className="text-base text-slate-400 italic">No research scholars currently listed.</p>
                 )}
               </div>
             )}

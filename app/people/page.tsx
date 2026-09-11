@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Hero from '@/components/Hero';
 import FacultyCard from '@/components/FacultyCard';
 import { prisma } from '@/lib/prisma';
+import { getPageHero } from '@/lib/page-hero';
 import type { FacultyMember, Scholar } from '@/lib/data';
 
 export const revalidate = 300;
@@ -72,7 +73,10 @@ async function getPeople(): Promise<{
 }
 
 export default async function PeoplePage() {
-  const { faculty, scholars } = await getPeople();
+  const [{ faculty, scholars }, heroData] = await Promise.all([
+    getPeople(),
+    getPageHero('people'),
+  ]);
 
   const hodList = faculty.filter((f) => {
     const des = (f.designation || '').toLowerCase();
@@ -88,10 +92,10 @@ export default async function PeoplePage() {
     <div className="pb-20 relative">
       {/* Hero Header matching main homepage design */}
       <Hero
-        title="FACULTY & SCHOLARS"
+        title={heroData.title}
         badge="HOME > PEOPLE"
-        subtitle="Meet our Head of Department, distinguished professors, principal investigators, and doctoral research scholars."
-        bgImage="/faculty.png"
+        subtitle={heroData.subtitle}
+        bgImage={heroData.image}
       />
 
       <div className="space-y-20 pt-10">

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Hero from '@/components/Hero';
 import JournalsContent from '@/components/JournalsContent';
 import { prisma } from '@/lib/prisma';
+import { getPageHero } from '@/lib/page-hero';
 import type { Publication } from '@/lib/data';
 import { sanitizeWebUrl } from '@/lib/url-security';
 
@@ -50,15 +51,18 @@ async function getPublications(): Promise<Publication[]> {
 }
 
 export default async function JournalsPage() {
-  const publications = await getPublications();
+  const [publications, heroData] = await Promise.all([
+    getPublications(),
+    getPageHero('journals'),
+  ]);
 
   return (
     <div className="space-y-12 pb-20 font-sans">
       <Hero
-        title="PUBLICATIONS & JOURNALS"
+        title={heroData.title}
         badge="HOME > JOURNALS"
-        subtitle="Exploring ground-breaking papers authored by our faculty and research scholars."
-        bgImage="/physics.png"
+        subtitle={heroData.subtitle}
+        bgImage={heroData.image}
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center pt-2">

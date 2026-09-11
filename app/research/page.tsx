@@ -2,6 +2,7 @@ import Hero from '@/components/Hero';
 import ResearchContent from '@/components/ResearchContent';
 import type { ResearchPageData } from '@/components/ResearchContent';
 import { prisma } from '@/lib/prisma';
+import { getPageHero } from '@/lib/page-hero';
 import { sanitizeWebUrl } from '@/lib/url-security';
 
 export const revalidate = 300;
@@ -84,19 +85,20 @@ async function getPublications(): Promise<ResearchPageData['publications']> {
 }
 
 export default async function ResearchPage() {
-  const [labs, publications, facilities] = await Promise.all([
+  const [labs, publications, facilities, heroData] = await Promise.all([
     getLabs(),
     getPublications(),
     getFacilities(),
+    getPageHero('research'),
   ]);
 
   return (
     <div className="space-y-0 pb-20 relative font-sans">
       <Hero
-        title="RESEARCH & INNOVATION"
+        title={heroData.title}
         badge="HOME > RESEARCH"
-        subtitle="Exploring fundamental physics and developing innovative nanomaterial solutions for global challenges."
-        bgImage="/physics.png"
+        subtitle={heroData.subtitle}
+        bgImage={heroData.image}
       />
 
       <ResearchContent labs={labs} publications={publications} facilities={facilities} />

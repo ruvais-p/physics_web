@@ -9,7 +9,9 @@ export interface HomeEventItem {
   title: string;
   description: string;
   image: string;
-  date: string;
+  startDate?: string;
+  endDate?: string | null;
+  date?: string;
   venue?: string | null;
   apply_link?: string | null;
 }
@@ -20,11 +22,20 @@ export default function HomeEvents({ events }: { events: HomeEventItem[] }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-start">
       {events.map((ev) => {
-        const d = new Date(ev.date);
-        const isValidDate = !isNaN(d.getTime());
-        const formattedDate = isValidDate
-          ? d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
-          : null;
+        const startRaw = ev.startDate || ev.date;
+        const startD = startRaw ? new Date(startRaw) : null;
+        const endD = ev.endDate ? new Date(ev.endDate) : null;
+
+        let formattedDate: string | null = null;
+        if (startD && !isNaN(startD.getTime())) {
+          const startStr = startD.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+          if (endD && !isNaN(endD.getTime())) {
+            const endStr = endD.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+            formattedDate = startStr === endStr ? startStr : `${startStr} – ${endStr}`;
+          } else {
+            formattedDate = startStr;
+          }
+        }
         const venueName = ev.venue || 'Department of Physics, CUSAT';
         const isExpanded = !!expandedIds[ev.id];
         const isLongDesc = (ev.description?.trim().length ?? 0) > 100;

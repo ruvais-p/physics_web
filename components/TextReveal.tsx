@@ -11,15 +11,15 @@ export default function TextReveal({
   text,
   className = '',
   delay = 0,
-  stagger = 0.08,
+  stagger = 0.06,
   animKey,
 }: TextRevealProps) {
-  const words = text.split(' ');
+  const words = text.split(/\s+/).filter(Boolean);
 
   return (
     <span
       key={animKey}
-      className={`inline-flex flex-wrap ${className}`}
+      className={`inline-flex flex-wrap gap-x-[0.28em] ${className}`}
       aria-label={text}
     >
       {words.map((word, index) => (
@@ -33,7 +33,6 @@ export default function TextReveal({
             style={{ animationDelay: `${delay + index * stagger}s` }}
           >
             {word}
-            {index < words.length - 1 ? '\u00A0' : ''}
           </span>
         </span>
       ))}
