@@ -74,7 +74,7 @@ export default function ContactPageClient({
       <Hero
         title={heroData?.title || 'CONTACT US'}
         badge="HOME > CONTACT"
-        subtitle={heroData?.subtitle || 'Department Office, South Kalamassery, Kochi – 682022, Kerala, India.'}
+        subtitle={heroData?.subtitle || ''}
         bgImage={heroData?.image || '/campus.jpg'}
       />
 

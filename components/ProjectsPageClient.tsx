@@ -50,7 +50,7 @@ export default function ProjectsPageClient({
       <Hero
         title={heroData?.title || 'RESEARCH PROJECTS'}
         badge="HOME > RESEARCH > PROJECTS"
-        subtitle={heroData?.subtitle || 'Funded research initiatives, national and international grants from DST-SERB, ISRO, CSIR, BRNS, and UGC driving advanced physical science discoveries.'}
+        subtitle={heroData?.subtitle || ''}
         bgImage={heroData?.image || '/physics.png'}
       />
 

@@ -73,6 +73,8 @@ model Faculty {
   mustChangePassword Boolean              @default(true)
   designation        String?              @default("Faculty Member")
   department         String?              @default("Department of Physics")
+  qualification      String?              @default("Ph.D. in Physics")
+  room               String?              @default("Department Building")
   phone              String?
   bio                String?
   isActive           Boolean              @default(true)

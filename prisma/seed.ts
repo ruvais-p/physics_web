@@ -72,6 +72,8 @@ async function main() {
           password: hashedFacultyPassword,
           designation: 'Faculty Member',
           department: 'Department of Physics',
+          qualification: 'Ph.D. in Physics',
+          room: 'Department Building',
           mustChangePassword: true,
         },
       });

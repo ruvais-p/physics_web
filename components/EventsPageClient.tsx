@@ -327,7 +327,7 @@ export default function EventsPageClient({
       <Hero
         title={heroData?.title || 'DEPARTMENT EVENTS'}
         badge="HOME > EVENTS"
-        subtitle={heroData?.subtitle || 'National seminars, international web-symposiums, technical workshops, and endowment lectures.'}
+        subtitle={heroData?.subtitle || ''}
         bgImage={heroData?.image || '/campus.jpg'}
       />
 

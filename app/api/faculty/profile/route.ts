@@ -60,6 +60,8 @@ export async function GET() {
     return NextResponse.json({
       uid: faculty.profile?.uid || null,
       facultyId: faculty.id,
+      qualification: faculty.qualification || 'Ph.D. in Physics',
+      room: faculty.room || 'Department Building',
       phone: phoneData,
       profiles: profileData,
     });
@@ -85,7 +87,7 @@ export async function PUT(request: Request) {
     }
 
     const body = await request.json();
-    const { phone, profiles } = body;
+    const { phone, qualification, room, profiles } = body;
 
     if (!profiles || typeof profiles !== 'object') {
       return NextResponse.json({ error: 'Invalid profiles object structure' }, { status: 400 });
@@ -162,13 +164,31 @@ export async function PUT(request: Request) {
       },
     });
 
-    // Also sync phone back to main Faculty table if set
+    // Also sync phone, qualification, and room back to main Faculty table
+    const facultyUpdateData: any = {};
     if (cleanPhone !== null) {
-      await prisma.faculty.update({
+      facultyUpdateData.phone = cleanPhone;
+    }
+    if (qualification !== undefined) {
+      facultyUpdateData.qualification = String(qualification).trim();
+    }
+    if (room !== undefined) {
+      facultyUpdateData.room = String(room).trim();
+    }
+
+    let updatedFaculty = null;
+    if (Object.keys(facultyUpdateData).length > 0) {
+      updatedFaculty = await prisma.faculty.update({
         where: { id: payload.id },
-        data: { phone: cleanPhone },
+        data: facultyUpdateData,
+        select: {
+          qualification: true,
+          room: true,
+        },
       });
     }
+
+    revalidatePublicPages();
 
     return NextResponse.json({
       success: true,
@@ -176,6 +196,8 @@ export async function PUT(request: Request) {
       facultyId: updatedProfile.facultyId,
       phone: updatedProfile.phone,
       profiles: updatedProfile.profiles,
+      qualification: updatedFaculty?.qualification ?? qualification ?? undefined,
+      room: updatedFaculty?.room ?? room ?? undefined,
     });
   } catch (error) {
     console.error('PUT /api/faculty/profile error:', error);

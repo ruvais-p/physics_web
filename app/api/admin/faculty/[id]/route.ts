@@ -72,6 +72,8 @@ export async function PUT(
       email,
       designation,
       department,
+      qualification,
+      room,
       phone,
       bio,
       isActive,
@@ -86,6 +88,8 @@ export async function PUT(
     if (email !== undefined) updateData.email = email.trim().toLowerCase();
     if (designation !== undefined) updateData.designation = designation.trim();
     if (department !== undefined) updateData.department = department.trim();
+    if (qualification !== undefined) updateData.qualification = qualification.trim();
+    if (room !== undefined) updateData.room = room.trim();
     if (phone !== undefined) updateData.phone = phone.trim();
     if (bio !== undefined) updateData.bio = bio.trim();
     if (isActive !== undefined) updateData.isActive = Boolean(isActive);

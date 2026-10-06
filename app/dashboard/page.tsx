@@ -144,6 +144,8 @@ interface FacultyItem {
   email: string;
   designation: string | null;
   department: string | null;
+  qualification?: string | null;
+  room?: string | null;
   mustChangePassword: boolean;
   isActive: boolean;
   sortOrder?: number;
@@ -158,6 +160,8 @@ interface FacultyProfile {
   email: string;
   designation: string | null;
   department: string | null;
+  qualification?: string | null;
+  room?: string | null;
   mustChangePassword: boolean;
   isActive: boolean;
   phone?: string | null;
@@ -976,6 +980,8 @@ export default function UnifiedDashboardPage() {
     password: '',
     designation: 'Faculty Member',
     department: 'Department of Physics',
+    qualification: 'Ph.D. in Physics',
+    room: 'Department Building',
     isActive: true,
     newPredefinedPassword: '',
   });
@@ -1006,6 +1012,8 @@ export default function UnifiedDashboardPage() {
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
 
   const [phone, setPhone] = useState('');
+  const [qualification, setQualification] = useState('');
+  const [room, setRoom] = useState('');
   const [selectedPlatforms, setSelectedPlatforms] = useState<Set<string>>(new Set());
   const [platformUrls, setPlatformUrls] = useState<Record<string, string>>({});
   const [otherProfiles, setOtherProfiles] = useState<CustomProfileEntry[]>([]);
@@ -1505,6 +1513,8 @@ export default function UnifiedDashboardPage() {
         password: '',
         designation: faculty.designation || 'Faculty Member',
         department: faculty.department || 'Department of Physics',
+        qualification: faculty.qualification || 'Ph.D. in Physics',
+        room: faculty.room || 'Department Building',
         isActive: faculty.isActive,
         newPredefinedPassword: '',
       });
@@ -1516,6 +1526,8 @@ export default function UnifiedDashboardPage() {
         password: '',
         designation: 'Professor',
         department: 'Department of Physics',
+        qualification: 'Ph.D. in Physics',
+        room: 'Department Building',
         isActive: true,
         newPredefinedPassword: '',
       });
@@ -1560,6 +1572,8 @@ export default function UnifiedDashboardPage() {
         email: facultyFormData.email,
         designation: facultyFormData.designation,
         department: facultyFormData.department,
+        qualification: facultyFormData.qualification,
+        room: facultyFormData.room,
         isActive: facultyFormData.isActive,
       };
 
@@ -1747,6 +1761,8 @@ export default function UnifiedDashboardPage() {
       if (profileRes.ok) {
         const pData = await profileRes.json();
         setPhone(pData.phone || userData?.phone || '');
+        setQualification(pData.qualification || userData?.qualification || '');
+        setRoom(pData.room || userData?.room || '');
 
         const profs = pData.profiles || {};
         const sel = new Set<string>();
@@ -1917,6 +1933,8 @@ export default function UnifiedDashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           phone: phone.trim(),
+          qualification: qualification.trim(),
+          room: room.trim(),
           profiles: profilesPayload,
         }),
       });
@@ -1926,6 +1944,17 @@ export default function UnifiedDashboardPage() {
       if (!res.ok) {
         throw new Error(data.error || 'Failed to update contact & public profiles.');
       }
+
+      setCurrentUser((prev: any) =>
+        prev
+          ? {
+              ...prev,
+              phone: phone.trim(),
+              qualification: qualification.trim(),
+              room: room.trim(),
+            }
+          : prev
+      );
 
       setProfilesSuccess('Contact details and public profiles updated successfully!');
       setTimeout(() => {
@@ -4024,6 +4053,29 @@ export default function UnifiedDashboardPage() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-slate-700">Qualification</label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Ph.D. in Physics"
+                    value={facultyFormData.qualification}
+                    onChange={(e) => setFacultyFormData({ ...facultyFormData, qualification: e.target.value })}
+                    className="w-full text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-slate-700">Office Room</label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Department Building"
+                    value={facultyFormData.room}
+                    onChange={(e) => setFacultyFormData({ ...facultyFormData, room: e.target.value })}
+                    className="w-full text-sm"
+                  />
+                </div>
+              </div>
+
               <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div>
                   <span className="text-sm font-bold text-slate-900 block">Account Active</span>
@@ -4482,6 +4534,15 @@ export default function UnifiedDashboardPage() {
                       <Building2 className="w-3.5 h-3.5 text-slate-500" />
                       <span>{currentUser?.department || 'Department of Physics'}</span>
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsProfilesModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
+                      title="Click to edit qualification"
+                    >
+                      <GraduationCap className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{qualification || currentUser?.qualification || 'Add Qualification'}</span>
+                    </button>
                   </div>
 
                   {/* Contact Badges Row */}
@@ -4501,6 +4562,13 @@ export default function UnifiedDashboardPage() {
                     >
                       <Phone className="w-3.5 h-3.5 text-cyan-700" />
                       <span>{phone || 'Add Phone Number'}</span>
+                    </button>
+                    <button
+                      onClick={() => setIsProfilesModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 text-slate-600 hover:text-oxford bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs transition-colors cursor-pointer"
+                    >
+                      <Building2 className="w-3.5 h-3.5 text-cyan-700" />
+                      <span>{room || currentUser?.room || 'Add Office Room'}</span>
                     </button>
                     {cvPath ? (
                       <a
@@ -4549,7 +4617,7 @@ export default function UnifiedDashboardPage() {
                   className="w-full justify-center border-slate-300 text-slate-700 hover:bg-slate-100 font-sans text-xs font-semibold py-2.5 h-auto rounded-xl cursor-pointer"
                 >
                   <Globe className="w-3.5 h-3.5 mr-1.5 text-cyan-700" />
-                  <span>Manage Links</span>
+                  <span>Edit Contact & Profiles</span>
                 </Button>
               </div>
             </div>
@@ -5517,7 +5585,7 @@ export default function UnifiedDashboardPage() {
           <DialogHeader className="border-b border-slate-100 pb-4">
             <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
               <Globe className="w-5 h-5 text-oxford" />
-              <span>Contact Info & Academic Profiles</span>
+              <span>Contact Info, Qualification & Academic Profiles</span>
             </DialogTitle>
           </DialogHeader>
 
@@ -5533,6 +5601,36 @@ export default function UnifiedDashboardPage() {
                 <span>{profilesSuccess}</span>
               </div>
             )}
+
+            {/* Qualification */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Highest Qualification</label>
+              <div className="relative">
+                <GraduationCap className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Input
+                  type="text"
+                  placeholder="e.g. Ph.D. in Physics"
+                  value={qualification}
+                  onChange={(e) => setQualification(e.target.value)}
+                  className="w-full pl-10 text-sm rounded-xl"
+                />
+              </div>
+            </div>
+
+            {/* Office Room */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Office Room / Location</label>
+              <div className="relative">
+                <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Input
+                  type="text"
+                  placeholder="e.g. Department Building / Room 204"
+                  value={room}
+                  onChange={(e) => setRoom(e.target.value)}
+                  className="w-full pl-10 text-sm rounded-xl"
+                />
+              </div>
+            </div>
 
             {/* Phone */}
             <div className="space-y-1.5">

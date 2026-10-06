@@ -55,7 +55,7 @@ export default function CoursesPageClient({
       <Hero
         title={heroData?.title || 'ACADEMIC PROGRAMS'}
         badge="HOME > COURSES"
-        subtitle={heroData?.subtitle || 'Choice-Based Credit System (CBCS) offering M.Sc., Ph.D., and 5-Year Integrated M.Sc. degree programs.'}
+        subtitle={heroData?.subtitle || ''}
         bgImage={heroData?.image || '/campus.jpg'}
       />
 

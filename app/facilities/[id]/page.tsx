@@ -37,6 +37,8 @@ interface FacultyAssociated {
   email?: string;
   designation?: string | null;
   department?: string | null;
+  qualification?: string | null;
+  room?: string | null;
   image?: string | null;
   documents?: { image?: string | null } | null;
 }
@@ -356,10 +358,10 @@ export default async function FacilityDetailPage({ params }: PageProps) {
                       id: fac.id,
                       name: fac.name,
                       designation: fac.designation || 'Faculty Member',
-                      qualification: 'Ph.D.',
+                      qualification: fac.qualification || 'Ph.D.',
                       email: fac.email || '',
                       phone: '',
-                      room: '',
+                      room: fac.room || '',
                       researchFocus: [],
                       bio: '',
                       publicationsCount: 0,

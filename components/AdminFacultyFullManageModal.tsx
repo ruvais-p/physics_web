@@ -224,6 +224,8 @@ export default function AdminFacultyFullManageModal({
   const [email, setEmail] = useState('');
   const [designation, setDesignation] = useState('');
   const [department, setDepartment] = useState('');
+  const [qualification, setQualification] = useState('');
+  const [room, setRoom] = useState('');
   const [phone, setPhone] = useState('');
   const [isActive, setIsActive] = useState(true);
   const [newPredefinedPassword, setNewPredefinedPassword] = useState('');
@@ -317,6 +319,8 @@ export default function AdminFacultyFullManageModal({
       setEmail(data.email || '');
       setDesignation(data.designation || 'Faculty Member');
       setDepartment(data.department || 'Department of Physics');
+      setQualification(data.qualification || '');
+      setRoom(data.room || '');
       setPhone(data.phone || data.profile?.phone || '');
       setIsActive(data.isActive);
       setNewPredefinedPassword('');
@@ -409,6 +413,8 @@ export default function AdminFacultyFullManageModal({
           email,
           designation,
           department,
+          qualification,
+          room,
           phone,
           isActive,
           newPredefinedPassword: newPredefinedPassword.trim() || undefined,
@@ -1046,6 +1052,34 @@ export default function AdminFacultyFullManageModal({
                         type="text"
                         value={department}
                         onChange={(e) => setDepartment(e.target.value)}
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Qualification
+                      </label>
+                      <input
+                        type="text"
+                        value={qualification}
+                        onChange={(e) => setQualification(e.target.value)}
+                        placeholder="e.g. Ph.D. in Physics"
+                        className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Office Room
+                      </label>
+                      <input
+                        type="text"
+                        value={room}
+                        onChange={(e) => setRoom(e.target.value)}
+                        placeholder="e.g. Department Building / Room 204"
                         className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>

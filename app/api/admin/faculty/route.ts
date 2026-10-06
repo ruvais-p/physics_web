@@ -27,6 +27,8 @@ export async function GET() {
         email: true,
         designation: true,
         department: true,
+        qualification: true,
+        room: true,
         mustChangePassword: true,
         isActive: true,
         sortOrder: true,
@@ -52,7 +54,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, email, password, designation, department } = body;
+    const { name, email, password, designation, department, qualification, room } = body;
 
     // Validate required fields
     if (!name || !name.trim()) {
@@ -95,6 +97,8 @@ export async function POST(request: Request) {
         mustChangePassword: true,
         designation: designation?.trim() || 'Faculty Member',
         department: department?.trim() || 'Department of Physics',
+        qualification: qualification?.trim() || 'Ph.D. in Physics',
+        room: room?.trim() || 'Department Building',
         sortOrder: nextSortOrder,
       },
       select: {
@@ -103,6 +107,8 @@ export async function POST(request: Request) {
         email: true,
         designation: true,
         department: true,
+        qualification: true,
+        room: true,
         mustChangePassword: true,
         isActive: true,
         sortOrder: true,

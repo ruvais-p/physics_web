@@ -34,7 +34,7 @@ export default function AnnouncementsPageClient({
       <Hero
         title={heroData?.title || 'ANNOUNCEMENTS & NOTICES'}
         badge="HOME > ANNOUNCEMENTS"
-        subtitle={heroData?.subtitle || 'Official circulars, examination schedules, academic notifications, and departmental announcements.'}
+        subtitle={heroData?.subtitle || ''}
         bgImage={heroData?.image || '/campus.jpg'}
       />
 

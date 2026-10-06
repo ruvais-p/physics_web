@@ -53,6 +53,8 @@ export async function GET() {
           name: true,
           designation: true,
           department: true,
+          qualification: true,
+          room: true,
           phone: true,
           mustChangePassword: true,
           isActive: true,

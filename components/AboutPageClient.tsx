@@ -186,7 +186,7 @@ export default function AboutPageClient({
       <Hero
         title={heroData?.title || 'ABOUT DEPARTMENT'}
         badge="HOME > ABOUT"
-        subtitle={heroData?.subtitle || 'Advancing fundamental physics, materials science, quantum technology, and photonics since 1963.'}
+        subtitle={heroData?.subtitle || ''}
         bgImage={bannerImage}
       />
 
