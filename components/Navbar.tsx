@@ -66,6 +66,11 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
+    name: 'Career',
+    href: '/alumni',
+    iconType: 'chevron',
+  },
+  {
     name: 'Contact',
     href: '/contact',
     iconType: 'chevron',

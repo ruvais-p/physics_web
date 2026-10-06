@@ -412,8 +412,7 @@ export default async function HomePage() {
           {/* Section Headings */}
           <div className="space-y-4 max-w-3xl mx-auto">
             <h2 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
-              Driving Breakthroughs with Prestigious National Grants
-            </h2>
+              Pioneering Research, Powered by National Grants            </h2>
 
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-sans font-normal max-w-2xl mx-auto">
               Our faculty lead cutting-edge research funded by leading national and international agencies—tackling frontier challenges in quantum technology, nanostructured energy materials, photonics, and cosmology.
@@ -491,50 +490,50 @@ export default async function HomePage() {
 
       {/* Featured Publications Section */}
       {homePublications.length > 0 && (
-      <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-lowest border-t border-slate-200">
-        <div className="max-w-[1536px] mx-auto space-y-10 sm:space-y-12">
+        <section className="w-full px-6 sm:px-12 lg:px-16 py-16 sm:py-24 bg-surface-lowest border-t border-slate-200">
+          <div className="max-w-[1536px] mx-auto space-y-10 sm:space-y-12">
 
-          {/* Section Header */}
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-slate-200 pb-6">
-            <div className="space-y-2">
-              <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block font-sans">
-                Scholarly Research Output
-              </span>
-              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
-                Recent Publications
-              </h2>
+            {/* Section Header */}
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 border-b border-slate-200 pb-6">
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-cyan-accent uppercase tracking-widest block font-sans">
+                  Scholarly Research Output
+                </span>
+                <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
+                  Publications
+                </h2>
+              </div>
+
+              <Link
+                href="/journals"
+                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors self-start sm:self-auto shrink-0 group"
+              >
+                <span>View All Publications</span>
+                <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </div>
 
-            <Link
-              href="/journals"
-              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-cyan-accent hover:text-cyan-dark uppercase tracking-wider transition-colors self-start sm:self-auto shrink-0 group"
-            >
-              <span>View All Publications</span>
-              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-
-          {/* Publications Cards Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
-            {homePublications.slice(0, 4).map((pub) => (
-              <JournalCard key={pub.id} publication={pub} />
-            ))}
-          </div>
-
-          {/* Bottom Callout Bar */}
-          <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 p-5 sm:p-6 bg-slate-50 rounded-2xl border border-slate-200 text-sm">
-            <div className="text-slate-600 font-medium text-center sm:text-left">
-              Looking for our complete catalog of indexed journals, faculty papers, and metrics?
+            {/* Publications Cards Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
+              {homePublications.slice(0, 4).map((pub) => (
+                <JournalCard key={pub.id} publication={pub} />
+              ))}
             </div>
-            <Link
-              href="/journals"
-              className="px-5 py-2.5 bg-oxford hover:bg-cyan-900 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-sm shrink-0"
-            >
-              Browse Full Publications Archive &rarr;
-            </Link>
+
+            {/* Bottom Callout Bar */}
+            <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 p-5 sm:p-6 bg-slate-50 rounded-2xl border border-slate-200 text-sm">
+              <div className="text-slate-600 font-medium text-center sm:text-left">
+                Looking for our complete catalog of indexed journals, faculty papers, and metrics?
+              </div>
+              <Link
+                href="/journals"
+                className="px-5 py-2.5 bg-oxford hover:bg-cyan-900 text-white font-bold text-xs sm:text-sm rounded-xl transition-all shadow-sm shrink-0"
+              >
+                Browse Full Publications Archive &rarr;
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
       )}
 
 
