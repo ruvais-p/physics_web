@@ -105,7 +105,7 @@ export default function ResearchContent({
                 : 'text-oxford hover:text-cyan-accent hover:bg-slate-50'
             }`}
           >
-            Central Facilities
+            Facilities
           </button>
         </div>
       </div>

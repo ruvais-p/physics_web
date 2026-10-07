@@ -88,6 +88,33 @@ async function main() {
     
     await prisma.course.create({
       data: {
+        id: 'c3',
+        code: 'PHY-INT-501',
+        title: 'Integrated M.Sc. in Physics',
+        level: 'Integrated MSc',
+        duration: '5 Years (10 Semesters)',
+        intake: 20,
+        fees: '₹15,000 per semester',
+        eligibility: 'Passed 10+2 / Higher Secondary Examination with Physics, Chemistry, and Mathematics securing minimum 60% aggregate.',
+        description: 'Direct entry 5-year flagship program designed for bright young students after 12th standard. Integrates foundational science with advanced quantum, statistical, and materials research.',
+        highlights: [
+          'Exit option after 3 years with B.Sc. (Honours) in Physics degree',
+          'Early exposure to research laboratories from 3rd year onwards',
+          'Interdisciplinary electives in Computer Science, Applied Chemistry & Mathematics',
+          'Summer internships at premier institutes (TIFR, IISc, BARC, ISRO)',
+        ],
+        schemes: {
+          create: [
+            { year: 'Years 1 & 2 (Foundational)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf', sortOrder: 1 },
+            { year: 'Year 3 (B.Sc. Honours Exit Option)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf', sortOrder: 2 },
+            { year: 'Years 4 & 5 (M.Sc. Advanced)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf', sortOrder: 3 },
+          ],
+        },
+      },
+    });
+
+    await prisma.course.create({
+      data: {
         id: 'c1',
         code: 'PHY-MSC-101',
         title: 'Master of Science (M.Sc.) in Physics',
@@ -133,33 +160,6 @@ async function main() {
           create: [
             { year: 'Year 1 (Coursework)', scheme: '2024 PhD Regulations', pdfUrl: '/cvs/cv_placeholder.pdf', sortOrder: 1 },
             { year: 'Years 2 - 5 (Research)', scheme: '2024 PhD Regulations', pdfUrl: '/cvs/cv_placeholder.pdf', sortOrder: 2 },
-          ],
-        },
-      },
-    });
-
-    await prisma.course.create({
-      data: {
-        id: 'c3',
-        code: 'PHY-INT-501',
-        title: 'Integrated M.Sc. in Physics',
-        level: 'Integrated MSc',
-        duration: '5 Years (10 Semesters)',
-        intake: 20,
-        fees: '₹15,000 per semester',
-        eligibility: 'Passed 10+2 / Higher Secondary Examination with Physics, Chemistry, and Mathematics securing minimum 60% aggregate.',
-        description: 'Direct entry 5-year flagship program designed for bright young students after 12th standard. Integrates foundational science with advanced quantum, statistical, and materials research.',
-        highlights: [
-          'Exit option after 3 years with B.Sc. (Honours) in Physics degree',
-          'Early exposure to research laboratories from 3rd year onwards',
-          'Interdisciplinary electives in Computer Science, Applied Chemistry & Mathematics',
-          'Summer internships at premier institutes (TIFR, IISc, BARC, ISRO)',
-        ],
-        schemes: {
-          create: [
-            { year: 'Years 1 & 2 (Foundational)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf', sortOrder: 1 },
-            { year: 'Year 3 (B.Sc. Honours Exit Option)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf', sortOrder: 2 },
-            { year: 'Years 4 & 5 (M.Sc. Advanced)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf', sortOrder: 3 },
           ],
         },
       },

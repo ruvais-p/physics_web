@@ -39,7 +39,7 @@ export const DEFAULT_PAGE_HEROES: Record<string, PageHeroConfig> = {
   },
   facilities: {
     pageKey: 'facilities',
-    pageName: 'Central Facilities',
+    pageName: 'Facilities',
     title: 'CENTRAL INSTRUMENTATION FACILITIES',
     subtitle: '',
     image: '/campus.jpg',

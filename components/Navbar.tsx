@@ -39,8 +39,8 @@ const NAV_ITEMS: NavItem[] = [
     href: '/courses',
     iconType: 'chevron',
     dropdown: [
-      { name: 'M.Sc. Physics', href: '/courses#msc' },
       { name: 'Integrated M.Sc.', href: '/courses#integrated' },
+      { name: 'M.Sc. Physics', href: '/courses#msc' },
       { name: 'Ph.D. Program', href: '/courses#phd' },
     ],
   },
@@ -52,7 +52,7 @@ const NAV_ITEMS: NavItem[] = [
       { name: 'Research Laboratories', href: '/research#labs' },
       { name: 'Projects & Grants', href: '/projects' },
       { name: 'Journals & Publications', href: '/journals' },
-      { name: 'Central Facilities', href: '/facilities' },
+      { name: 'Facilities', href: '/facilities' },
     ],
   },
   {
@@ -64,6 +64,11 @@ const NAV_ITEMS: NavItem[] = [
       { name: 'News', href: '/news' },
       { name: 'Announcements', href: '/announcements' },
     ],
+  },
+  {
+    name: 'Career',
+    href: '/alumni',
+    iconType: 'chevron',
   },
   {
     name: 'Contact',

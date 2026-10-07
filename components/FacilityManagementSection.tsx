@@ -340,7 +340,7 @@ export default function FacilityManagementSection() {
         <div>
           <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
             <Wrench className="w-7 h-7 text-oxford" />
-            <span>Central Facilities</span>
+            <span>Facilities</span>
             <Badge variant="outline" className="ml-2 font-mono text-xs border-oxford text-oxford">
               {facilities.length} Facilities
             </Badge>

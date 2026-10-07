@@ -389,6 +389,28 @@ export const SCHOLARS: Scholar[] = [
 
 export const COURSES: Course[] = [
   {
+    id: 'c3',
+    title: 'Integrated M.Sc. in Physics',
+    code: 'PHY-INT-501',
+    level: 'Integrated MSc',
+    duration: '5 Years (10 Semesters)',
+    intake: 20,
+    eligibility: 'Passed 10+2 / Higher Secondary Examination with Physics, Chemistry, and Mathematics securing minimum 60% aggregate.',
+    description: 'Direct entry 5-year flagship program designed for bright young students after 12th standard. Integrates foundational science with advanced quantum, statistical, and materials research.',
+    highlights: [
+      'Exit option after 3 years with B.Sc. (Honours) in Physics degree',
+      'Early exposure to research laboratories from 3rd year onwards',
+      'Interdisciplinary electives in Computer Science, Applied Chemistry & Mathematics',
+      'Summer internships at premier institutes (TIFR, IISc, BARC, ISRO)',
+    ],
+    syllabus: [
+      { semester: 'Semesters 1 - 4', subjects: ['Physics Foundations', 'Calculus & Linear Algebra', 'General Chemistry', 'Computer Programming in C/Python', 'Environmental Science'] },
+      { semester: 'Semesters 5 - 8', subjects: ['Advanced Quantum Physics', 'Thermal & Statistical Physics', 'Optics & Lasers', 'Solid State Physics', 'Special Relativity'] },
+      { semester: 'Semesters 9 - 10', subjects: ['Specialized Elective Clusters', 'Cap-stone Research Dissertation Project'] },
+    ],
+    fees: '₹18,500 per semester',
+  },
+  {
     id: 'c1',
     title: 'Master of Science (M.Sc.) in Physics',
     code: 'PHY-MSC-101',
@@ -432,28 +454,6 @@ export const COURSES: Course[] = [
       { semester: 'Final Phase', subjects: ['Pre-Synopsis Defense', 'Thesis Submission & Open Defense Viva-Voce'] },
     ],
     fees: '₹8,200 per semester + Laboratory Bench Fees',
-  },
-  {
-    id: 'c3',
-    title: 'Integrated M.Sc. in Physics',
-    code: 'PHY-INT-501',
-    level: 'Integrated MSc',
-    duration: '5 Years (10 Semesters)',
-    intake: 20,
-    eligibility: 'Passed 10+2 / Higher Secondary Examination with Physics, Chemistry, and Mathematics securing minimum 60% aggregate.',
-    description: 'Direct entry 5-year flagship program designed for bright young students after 12th standard. Integrates foundational science with advanced quantum, statistical, and materials research.',
-    highlights: [
-      'Exit option after 3 years with B.Sc. (Honours) in Physics degree',
-      'Early exposure to research laboratories from 3rd year onwards',
-      'Interdisciplinary electives in Computer Science, Applied Chemistry & Mathematics',
-      'Summer internships at premier institutes (TIFR, IISc, BARC, ISRO)',
-    ],
-    syllabus: [
-      { semester: 'Semesters 1 - 4', subjects: ['Physics Foundations', 'Calculus & Linear Algebra', 'General Chemistry', 'Computer Programming in C/Python', 'Environmental Science'] },
-      { semester: 'Semesters 5 - 8', subjects: ['Advanced Quantum Physics', 'Thermal & Statistical Physics', 'Optics & Lasers', 'Solid State Physics', 'Special Relativity'] },
-      { semester: 'Semesters 9 - 10', subjects: ['Specialized Elective Clusters', 'Cap-stone Research Dissertation Project'] },
-    ],
-    fees: '₹18,500 per semester',
   },
 ];
 

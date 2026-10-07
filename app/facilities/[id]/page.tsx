@@ -419,7 +419,7 @@ export default async function FacilityDetailPage({ params }: PageProps) {
                   href="/facilities"
                   className="inline-flex items-center gap-1.5 text-sm font-semibold text-oxford hover:text-cyan-dark transition-colors"
                 >
-                  <span>Explore all central facilities</span>
+                  <span>Explore all facilities</span>
                   <ArrowLeft className="w-4 h-4 rotate-180" />
                 </Link>
                 <div>
