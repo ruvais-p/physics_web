@@ -1,7 +1,7 @@
 'use client';
 
 import { Course } from '@/lib/data';
-import { Clock, GraduationCap, FileText, ArrowUpRight } from 'lucide-react';
+import { Clock, FileText, ArrowUpRight } from 'lucide-react';
 
 export interface CourseSchemeItem {
   id?: string;
@@ -36,6 +36,13 @@ const DEFAULT_COURSE_SCHEMES: Record<string, CourseSchemeItem[]> = {
     { year: 'Year 3 (B.Sc. Honours Exit Option)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
     { year: 'Years 4 & 5 (M.Sc. Advanced)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
   ],
+  c4: [
+    { year: 'First Year (Semesters 1 & 2)', scheme: '2024 AICTE Model Curriculum', pdfUrl: '/cvs/cv_placeholder.pdf' },
+    { year: 'Second Year (Industrial Project & Thesis)', scheme: '2024 M.Tech Regulations', pdfUrl: '/cvs/cv_placeholder.pdf' },
+  ],
+  c5: [
+    { year: 'Full Academic Year (Modules 1 - 4)', scheme: '2024 Industry-Aligned Diploma Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
+  ],
 };
 
 export default function CourseCard({ course }: CourseCardProps) {
@@ -65,21 +72,15 @@ export default function CourseCard({ course }: CourseCardProps) {
           </h1>
         </div>
 
-        {/* Quick Facts Bar (Duration & Level) */}
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-slate-600 pt-1">
-          {course.duration && (
+        {/* Quick Facts Bar (Duration) */}
+        {course.duration && (
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-slate-600 pt-1">
             <div className="flex items-center space-x-2">
               <Clock className="w-4.5 h-4.5 text-cyan-accent" />
               <span>Duration: {course.duration}</span>
             </div>
-          )}
-          {course.level && (
-            <div className="flex items-center space-x-2">
-              <GraduationCap className="w-4.5 h-4.5 text-cyan-accent" />
-              <span>Program Level: {course.level}</span>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Course Description */}
         {course.description && (
@@ -89,26 +90,16 @@ export default function CourseCard({ course }: CourseCardProps) {
         )}
       </div>
 
-      {/* Curriculum Scheme & Regulation Table */}
+      {/* Academic Curriculum & Regulations Table */}
       <div className="space-y-4 pt-4">
         <div className="space-y-1">
           <h2 className="font-serif text-2xl sm:text-3xl font-bold text-oxford border-b border-slate-100 pb-2">
-            Curriculum Scheme &amp; Regulation
+            Academic Curriculum &amp; Regulations
           </h2>
         </div>
 
         <div className="overflow-hidden border border-slate-200/90 rounded-2xl shadow-md bg-white">
           <table className="min-w-full divide-y divide-slate-200 text-left font-sans text-base">
-            <thead className="bg-slate-50 text-oxford font-bold uppercase tracking-wider text-xs sm:text-sm">
-              <tr>
-                <th scope="col" className="px-6 sm:px-8 py-4 sm:py-5">
-                  Year / Level
-                </th>
-                <th scope="col" className="px-6 sm:px-8 py-4 sm:py-5 text-right">
-                  Curriculum Scheme &amp; Syllabus
-                </th>
-              </tr>
-            </thead>
             <tbody className="divide-y divide-slate-100">
               {schemes.map((item, idx) => (
                 <tr

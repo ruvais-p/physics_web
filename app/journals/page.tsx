@@ -30,20 +30,34 @@ async function getPublications(): Promise<Publication[]> {
       ],
     });
 
-    return publications.map((publication) => ({
-      id: publication.id,
-      title: publication.title,
-      authors: publication.authors
-        ? publication.authors.split(',').map((author) => author.trim()).filter(Boolean)
-        : [],
-      journal: publication.journal || '',
-      year: publication.publicationDate?.getFullYear() ?? publication.createdAt.getFullYear(),
-      volume: '',
-      doi: sanitizeWebUrl(publication.doi || publication.externalLink, false) || '',
-      citations: 0,
-      category: publication.category || '',
-      abstract: publication.description || '',
-    }));
+    return publications.map((publication) => {
+      const rawDoi = publication.doi?.trim() || '';
+      const rawExt = publication.externalLink?.trim() || '';
+      const doiUrl = rawDoi
+        ? rawDoi.startsWith('http')
+          ? rawDoi
+          : `https://doi.org/${rawDoi}`
+        : rawExt
+        ? sanitizeWebUrl(rawExt, false)
+        : '';
+
+      return {
+        id: publication.id,
+        title: publication.title,
+        authors: publication.authors
+          ? publication.authors.split(',').map((author) => author.trim()).filter(Boolean)
+          : [],
+        journal: publication.journal || '',
+        year: publication.publicationDate?.getFullYear() ?? publication.createdAt.getFullYear(),
+        volume: '',
+        doi: rawDoi,
+        externalLink: doiUrl || null,
+        date: publication.publicationDate ? publication.publicationDate.toISOString() : null,
+        citations: 0,
+        category: publication.category || 'Journal Article',
+        abstract: publication.description || '',
+      };
+    });
   } catch (error) {
     console.error('Failed to fetch journal publications:', error);
     return [];

@@ -241,9 +241,12 @@ model Course {
   eligibility String?            @db.Text
   description String             @db.Text
   highlights  String[]           @default([])
+  sortOrder   Int                @default(0)
   schemes     CurriculumScheme[]
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
+
+  @@index([sortOrder, id])
 }
 
 model CurriculumScheme {

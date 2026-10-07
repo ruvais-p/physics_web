@@ -49,7 +49,7 @@ export default function ProjectsPageClient({
       {/* Hero Header matching main website design */}
       <Hero
         title={heroData?.title || 'RESEARCH PROJECTS'}
-        badge="HOME > RESEARCH > PROJECTS"
+        badge="HOME > PROJECTS"
         subtitle={heroData?.subtitle || ''}
         bgImage={heroData?.image || '/physics.png'}
       />

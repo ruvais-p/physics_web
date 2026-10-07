@@ -25,8 +25,8 @@ export const DEFAULT_PAGE_HEROES: Record<string, PageHeroConfig> = {
   },
   courses: {
     pageKey: 'courses',
-    pageName: 'Programs & Curriculum',
-    title: 'ACADEMIC PROGRAMS',
+    pageName: 'Programmes & Curriculum',
+    title: 'ACADEMIC PROGRAMMES',
     subtitle: '',
     image: '/campus.jpg',
   },

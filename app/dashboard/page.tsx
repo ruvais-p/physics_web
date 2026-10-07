@@ -6347,6 +6347,8 @@ export default function UnifiedDashboardPage() {
                     <SelectItem value="Conference Paper">Conference Paper</SelectItem>
                     <SelectItem value="Book Chapter">Book Chapter</SelectItem>
                     <SelectItem value="Preprint">Preprint</SelectItem>
+                    <SelectItem value="Patent">Patent</SelectItem>
+                    <SelectItem value="Popular Article">Popular Article</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

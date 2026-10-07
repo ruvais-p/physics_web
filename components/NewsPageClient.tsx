@@ -79,7 +79,7 @@ export default function NewsPageClient({
       {/* Hero Header */}
       <Hero
         title={heroData.title}
-        badge="HOME > NEWS"
+        badge="HOME > NEWS & AWARDS"
         subtitle={heroData.subtitle}
         bgImage={heroData.image}
       />

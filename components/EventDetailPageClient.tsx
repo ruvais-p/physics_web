@@ -13,7 +13,6 @@ import {
   CheckCircle2, 
   ExternalLink,
   ArrowUpRight,
-  Building2,
   FileText,
   Images,
   Eye,
@@ -394,7 +393,7 @@ export default function EventDetailPageClient({ liveEvent }: { liveEvent: EventD
                       rel="noopener noreferrer"
                       className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl bg-oxford hover:bg-cyan-900 text-white font-bold text-sm sm:text-base shadow-md hover:shadow-lg transition-all duration-300 group cursor-pointer"
                     >
-                      <span>Register for Event</span>
+                      <span>Register for the Event</span>
                       <ExternalLink className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </a>
                   )}
@@ -406,14 +405,11 @@ export default function EventDetailPageClient({ liveEvent }: { liveEvent: EventD
                       className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-2xl bg-white hover:bg-cyan-50 border border-slate-300 hover:border-cyan-accent text-oxford font-bold text-sm sm:text-base shadow-xs hover:shadow-md transition-all duration-300 group cursor-pointer"
                     >
                       <FileText className="w-4 h-4 text-cyan-accent" />
-                      <span>Download Event Brochure (PDF)</span>
+                      <span>Brochure</span>
                       <ArrowUpRight className="w-3.5 h-3.5 opacity-70 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                     </a>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 text-center">
-                  Open for students, researchers, faculty, and academic participants.
-                </p>
               </div>
             )}
 
@@ -442,29 +438,14 @@ export default function EventDetailPageClient({ liveEvent }: { liveEvent: EventD
               </div>
             )}
 
-
-            {/* Department Venue & Contact */}
-            <div className="space-y-4 font-sans">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-oxford" />
-                <span>Host Department</span>
-              </div>
-
-              <div className="space-y-1.5 text-sm sm:text-base text-slate-600 leading-relaxed">
-                <p className="font-bold text-oxford">Department of Physics</p>
-                <p>Cochin University of Science and Technology (CUSAT)</p>
-                <p>Kochi - 682022, Kerala, India</p>
-              </div>
-
-              <div className="pt-4">
-                <Link
-                  href="/events"
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-oxford hover:text-cyan-dark transition-colors"
-                >
-                  <span>Explore more department events</span>
-                  <ArrowLeft className="w-4 h-4 rotate-180" />
-                </Link>
-              </div>
+            <div className="pt-2 font-sans">
+              <Link
+                href="/events"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-oxford hover:text-cyan-dark transition-colors"
+              >
+                <span>Explore more department events</span>
+                <ArrowLeft className="w-4 h-4 rotate-180" />
+              </Link>
             </div>
 
           </div>

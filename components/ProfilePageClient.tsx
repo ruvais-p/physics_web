@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import FacultyCard from '@/components/FacultyCard';
-import { ExternalLink, Download } from 'lucide-react';
+import { ExternalLink, Download, ChevronDown, ChevronUp } from 'lucide-react';
 import { sanitizeWebUrl } from '@/lib/url-security';
 import type { Scholar } from '@/lib/data';
+import { groupPublicationsByCategory } from '@/components/PublicationsTable';
 
 interface CustomProfile {
   name?: string;
@@ -228,6 +229,15 @@ function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
 export default function ProfilePageClient({ person }: { person: ProfilePerson | null }) {
   // Tab State
   const [activeTab, setActiveTab] = useState<'bio' | 'scholars' | 'projects' | 'publications'>('bio');
+  // Category expansion state for "See more"
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
+
+  const toggleCategory = (categoryId: string) => {
+    setExpandedCategories((prev) => ({
+      ...prev,
+      [categoryId]: !prev[categoryId],
+    }));
+  };
 
   if (!person || person.type !== 'faculty') {
     return (
@@ -246,10 +256,15 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
   const facultyProjects = isFaculty ? person.projects || [] : [];
   const facultyPublications = isFaculty ? person.publications || [] : [];
 
+  // Group publications according to the prioritized category order
+  const groupedPublications = useMemo(() => {
+    return groupPublicationsByCategory(facultyPublications);
+  }, [facultyPublications]);
+
   return (
     <div className="pb-20 relative font-sans">
       <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 pt-6 sm:pt-10 space-y-8">
-        
+
         {/* Breadcrumbs */}
         <div className="flex items-center space-x-2 text-base sm:text-lg font-sans font-semibold text-slate-500 pb-2 border-b border-slate-100">
           <Link href="/" className="hover:text-cyan-dark transition-colors">Home</Link>
@@ -258,10 +273,10 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
           <span>&gt;</span>
           <span className="text-oxford font-bold">{person.name}</span>
         </div>
-        
+
         {/* Top Details Block: Left Photo, Right Text (Flat, borderless) */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-center">
-          
+
           {/* Left Column: Photo (large, rectangular, sharp, no border) */}
           <div className="md:col-span-7 shrink-0 md:-ml-8">
             <div className="relative w-full aspect-[4/3] bg-slate-50 overflow-hidden rounded-2xl border border-slate-100 shadow-sm">
@@ -288,18 +303,6 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
             <div className="h-px bg-slate-200 w-full my-2" />
 
             <div className="space-y-3.5 text-base sm:text-lg text-slate-700">
-              {isFaculty && (
-                <p>
-                  <strong className="text-oxford font-bold">Department:</strong> {person.department || 'Department of Physics, CUSAT'}
-                </p>
-              )}
-
-              {isFaculty && person.qualification && (
-                <p>
-                  <strong className="text-oxford font-bold">Qualification:</strong> {person.qualification}
-                </p>
-              )}
-
               <p>
                 <strong className="text-oxford font-bold">Email:</strong>{' '}
                 <a href={`mailto:${person.email}`} className="text-cyan-dark hover:text-cyan-accent underline font-semibold">
@@ -422,51 +425,47 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
           <div className="flex border-b border-slate-200 justify-start overflow-x-auto">
             <button
               onClick={() => setActiveTab('bio')}
-              className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'bio'
-                  ? 'border-oxford text-oxford'
-                  : 'border-transparent text-slate-500 hover:text-oxford'
-              }`}
+              className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'bio'
+                ? 'border-oxford text-oxford'
+                : 'border-transparent text-slate-500 hover:text-oxford'
+                }`}
             >
-              Biography
+              Profile
             </button>
 
             {isFaculty && (
               <button
                 onClick={() => setActiveTab('scholars')}
-                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                  activeTab === 'scholars'
-                    ? 'border-oxford text-oxford'
-                    : 'border-transparent text-slate-500 hover:text-oxford'
-                }`}
+                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'scholars'
+                  ? 'border-oxford text-oxford'
+                  : 'border-transparent text-slate-500 hover:text-oxford'
+                  }`}
               >
-                Research Scholars ({supervisedScholars.length})
+                Research Scholars
               </button>
             )}
 
             {isFaculty && (
               <button
                 onClick={() => setActiveTab('projects')}
-                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                  activeTab === 'projects'
-                    ? 'border-oxford text-oxford'
-                    : 'border-transparent text-slate-500 hover:text-oxford'
-                }`}
+                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'projects'
+                  ? 'border-oxford text-oxford'
+                  : 'border-transparent text-slate-500 hover:text-oxford'
+                  }`}
               >
-                Research Projects ({facultyProjects.length})
+                Research Projects
               </button>
             )}
 
             {isFaculty && (
               <button
                 onClick={() => setActiveTab('publications')}
-                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                  activeTab === 'publications'
-                    ? 'border-oxford text-oxford'
-                    : 'border-transparent text-slate-500 hover:text-oxford'
-                }`}
+                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'publications'
+                  ? 'border-oxford text-oxford'
+                  : 'border-transparent text-slate-500 hover:text-oxford'
+                  }`}
               >
-                Publications ({facultyPublications.length})
+                Patents &amp; Publications
               </button>
             )}
           </div>
@@ -514,15 +513,6 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
             {/* Research Projects Tab */}
             {activeTab === 'projects' && isFaculty && (
               <div className="space-y-6 text-left font-sans">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl sm:text-2xl font-bold text-oxford font-serif">
-                    Funded &amp; Sponsored Research Projects
-                  </h3>
-                  <span className="text-xs sm:text-sm font-semibold text-oxford bg-slate-100 border border-slate-200 px-3.5 py-1 rounded-full">
-                    {facultyProjects.length} Projects
-                  </span>
-                </div>
-
                 {facultyProjects.length > 0 ? (
                   <div className="overflow-x-auto border border-slate-200 rounded-2xl bg-white shadow-xs">
                     <table className="w-full text-left border-collapse">
@@ -573,11 +563,10 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
                                 </div>
                               )}
                               <div>
-                                <span className={`inline-block text-[11px] font-bold px-2.5 py-0.5 rounded uppercase tracking-wider ${
-                                  proj.status === 'Ongoing'
-                                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
-                                    : 'bg-blue-100 text-blue-800 border border-blue-200'
-                                }`}>
+                                <span className={`inline-block text-[11px] font-bold px-2.5 py-0.5 rounded uppercase tracking-wider ${proj.status === 'Ongoing'
+                                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                                  : 'bg-blue-100 text-blue-800 border border-blue-200'
+                                  }`}>
                                   {proj.status || 'Ongoing'}
                                 </span>
                               </div>
@@ -604,93 +593,123 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
 
             {/* Publications Tab */}
             {activeTab === 'publications' && isFaculty && (
-              <div className="space-y-6 text-left font-sans">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-xl sm:text-2xl font-bold text-oxford font-serif">
-                    Peer-Reviewed Publications &amp; Research Papers
-                  </h3>
-                  <span className="text-xs sm:text-sm font-semibold text-oxford bg-slate-100 border border-slate-200 px-3.5 py-1 rounded-full">
-                    {facultyPublications.length} Publications
-                  </span>
-                </div>
+              <div className="space-y-10 text-left font-sans">
+                {groupedPublications.length > 0 ? (
+                  groupedPublications.map((group) => {
+                    const isExpanded = Boolean(expandedCategories[group.id]);
+                    const visibleItems = isExpanded ? group.items : group.items.slice(0, 3);
+                    const isPatent = group.id === 'patents';
 
-                {facultyPublications.length > 0 ? (
-                  <div className="overflow-x-auto border border-slate-200 rounded-2xl bg-white shadow-xs">
-                    <table className="w-full text-left border-collapse">
-                      <thead>
-                        <tr className="bg-oxford text-white text-xs uppercase tracking-wider font-bold">
-                          <th className="py-4 px-4 text-center w-12">#</th>
-                          <th className="py-4 px-5">Paper Title &amp; Details</th>
-                          <th className="py-4 px-4 whitespace-nowrap">Category</th>
-                          <th className="py-4 px-4 whitespace-nowrap">Journal / Date</th>
-                          <th className="py-4 px-4 text-right whitespace-nowrap">Link / DOI</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-                        {facultyPublications.map((pub, idx: number) => (
-                          <tr key={pub.id || idx} className="hover:bg-slate-50/80 transition-colors">
-                            <td className="py-4 px-4 align-top text-center text-xs font-bold text-slate-400">
-                              {idx + 1}
-                            </td>
-                            <td className="py-4 px-5 space-y-1.5 align-top min-w-[300px]">
-                              <div className="font-bold text-oxford text-base leading-snug">
-                                {pub.title}
-                              </div>
-                              {pub.authors && (
-                                <p className="text-xs text-slate-700 font-medium">
-                                  <span className="font-bold text-oxford">Authors:</span> {pub.authors}
-                                </p>
-                              )}
-                              {pub.description && (
-                                <p className="text-xs text-slate-600 leading-relaxed">
-                                  {pub.description}
-                                </p>
-                              )}
-                            </td>
-                            <td className="py-4 px-4 align-top whitespace-nowrap">
-                              <span className="inline-block text-[11px] font-bold px-2.5 py-0.5 rounded uppercase tracking-wider bg-indigo-100 text-indigo-900 border border-indigo-200">
-                                {pub.category || 'Journal Article'}
+                    return (
+                      <div key={group.id} className="space-y-4">
+                        {/* Category Heading with Item Count */}
+                        <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                          <h3 className="text-xl sm:text-2xl font-bold text-oxford font-serif flex items-center gap-2.5">
+                            <span>{group.title}</span>
+                            <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-600 font-sans border border-slate-200">
+                              {group.items.length}
+                            </span>
+                          </h3>
+                        </div>
+
+                        {/* Table of Publications for this Category */}
+                        <div className="overflow-hidden border border-slate-200 rounded-2xl bg-white shadow-xs">
+                          <table className="w-full text-left border-collapse table-fixed">
+                            <thead>
+                              <tr className="bg-oxford text-white text-xs uppercase tracking-wider font-bold">
+                                <th className="py-4 px-3 sm:px-4 text-center w-10 sm:w-12">#</th>
+                                <th className="py-4 px-4 sm:px-5 w-auto">
+                                  {isPatent ? 'Patent Details' : 'Publication Details'}
+                                </th>
+                                <th className="py-4 px-3 sm:px-4 w-44 sm:w-56 md:w-64">
+                                  {isPatent ? 'Patent / Filing Date' : 'Journal / Date'}
+                                </th>
+                                <th className="py-4 px-3 sm:px-4 text-right w-28 sm:w-36 md:w-40">
+                                  {isPatent ? 'Link / Number' : 'Link / DOI'}
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+                              {visibleItems.map((pub, idx: number) => (
+                                <tr key={pub.id || idx} className="hover:bg-slate-50/80 transition-colors">
+                                  <td className="py-4 px-3 sm:px-4 align-top text-center text-xs font-bold text-slate-400">
+                                    {idx + 1}
+                                  </td>
+                                  <td className="py-4 px-4 sm:px-5 align-top">
+                                    <div className="font-bold text-oxford text-sm sm:text-base leading-snug break-words">
+                                      {pub.title}
+                                    </div>
+                                  </td>
+                                  <td className="py-4 px-3 sm:px-4 align-top space-y-1">
+                                    {pub.journal && (
+                                      <p className="text-xs font-semibold text-oxford italic font-serif leading-snug break-words">
+                                        {pub.journal}
+                                      </p>
+                                    )}
+                                    {pub.publicationDate && (
+                                      <p className="text-[11px] sm:text-xs text-slate-500 whitespace-nowrap">
+                                        {new Date(pub.publicationDate).toLocaleDateString('en-US', {
+                                          year: 'numeric',
+                                          month: 'short',
+                                          day: 'numeric',
+                                        })}
+                                      </p>
+                                    )}
+                                  </td>
+                                  <td className="py-4 px-3 sm:px-4 align-top text-right space-y-1.5">
+                                    {pub.externalLink && (
+                                      <div>
+                                        <a
+                                          href={sanitizeWebUrl(pub.externalLink, false) || '#'}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="inline-flex items-center gap-1 sm:gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-[11px] sm:text-xs font-semibold px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg transition-all shadow-xs whitespace-nowrap"
+                                        >
+                                          <span>{isPatent ? 'View Patent' : 'View Paper'}</span>
+                                          <ExternalLink className="w-3 h-3 opacity-80" />
+                                        </a>
+                                      </div>
+                                    )}
+                                    {pub.doi && (
+                                      <p className="text-[10px] sm:text-[11px] font-mono text-slate-500 break-all leading-tight">
+                                        {isPatent ? `Patent: ${pub.doi}` : `DOI: ${pub.doi}`}
+                                      </p>
+                                    )}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+
+                        {/* See More / See Less Button if category has more than 3 items */}
+                        {group.items.length > 3 && (
+                          <div className="pt-1 flex justify-center">
+                            <button
+                              type="button"
+                              onClick={() => toggleCategory(group.id)}
+                              className="inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold text-oxford hover:text-cyan-accent bg-slate-100 hover:bg-slate-200/80 border border-slate-200 rounded-xl transition-all cursor-pointer shadow-2xs"
+                            >
+                              <span>
+                                {isExpanded
+                                  ? 'See less'
+                                  : `See more (${group.items.length - 3} more)`}
                               </span>
-                            </td>
-                            <td className="py-4 px-4 align-top whitespace-nowrap space-y-1">
-                              {pub.journal && (
-                                <p className="text-xs font-semibold text-oxford italic font-serif">
-                                  {pub.journal}
-                                </p>
+                              {isExpanded ? (
+                                <ChevronUp className="w-4 h-4" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4" />
                               )}
-                              {pub.publicationDate && (
-                                <p className="text-xs text-slate-500">
-                                  {new Date(pub.publicationDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                                </p>
-                              )}
-                            </td>
-                            <td className="py-4 px-4 align-top text-right whitespace-nowrap space-y-1.5">
-                              {pub.externalLink && (
-                                <div>
-                                  <a
-                                    href={sanitizeWebUrl(pub.externalLink, false) || '#'}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1.5 bg-blue-600 text-white hover:bg-blue-700 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all shadow-xs"
-                                  >
-                                    <span>View Paper</span>
-                                    <ExternalLink className="w-3 h-3 opacity-80" />
-                                  </a>
-                                </div>
-                              )}
-                              {pub.doi && (
-                                <p className="text-[11px] font-mono text-slate-500">
-                                  DOI: {pub.doi}
-                                </p>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
                 ) : (
-                  <p className="text-base text-slate-400 italic">No publications listed for this faculty member yet.</p>
+                  <p className="text-base text-slate-400 italic">
+                    No patents or publications listed for this faculty member yet.
+                  </p>
                 )}
               </div>
             )}

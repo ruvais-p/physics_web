@@ -2097,6 +2097,8 @@ export default function AdminFacultyFullManageModal({
                     <option value="Conference Paper">Conference Paper</option>
                     <option value="Book Chapter">Book Chapter</option>
                     <option value="Preprint">Preprint</option>
+                    <option value="Patent">Patent</option>
+                    <option value="Popular Article">Popular Article</option>
                   </select>
                 </div>
               </div>

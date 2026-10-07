@@ -52,7 +52,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { code, title, level, duration, eligibility, description, highlights } = body;
+    const { code, title, level, duration, eligibility, description, highlights, sortOrder } = body;
 
     const updatedCourse = await prisma.course.update({
       where: { id },
@@ -64,6 +64,7 @@ export async function PUT(
         eligibility: eligibility !== undefined ? eligibility.trim() : existing.eligibility,
         description: description !== undefined ? description.trim() : existing.description,
         highlights: Array.isArray(highlights) ? highlights.filter((h: string) => h && h.trim()) : existing.highlights,
+        sortOrder: sortOrder !== undefined && !isNaN(Number(sortOrder)) ? Number(sortOrder) : existing.sortOrder,
       },
       include: {
         schemes: {
