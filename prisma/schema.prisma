@@ -46,11 +46,12 @@ model ResearchLab {
   category    String?   @default("Experimental")
   description String    @db.Text
   image       String?
+  sortOrder   Int       @default(0)
   faculties   Faculty[] @relation("FacultyResearchLabs")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  @@index([createdAt(sort: Desc)])
+  @@index([sortOrder, createdAt(sort: Desc)])
 }
 
 model Facility {
@@ -58,11 +59,12 @@ model Facility {
   name        String
   description String    @db.Text
   image       String?
+  sortOrder   Int       @default(0)
   faculties   Faculty[] @relation("FacultyFacilities")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  @@index([createdAt(sort: Desc)])
+  @@index([sortOrder, createdAt(sort: Desc)])
 }
 
 model Faculty {
@@ -167,10 +169,11 @@ model FacultyStudent {
   facultyId   String
   faculty     Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   name        String
-  description String?  @db.Text
+  description String?   @db.Text
   image       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  expiryDate  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@index([facultyId])
 }
@@ -296,4 +299,21 @@ model News {
   updatedAt   DateTime @updatedAt
 
   @@index([date(sort: Desc), createdAt(sort: Desc)])
+}
+
+model Staff {
+  id          String   @id @default(uuid())
+  name        String
+  designation String
+  email       String?
+  phone       String?
+  room        String?
+  image       String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, sortOrder, createdAt])
+  @@map("staff")
 }

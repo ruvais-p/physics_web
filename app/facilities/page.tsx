@@ -16,7 +16,7 @@ async function getFacilities(): Promise<FacilityItem[]> {
         description: true,
         image: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
   } catch (error) {
     console.error('Failed to fetch facilities:', error);

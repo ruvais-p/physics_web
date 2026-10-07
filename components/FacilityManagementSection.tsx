@@ -11,6 +11,10 @@ import {
   RefreshCw,
   Eye,
   Check,
+  GripVertical,
+  ChevronUp,
+  ChevronDown,
+  Search,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -43,6 +47,7 @@ interface FacilityData {
   name: string;
   description: string;
   image?: string | null;
+  sortOrder?: number;
   faculties?: FacultyOption[];
   createdAt?: string;
 }
@@ -70,6 +75,110 @@ export default function FacilityManagementSection() {
   // Delete modal state
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Reordering states
+  const [draggedFacilityIndex, setDraggedFacilityIndex] = useState<number | null>(null);
+  const [dragOverFacilityIndex, setDragOverFacilityIndex] = useState<number | null>(null);
+  const [isReordering, setIsReordering] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleDragStart = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+    setDraggedFacilityIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(index));
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverFacilityIndex !== index) {
+      setDragOverFacilityIndex(index);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLTableRowElement>, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedFacilityIndex === null || draggedFacilityIndex === targetIndex) {
+      setDraggedFacilityIndex(null);
+      setDragOverFacilityIndex(null);
+      return;
+    }
+
+    const updatedList = [...facilities];
+    const [draggedItem] = updatedList.splice(draggedFacilityIndex, 1);
+    updatedList.splice(targetIndex, 0, draggedItem);
+
+    const itemsToUpdate = updatedList.map((item, idx) => ({
+      id: item.id,
+      sortOrder: idx + 1,
+    }));
+
+    setFacilities(updatedList.map((item, idx) => ({ ...item, sortOrder: idx + 1 })));
+    setDraggedFacilityIndex(null);
+    setDragOverFacilityIndex(null);
+    setIsReordering(true);
+
+    try {
+      const res = await fetch('/api/admin/facilities/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: itemsToUpdate }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to save facility order');
+      }
+      setSuccessMsg('Facility arrangement updated successfully');
+      setTimeout(() => setSuccessMsg(null), 3000);
+    } catch (err) {
+      console.error('Failed to reorder facilities:', err);
+      fetchData();
+    } finally {
+      setIsReordering(false);
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedFacilityIndex(null);
+    setDragOverFacilityIndex(null);
+  };
+
+  const moveFacility = async (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= facilities.length) return;
+
+    const updatedList = [...facilities];
+    const temp = updatedList[index];
+    updatedList[index] = updatedList[targetIndex];
+    updatedList[targetIndex] = temp;
+
+    const itemsToUpdate = updatedList.map((item, idx) => ({
+      id: item.id,
+      sortOrder: idx + 1,
+    }));
+
+    setFacilities(updatedList.map((item, idx) => ({ ...item, sortOrder: idx + 1 })));
+    setIsReordering(true);
+
+    try {
+      const res = await fetch('/api/admin/facilities/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: itemsToUpdate }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to save facility order');
+      }
+      setSuccessMsg('Facility arrangement updated successfully');
+      setTimeout(() => setSuccessMsg(null), 3000);
+    } catch (err) {
+      console.error('Failed to reorder facilities:', err);
+      fetchData();
+    } finally {
+      setIsReordering(false);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -262,6 +371,25 @@ export default function FacilityManagementSection() {
         </div>
       </div>
 
+      {/* Search & Drag Reorder Guidance */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Input
+            placeholder="Search by facility name or in-charge faculty..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-11 text-base h-12 w-full"
+          />
+        </div>
+        {!searchTerm && facilities.length > 1 && (
+          <div className="flex items-center gap-2 px-3.5 py-2 bg-indigo-50 border border-indigo-200/80 rounded-xl text-indigo-800 text-xs font-sans font-medium whitespace-nowrap shadow-xs">
+            <GripVertical className="w-4 h-4 text-indigo-600 shrink-0" />
+            <span>Drag rows to reorder public ranking</span>
+          </div>
+        )}
+      </div>
+
       {/* Success Notification */}
       {successMsg && (
         <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl flex items-center gap-2.5 text-emerald-800 text-sm font-semibold animate-fadeIn font-sans">
@@ -303,6 +431,7 @@ export default function FacilityManagementSection() {
             <Table className="text-sm">
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-32 text-base font-bold">Order</TableHead>
                   <TableHead className="font-bold w-24">Facility Image</TableHead>
                   <TableHead className="font-bold">Facility Name</TableHead>
                   <TableHead className="font-bold">Faculty In-Charge / Team</TableHead>
@@ -310,66 +439,142 @@ export default function FacilityManagementSection() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {facilities.map((facItem) => (
-                  <TableRow key={facItem.id} className="hover:bg-slate-50/40">
-                    <TableCell className="py-4">
-                      <div className="w-16 h-11 rounded-lg bg-slate-100 overflow-hidden border border-slate-200 relative shrink-0">
-                        <img
-                          src={facItem.image || 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&q=80'}
-                          alt={facItem.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <div className="font-bold text-slate-900 text-base font-serif">{facItem.name}</div>
-                    </TableCell>
-                    <TableCell className="py-4">
-                      {facItem.faculties && facItem.faculties.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5">
-                          {facItem.faculties.map((f) => (
-                            <span
-                              key={f.id}
-                              className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"
+                {facilities
+                  .filter((facItem) => {
+                    if (!searchTerm.trim()) return true;
+                    const term = searchTerm.toLowerCase();
+                    return (
+                      facItem.name.toLowerCase().includes(term) ||
+                      (facItem.faculties || []).some((f) => f.name.toLowerCase().includes(term))
+                    );
+                  })
+                  .map((facItem, idx) => {
+                    const isDragging = draggedFacilityIndex === idx;
+                    const isDragOver = dragOverFacilityIndex === idx && draggedFacilityIndex !== idx;
+
+                    return (
+                      <TableRow
+                        key={facItem.id}
+                        draggable={!searchTerm}
+                        onDragStart={(e) => handleDragStart(e, idx)}
+                        onDragOver={(e) => handleDragOver(e, idx)}
+                        onDrop={(e) => handleDrop(e, idx)}
+                        onDragEnd={handleDragEnd}
+                        className={`transition-all duration-200 select-none ${
+                          isDragging
+                            ? 'opacity-30 bg-slate-200 scale-[0.99] border-2 border-dashed border-oxford'
+                            : isDragOver
+                            ? 'border-t-4 border-oxford bg-oxford/10 shadow-lg'
+                            : 'hover:bg-slate-50/60'
+                        }`}
+                      >
+                        {/* Drag Handle & Order Controls */}
+                        <TableCell className="py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            {/* Grip Icon */}
+                            <div
+                              className={`p-1 rounded transition-colors ${
+                                searchTerm
+                                  ? 'opacity-30 cursor-not-allowed text-slate-300'
+                                  : 'cursor-grab active:cursor-grabbing text-slate-400 hover:text-oxford hover:bg-slate-200/60'
+                              }`}
+                              title={searchTerm ? 'Clear search filter to reorder' : 'Drag to reorder facility'}
                             >
-                              {f.name}
+                              <GripVertical className="w-4 h-4" />
+                            </div>
+
+                            {/* Order Badge */}
+                            <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md min-w-[32px] text-center shadow-2xs">
+                              #{idx + 1}
                             </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-slate-400 italic text-xs">No faculty assigned</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
-                      <a
-                        href="/facilities"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 transition-all"
-                      >
-                        <Eye className="w-3.5 h-3.5" /> View Public Page
-                      </a>
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        onClick={() => openEditModal(facItem)}
-                        className="h-9 w-9 text-slate-600 hover:text-slate-900"
-                        title="Edit Facility"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => setDeletingId(facItem.id)}
-                        className="h-9 w-9"
-                        title="Delete Facility"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+
+                            {/* Quick Move Up/Down Buttons */}
+                            {!searchTerm && (
+                              <div className="flex flex-col -space-y-0.5 ml-1">
+                                <button
+                                  type="button"
+                                  disabled={idx === 0 || isReordering}
+                                  onClick={() => moveFacility(idx, 'up')}
+                                  className="text-slate-400 hover:text-oxford disabled:opacity-20 disabled:hover:text-slate-400 p-0.5 rounded transition-colors cursor-pointer"
+                                  aria-label={`Move ${facItem.name} up`}
+                                  title="Move Up"
+                                >
+                                  <ChevronUp className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={idx === facilities.length - 1 || isReordering}
+                                  onClick={() => moveFacility(idx, 'down')}
+                                  className="text-slate-400 hover:text-oxford disabled:opacity-20 disabled:hover:text-slate-400 p-0.5 rounded transition-colors cursor-pointer"
+                                  aria-label={`Move ${facItem.name} down`}
+                                  title="Move Down"
+                                >
+                                  <ChevronDown className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="py-4">
+                          <div className="w-16 h-11 rounded-lg bg-slate-100 overflow-hidden border border-slate-200 relative shrink-0">
+                            <img
+                              src={facItem.image || 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&q=80'}
+                              alt={facItem.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="font-bold text-slate-900 text-base font-serif">{facItem.name}</div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          {facItem.faculties && facItem.faculties.length > 0 ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {facItem.faculties.map((f) => (
+                                <span
+                                  key={f.id}
+                                  className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"
+                                >
+                                  {f.name}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 italic text-xs">No faculty assigned</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                          <a
+                            href="/facilities"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 transition-all"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> View Public Page
+                          </a>
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={() => openEditModal(facItem)}
+                            className="h-9 w-9 text-slate-600 hover:text-slate-900"
+                            title="Edit Facility"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => setDeletingId(facItem.id)}
+                            className="h-9 w-9"
+                            title="Delete Facility"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
               </TableBody>
             </Table>
           )}

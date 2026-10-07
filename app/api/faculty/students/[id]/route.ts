@@ -101,12 +101,19 @@ export async function PUT(
       updatedImagePath = relativePath;
     }
 
+    let expiryDate: Date | null | undefined = undefined;
+    if (formData.has('expiryDate')) {
+      const expiryDateRaw = formData.get('expiryDate') as string | null;
+      expiryDate = expiryDateRaw && expiryDateRaw.trim() ? new Date(expiryDateRaw.trim()) : null;
+    }
+
     const updatedStudent = await prisma.facultyStudent.update({
       where: { uid: id },
       data: {
         name: name.trim(),
         description: description?.trim() || null,
         image: updatedImagePath,
+        ...(expiryDate !== undefined ? { expiryDate } : {}),
       },
     });
 

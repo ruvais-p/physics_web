@@ -17,7 +17,7 @@ async function getLabs(): Promise<ResearchPageData['labs']> {
         description: true,
         image: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
   } catch (error) {
     console.error('Failed to fetch research laboratories:', error);
@@ -34,7 +34,7 @@ async function getFacilities(): Promise<ResearchPageData['facilities']> {
         description: true,
         image: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
   } catch (error) {
     console.error('Failed to fetch research facilities:', error);

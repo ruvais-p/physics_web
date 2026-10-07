@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import Hero from '@/components/Hero';
 import FacultyCard from '@/components/FacultyCard';
+import StaffCard from '@/components/StaffCard';
 import { prisma } from '@/lib/prisma';
 import { getPageHero } from '@/lib/page-hero';
-import type { FacultyMember, Scholar } from '@/lib/data';
+import type { FacultyMember, Scholar, StaffMember } from '@/lib/data';
 
 export const revalidate = 300;
 
@@ -32,6 +33,7 @@ async function getPeople(): Promise<{
             name: true,
             description: true,
             image: true,
+            expiryDate: true,
             createdAt: true,
           },
         },
@@ -55,16 +57,25 @@ async function getPeople(): Promise<{
       type: 'faculty',
     }));
 
+    const now = new Date();
     const scholars: Scholar[] = records.flatMap((record) =>
-      record.students.map((student) => ({
-        id: student.uid,
-        name: student.name,
-        supervisor: record.name,
-        topic: student.description || '',
-        joiningYear: student.createdAt.getFullYear(),
-        image: student.image || '/faculty.png',
-        type: 'scholar',
-      })),
+      record.students
+        .filter((student) => {
+          if (!student.expiryDate) return true;
+          const exp = new Date(student.expiryDate);
+          exp.setHours(23, 59, 59, 999);
+          return exp >= now;
+        })
+        .map((student) => ({
+          id: student.uid,
+          name: student.name,
+          supervisor: record.name,
+          topic: student.description || '',
+          joiningYear: student.createdAt.getFullYear(),
+          image: student.image || '/faculty.png',
+          expiryDate: student.expiryDate ? student.expiryDate.toISOString().slice(0, 10) : null,
+          type: 'scholar',
+        })),
     );
 
     return { faculty, scholars };
@@ -74,9 +85,46 @@ async function getPeople(): Promise<{
   }
 }
 
+async function getOfficeStaff(): Promise<StaffMember[]> {
+  try {
+    const records = await prisma.staff.findMany({
+      where: { isActive: true },
+      select: {
+        id: true,
+        name: true,
+        designation: true,
+        email: true,
+        phone: true,
+        room: true,
+        image: true,
+        sortOrder: true,
+        isActive: true,
+      },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+    });
+
+    return records.map((record) => ({
+      id: record.id,
+      name: record.name,
+      designation: record.designation,
+      email: record.email || undefined,
+      phone: record.phone || undefined,
+      room: record.room || undefined,
+      image: record.image || '/faculty.png',
+      sortOrder: record.sortOrder,
+      isActive: record.isActive,
+      type: 'staff',
+    }));
+  } catch (error) {
+    console.error('Failed to fetch office staff from the database:', error);
+    return [];
+  }
+}
+
 export default async function PeoplePage() {
-  const [{ faculty, scholars }, heroData] = await Promise.all([
+  const [{ faculty, scholars }, staffList, heroData] = await Promise.all([
     getPeople(),
+    getOfficeStaff(),
     getPageHero('people'),
   ]);
 
@@ -154,7 +202,26 @@ export default async function PeoplePage() {
             </div>
           </section>
         )}
+
+        {/* 4. Administrative & Office Staff Section */}
+        {staffList.length > 0 && (
+          <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 space-y-8">
+            <div className="text-center">
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
+                Administrative &amp; Office Staff
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 sm:gap-12 lg:gap-14 font-sans">
+              {staffList.map((person) => (
+                <div key={person.id} className="h-full">
+                  <StaffCard person={person} />
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   );
 }
+

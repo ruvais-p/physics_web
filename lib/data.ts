@@ -30,7 +30,21 @@ export interface Scholar {
   joiningYear?: number;
   email?: string;
   image: string;
+  expiryDate?: string | null;
   type: 'scholar';
+}
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  designation: string;
+  email?: string;
+  phone?: string;
+  room?: string;
+  image?: string;
+  sortOrder: number;
+  isActive: boolean;
+  type?: 'staff';
 }
 
 export interface Course {
