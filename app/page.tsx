@@ -126,7 +126,7 @@ async function getHomePublications(): Promise<Publication[]> {
 
 const DEFAULT_ABOUT_CONTENT = `Established in 1971, the Department of Physics, CUSAT has maintained the highest standards in postgraduate education and scientific research. Over the years, the Department has become the premier destination for students in Kerala and across India seeking advanced studies in Physics. Our postgraduates and researchers are consistently placed in top faculty, postdoctoral, and Ph.D. positions at world-renowned research centers across the globe.
 
-Going forward, the Department envisions continuing its mission of providing quality advanced training in Physics through its M.Sc., Integrated M.Sc., and Ph.D. research programs, driving fundamental scientific breakthroughs in materials science, quantum technology, and photonics.`;
+Going forward, the Department envisions continuing its mission of providing quality advanced training in Physics through its Integrated M.Sc., M.Sc., and Ph.D. research programs, driving fundamental scientific breakthroughs in materials science, quantum technology, and photonics.`;
 
 async function getHomeAboutData(): Promise<{ content: string; image: string | null }> {
   try {

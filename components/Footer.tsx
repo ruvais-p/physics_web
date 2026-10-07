@@ -86,7 +86,7 @@ export default function Footer() {
                 { label: 'About Department', href: '/about' },
                 { label: 'Faculty & Scholars', href: '/people' },
                 { label: 'Research & Labs', href: '/research' },
-                { label: 'Central Facilities', href: '/facilities' },
+                { label: 'Facilities', href: '/facilities' },
                 { label: 'Department Library', href: '/library' },
                 { label: 'Global Alumni', href: '/alumni' },
                 { label: 'Publications & Journals', href: '/journals' },
@@ -112,9 +112,9 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2.5 text-sm">
               {[
+                { label: '5-Year Integrated M.Sc.', href: '/courses#integrated' },
                 { label: 'M.Sc. Physics (2 Years)', href: '/courses#msc' },
                 { label: 'Ph.D. Research Program', href: '/courses#phd' },
-                { label: '5-Year Integrated M.Sc.', href: '/courses#integrated' },
                 { label: 'Academic Curriculum & CBCS', href: '/courses' },
               ].map((prog) => (
                 <li key={prog.label}>

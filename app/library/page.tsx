@@ -36,7 +36,7 @@ export default async function LibraryPage() {
           
           <div className="space-y-6 text-base sm:text-lg lg:text-xl text-slate-300 leading-relaxed font-sans font-normal">
             <p>
-              The Department of Physics Library serves as a vital repository of knowledge, supporting the academic and research endeavors of our M.Sc., Integrated M.Sc., and Ph.D. students. The library houses an extensive collection of specialized literature across theoretical and experimental physics.
+              The Department of Physics Library serves as a vital repository of knowledge, supporting the academic and research endeavors of our Integrated M.Sc., M.Sc., and Ph.D. students. The library houses an extensive collection of specialized literature across theoretical and experimental physics.
             </p>
             
             <h3 className="text-2xl font-bold text-white pt-4">Our Resources</h3>

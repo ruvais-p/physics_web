@@ -12,8 +12,18 @@ export default function CoursesPageClient({
   courses: CourseWithSchemes[];
   heroData?: { title: string; subtitle: string; image: string };
 }) {
-  const [activeCourseId, setActiveCourseId] = useState<string>('c1');
-  const dynamicCourses = courses.length > 0 ? courses : COURSES;
+  const getCourseOrder = (course: CourseWithSchemes) => {
+    const text = `${course.id} ${course.level} ${course.title} ${course.code}`.toLowerCase();
+    if (text.includes('integrated') || text.includes('int') || course.id === 'c3') return 1;
+    if (text.includes('phd') || text.includes('ph.d') || text.includes('doctor') || course.id === 'c2') return 3;
+    if (text.includes('msc') || text.includes('m.sc') || text.includes('master') || course.id === 'c1') return 2;
+    return 4;
+  };
+
+  const rawCourses = courses.length > 0 ? courses : COURSES;
+  const dynamicCourses = [...rawCourses].sort((a, b) => getCourseOrder(a) - getCourseOrder(b));
+
+  const [activeCourseId, setActiveCourseId] = useState<string>(dynamicCourses[0]?.id || 'c3');
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -21,11 +31,20 @@ export default function CoursesPageClient({
       if (!hash) return;
 
       if (hash.includes('phd')) {
-        setActiveCourseId('c2');
+        const c = dynamicCourses.find(
+          (item) => item.id === 'c2' || item.level?.toLowerCase().includes('phd') || item.title?.toLowerCase().includes('ph.d')
+        );
+        if (c) setActiveCourseId(c.id);
       } else if (hash.includes('integrated')) {
-        setActiveCourseId('c3');
+        const c = dynamicCourses.find(
+          (item) => item.id === 'c3' || item.level?.toLowerCase().includes('integrated') || item.title?.toLowerCase().includes('integrated')
+        );
+        if (c) setActiveCourseId(c.id);
       } else if (hash.includes('msc')) {
-        setActiveCourseId('c1');
+        const c = dynamicCourses.find(
+          (item) => item.id === 'c1' || ((item.level?.toLowerCase().includes('msc') || item.title?.toLowerCase().includes('m.sc')) && !item.level?.toLowerCase().includes('integrated') && !item.title?.toLowerCase().includes('integrated'))
+        );
+        if (c) setActiveCourseId(c.id);
       } else {
         const rawId = hash.replace('#', '');
         const matched = dynamicCourses.find((c) => c.id.toLowerCase() === rawId.toLowerCase());
@@ -64,28 +83,40 @@ export default function CoursesPageClient({
         <div className="inline-flex flex-wrap items-center justify-center gap-1.5 p-1.5 bg-white/95 backdrop-blur-xl border border-cyan-accent/30 shadow-lg rounded-2xl sm:rounded-3xl">
           {dynamicCourses.map((course) => {
             const isActive = activeCourseId === course.id;
-            const buttonLabel =
-              course.id === 'c1' || course.level === 'MSc'
-                ? 'M.Sc. Physics'
-                : course.id === 'c2' || course.level === 'PhD'
-                ? 'Ph.D. Program'
-                : course.id === 'c3' || course.level === 'Integrated'
-                ? 'Integrated M.Sc.'
-                : course.title;
+            const isIntegrated =
+              course.id === 'c3' ||
+              course.level?.toLowerCase().includes('integrated') ||
+              course.title?.toLowerCase().includes('integrated');
+            const isPhd =
+              course.id === 'c2' ||
+              course.level?.toLowerCase().includes('phd') ||
+              course.title?.toLowerCase().includes('ph.d');
+            const isMsc =
+              !isIntegrated &&
+              (course.id === 'c1' ||
+                course.level?.toLowerCase().includes('msc') ||
+                course.title?.toLowerCase().includes('m.sc'));
+
+            const buttonLabel = isIntegrated
+              ? 'Integrated M.Sc.'
+              : isMsc
+              ? 'M.Sc. Physics'
+              : isPhd
+              ? 'Ph.D. Program'
+              : course.title;
 
             return (
               <button
                 key={course.id}
                 onClick={() => {
                   setActiveCourseId(course.id);
-                  const hashLink =
-                    course.id === 'c1'
-                      ? '#msc'
-                      : course.id === 'c2'
-                      ? '#phd'
-                      : course.id === 'c3'
-                      ? '#integrated'
-                      : `#${course.id}`;
+                  const hashLink = isIntegrated
+                    ? '#integrated'
+                    : isMsc
+                    ? '#msc'
+                    : isPhd
+                    ? '#phd'
+                    : `#${course.id}`;
                   window.history.pushState(null, '', hashLink);
                 }}
                 className={`px-5 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 cursor-pointer ${

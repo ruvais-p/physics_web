@@ -240,9 +240,9 @@ export default function ContactPageClient({
                         onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                         className="w-full px-4 py-3 text-sm bg-slate-50/70 border border-slate-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-cyan-accent/50 focus:border-cyan-500 text-slate-800 transition-all cursor-pointer"
                       >
+                        <option>Integrated M.Sc. Query</option>
                         <option>M.Sc. Admission Enquiry</option>
                         <option>Ph.D. Application &amp; Fellowship</option>
-                        <option>Integrated M.Sc. Query</option>
                         <option>Instrument Slot Booking (FE-SEM/XRD/Raman)</option>
                         <option>Research Collaboration Proposal</option>
                         <option>General Academic Information</option>

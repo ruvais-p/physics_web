@@ -2687,7 +2687,7 @@ export default function UnifiedDashboardPage() {
                   className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <Wrench className="w-4 h-4" />
-                  <span>Central Facilities</span>
+                  <span>Facilities</span>
                 </Button>
               </Card>
 

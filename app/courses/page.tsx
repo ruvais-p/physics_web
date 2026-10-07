@@ -34,13 +34,23 @@ export default async function CoursesPage() {
     getPageHero('courses'),
   ]);
 
-  courses = records.map((course) => ({
-    ...course,
-    code: course.code || '',
-    intake: course.intake || 0,
-    fees: course.fees || '',
-    eligibility: course.eligibility || '',
-  }));
+  const getCourseOrder = (course: { id: string; level?: string | null; title?: string | null; code?: string | null }) => {
+    const text = `${course.id} ${course.level || ''} ${course.title || ''} ${course.code || ''}`.toLowerCase();
+    if (text.includes('integrated') || text.includes('int') || course.id === 'c3') return 1;
+    if (text.includes('phd') || text.includes('ph.d') || text.includes('doctor') || course.id === 'c2') return 3;
+    if (text.includes('msc') || text.includes('m.sc') || text.includes('master') || course.id === 'c1') return 2;
+    return 4;
+  };
+
+  courses = records
+    .map((course) => ({
+      ...course,
+      code: course.code || '',
+      intake: course.intake || 0,
+      fees: course.fees || '',
+      eligibility: course.eligibility || '',
+    }))
+    .sort((a, b) => getCourseOrder(a) - getCourseOrder(b));
 
   return <CoursesPageClient courses={courses} heroData={heroData} />;
 }
