@@ -5,25 +5,24 @@ import Hero from '@/components/Hero';
 import CourseCard, { CourseWithSchemes } from '@/components/CourseCard';
 import { COURSES } from '@/lib/data';
 
-export default function CoursesPageClient({
-  courses,
-  heroData,
-}: {
+interface CoursesPageClientProps {
   courses: CourseWithSchemes[];
   heroData?: { title: string; subtitle: string; image: string };
-}) {
+}
+
+export default function CoursesPageClient({ courses, heroData }: CoursesPageClientProps) {
   const getCourseOrder = (course: CourseWithSchemes) => {
     const text = `${course.id} ${course.level} ${course.title} ${course.code}`.toLowerCase();
-    if (text.includes('integrated') || text.includes('int') || course.id === 'c3') return 1;
-    if (text.includes('phd') || text.includes('ph.d') || text.includes('doctor') || course.id === 'c2') return 3;
+    if (text.includes('phd') || text.includes('ph.d') || text.includes('doctor') || course.id === 'c2') return 1;
     if (text.includes('msc') || text.includes('m.sc') || text.includes('master') || course.id === 'c1') return 2;
+    if (text.includes('integrated') || text.includes('int') || course.id === 'c3') return 3;
     return 4;
   };
 
   const rawCourses = courses.length > 0 ? courses : COURSES;
   const dynamicCourses = [...rawCourses].sort((a, b) => getCourseOrder(a) - getCourseOrder(b));
 
-  const [activeCourseId, setActiveCourseId] = useState<string>(dynamicCourses[0]?.id || 'c3');
+  const [activeCourseId, setActiveCourseId] = useState<string>(dynamicCourses[0]?.id || 'c2');
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -42,7 +41,11 @@ export default function CoursesPageClient({
         if (c) setActiveCourseId(c.id);
       } else if (hash.includes('msc')) {
         const c = dynamicCourses.find(
-          (item) => item.id === 'c1' || ((item.level?.toLowerCase().includes('msc') || item.title?.toLowerCase().includes('m.sc')) && !item.level?.toLowerCase().includes('integrated') && !item.title?.toLowerCase().includes('integrated'))
+          (item) =>
+            item.id === 'c1' ||
+            ((item.level?.toLowerCase().includes('msc') || item.title?.toLowerCase().includes('m.sc')) &&
+              !item.level?.toLowerCase().includes('integrated') &&
+              !item.title?.toLowerCase().includes('integrated'))
         );
         if (c) setActiveCourseId(c.id);
       } else {
@@ -57,11 +60,8 @@ export default function CoursesPageClient({
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
 
-    const interval = setInterval(handleHashChange, 200);
-
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
-      clearInterval(interval);
     };
   }, [dynamicCourses]);
 
@@ -69,8 +69,8 @@ export default function CoursesPageClient({
     dynamicCourses.find((c) => c.id === activeCourseId) || dynamicCourses[0] || COURSES[0];
 
   return (
-    <div className="space-y-12 pb-20 relative font-sans">
-      {/* Hero Header matching main homepage design */}
+    <div className="relative font-sans bg-[#F8F9FB] min-h-screen pb-20">
+      {/* Standard Hero header matching other pages */}
       <Hero
         title={heroData?.title || 'ACADEMIC PROGRAMS'}
         badge="HOME > COURSES"
@@ -78,8 +78,8 @@ export default function CoursesPageClient({
         bgImage={heroData?.image || '/campus.jpg'}
       />
 
-      {/* Course Selector Bar - Styled like the glassmorphic navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center pt-6">
+      {/* Course Selector Bar - Same blue tab bar as Research and other pages */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center pt-8 pb-4">
         <div className="inline-flex flex-wrap items-center justify-center gap-1.5 p-1.5 bg-white/95 backdrop-blur-xl border border-cyan-accent/30 shadow-lg rounded-2xl sm:rounded-3xl">
           {dynamicCourses.map((course) => {
             const isActive = activeCourseId === course.id;
@@ -97,29 +97,31 @@ export default function CoursesPageClient({
                 course.level?.toLowerCase().includes('msc') ||
                 course.title?.toLowerCase().includes('m.sc'));
 
-            const buttonLabel = isIntegrated
-              ? 'Integrated M.Sc.'
+            const buttonLabel = isPhd
+              ? 'Ph.D. Program'
               : isMsc
               ? 'M.Sc. Physics'
-              : isPhd
-              ? 'Ph.D. Program'
+              : isIntegrated
+              ? 'Integrated M.Sc.'
               : course.title;
+
+            const hashLink = isPhd
+              ? '#phd'
+              : isMsc
+              ? '#msc'
+              : isIntegrated
+              ? '#integrated'
+              : `#${course.id}`;
 
             return (
               <button
                 key={course.id}
+                type="button"
                 onClick={() => {
                   setActiveCourseId(course.id);
-                  const hashLink = isIntegrated
-                    ? '#integrated'
-                    : isMsc
-                    ? '#msc'
-                    : isPhd
-                    ? '#phd'
-                    : `#${course.id}`;
                   window.history.pushState(null, '', hashLink);
                 }}
-                className={`px-5 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 cursor-pointer ${
+                className={`px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-cyan-accent ${
                   isActive
                     ? 'bg-cyan-accent text-white shadow-md'
                     : 'text-oxford hover:text-cyan-accent hover:bg-slate-50'
@@ -132,12 +134,12 @@ export default function CoursesPageClient({
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="space-y-12">
-          {selectedCourse && <CourseCard course={selectedCourse} />}
-        </div>
-      </section>
+      {/* Program Details Section */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+        {selectedCourse && (
+          <CourseCard course={selectedCourse} heroImage={heroData?.image} />
+        )}
+      </div>
     </div>
   );
 }

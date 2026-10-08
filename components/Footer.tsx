@@ -5,8 +5,6 @@ import {
   Phone, 
   ExternalLink, 
   ChevronRight, 
-  GraduationCap, 
-  FlaskConical, 
   Sparkles,
   ArrowUpRight 
 } from 'lucide-react';
@@ -42,23 +40,23 @@ export default function Footer() {
                     <text x="145" y="124" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">P</text>
                   </svg>
                   <div className="border-l border-white/20 pl-3">
-                    <span className="font-serif font-extrabold text-white text-base tracking-tight block">Department of Physics</span>
-                    <span className="text-[11px] text-sky-300/90 font-semibold tracking-wider block">CUSAT • ESTD 1963</span>
+                    <span className="font-serif font-extrabold text-white text-[17px] tracking-tight block">Department of Physics</span>
+                    <span className="text-[12px] text-sky-300/90 font-semibold tracking-wider block">CUSAT • ESTD 1963</span>
                   </div>
                 </div>
               </Link>
 
-              <p className="text-sm text-slate-300 leading-relaxed max-w-sm">
+              <p className="text-[15px] text-slate-300 leading-relaxed max-w-sm">
                 A premier center for advanced physical sciences, cutting-edge materials research, photonics, and quantum technologies under Cochin University of Science and Technology.
               </p>
             </div>
 
             {/* Accreditation & Recognition Badges */}
             <div className="space-y-2">
-              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-300 block">
+              <span className="text-[12px] font-bold uppercase tracking-widest text-slate-300 block">
                 Accreditations &amp; Support
               </span>
-              <div className="flex flex-wrap gap-2 text-xs">
+              <div className="flex flex-wrap gap-2 text-[13px]">
                 <span className="px-2.5 py-1 rounded-lg bg-sky-500/15 border border-sky-400/30 text-sky-200 font-semibold flex items-center gap-1.5 shadow-xs">
                   <Sparkles className="w-3 h-3" />
                   <span>NAAC A+</span>
@@ -78,10 +76,10 @@ export default function Footer() {
 
           {/* Column 2: Quick Links (2.5 cols) */}
           <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1.5">
+            <h4 className="text-[13px] font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1.5">
               <span>Quick Links</span>
             </h4>
-            <ul className="space-y-2.5 text-sm">
+            <ul className="space-y-2.5 text-[15px]">
               {[
                 { label: 'About Department', href: '/about' },
                 { label: 'Faculty & Scholars', href: '/people' },
@@ -107,10 +105,10 @@ export default function Footer() {
 
           {/* Column 3: Academic Programs (2.5 cols) */}
           <div className="lg:col-span-3 space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1.5">
+            <h4 className="text-[13px] font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1.5">
               <span>Academic Programs</span>
             </h4>
-            <ul className="space-y-2.5 text-sm">
+            <ul className="space-y-2.5 text-[15px]">
               {[
                 { label: '5-Year Integrated M.Sc.', href: '/courses#integrated' },
                 { label: 'M.Sc. Physics (2 Years)', href: '/courses#msc' },
@@ -132,7 +130,7 @@ export default function Footer() {
                   href="https://cusat.ac.in" 
                   target="_blank" 
                   rel="noopener noreferrer" 
-                  className="inline-flex items-center gap-1 text-xs font-bold text-sky-300 hover:text-white transition-colors py-1"
+                  className="inline-flex items-center gap-1 text-[13px] font-bold text-sky-300 hover:text-white transition-colors py-1"
                 >
                   <span>CUSAT Main Portal</span>
                   <ArrowUpRight className="w-3.5 h-3.5" />
@@ -143,10 +141,10 @@ export default function Footer() {
 
           {/* Column 4: Department Reach & Contact (3 cols) */}
           <div className="lg:col-span-3 space-y-4">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1.5">
+            <h4 className="text-[13px] font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1.5">
               <span>Contact &amp; Location</span>
             </h4>
-            <ul className="space-y-3.5 text-xs text-slate-200">
+            <ul className="space-y-3.5 text-[13px] text-slate-200">
               <li className="flex items-start gap-3">
                 <div className="w-8 h-8 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center shrink-0 mt-0.5 text-sky-300">
                   <MapPin className="w-4 h-4" />
@@ -178,7 +176,7 @@ export default function Footer() {
             <div className="pt-2">
               <Link 
                 href="/contact" 
-                className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-300/30 text-sky-200 hover:text-white text-xs font-bold transition-all duration-300 shadow-sm"
+                className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-300/30 text-sky-200 hover:text-white text-[13px] font-bold transition-all duration-300 shadow-sm"
               >
                 <span>Department Inquiry &amp; Map</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
@@ -189,14 +187,14 @@ export default function Footer() {
         </div>
 
         {/* Bottom Sub-footer */}
-        <div className="pt-8 border-t border-white/15 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-300 gap-4">
+        <div className="pt-8 border-t border-white/15 flex flex-col sm:flex-row items-center justify-between text-[13px] text-slate-300 gap-4">
           <div className="flex flex-wrap items-center gap-2 text-center sm:text-left">
             <span>© {new Date().getFullYear()} Department of Physics, CUSAT.</span>
             <span className="hidden sm:inline text-white/20">•</span>
             <span className="text-slate-400">All rights reserved.</span>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-slate-300">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-[13px] text-slate-300">
             <Link href="/about" className="hover:text-white transition-colors">
               About Us
             </Link>
@@ -227,4 +225,3 @@ export default function Footer() {
     </footer>
   );
 }
-

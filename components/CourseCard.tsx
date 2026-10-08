@@ -1,7 +1,8 @@
 'use client';
 
+import Image from 'next/image';
 import { Course } from '@/lib/data';
-import { Clock, GraduationCap, FileText, ArrowUpRight } from 'lucide-react';
+import { FileText } from 'lucide-react';
 
 export interface CourseSchemeItem {
   id?: string;
@@ -20,6 +21,7 @@ export interface CourseWithSchemes extends Omit<Course, 'syllabus' | 'intake' | 
 
 interface CourseCardProps {
   course: CourseWithSchemes;
+  heroImage?: string;
 }
 
 const DEFAULT_COURSE_SCHEMES: Record<string, CourseSchemeItem[]> = {
@@ -38,104 +40,180 @@ const DEFAULT_COURSE_SCHEMES: Record<string, CourseSchemeItem[]> = {
   ],
 };
 
-export default function CourseCard({ course }: CourseCardProps) {
+function getStageDescription(yearTitle: string, index: number, courseId: string): string | null {
+  const normalized = `${yearTitle} ${courseId}`.toLowerCase();
+  if (courseId === 'c2' || normalized.includes('phd') || normalized.includes('doctor')) {
+    if (index === 0 || normalized.includes('coursework') || normalized.includes('year 1')) {
+      return 'Foundational coursework in research methodology, advanced experimental techniques, and domain literature review.';
+    }
+    if (index === 1 || normalized.includes('research') || normalized.includes('2-5') || normalized.includes('2 - 5')) {
+      return 'Independent doctoral research, quarterly progress seminars before the Departmental Research Committee, and thesis submission.';
+    }
+  }
+  if (courseId === 'c1' || normalized.includes('msc')) {
+    if (index === 0 || normalized.includes('first')) {
+      return 'Core theoretical foundation covering classical mechanics, quantum theory, electrodynamics, and hands-on laboratory sessions.';
+    }
+    if (index === 1 || normalized.includes('second')) {
+      return 'Advanced domain electives, computational physics training, and mandatory master research dissertation project.';
+    }
+  }
+  if (courseId === 'c3' || normalized.includes('integrated')) {
+    if (index === 0 || normalized.includes('foundational')) {
+      return 'Foundational curricula across physics, calculus, chemistry, and scientific computing.';
+    }
+    if (index === 1 || normalized.includes('exit')) {
+      return 'Core undergraduate physics courses with an optional B.Sc. (Honours) degree exit path.';
+    }
+    if (index === 2 || normalized.includes('advanced')) {
+      return 'Master-level theoretical physics modules, specialized electives, and capstone research dissertation.';
+    }
+  }
+  return null;
+}
+
+export default function CourseCard({ course, heroImage }: CourseCardProps) {
   const schemes =
     course.schemes && course.schemes.length > 0
       ? course.schemes
       : DEFAULT_COURSE_SCHEMES[course.id] || [];
 
-  // Format title (default to course.title if customized)
-  const displayTitle = course.title || (
-    course.level === 'MSc'
-      ? 'M.Sc. in Physics'
-      : course.level === 'PhD'
-        ? 'Ph.D. in Physics'
-        : course.level === 'Integrated'
-          ? 'Integrated M.Sc. in Physics'
-          : course.title
-  );
+  const isPhd =
+    course.id === 'c2' ||
+    course.level?.toLowerCase().includes('phd') ||
+    course.title?.toLowerCase().includes('ph.d');
+
+  const isMsc =
+    !isPhd &&
+    (course.id === 'c1' ||
+      course.level?.toLowerCase().includes('msc') ||
+      course.title?.toLowerCase().includes('m.sc'));
+
+  const displayTitle =
+    course.title ||
+    (isMsc
+      ? 'Master of Science (M.Sc.) in Physics'
+      : isPhd
+      ? 'Doctor of Philosophy (Ph.D.) in Physics'
+      : 'Integrated M.Sc. in Physics');
+
+  const programLevelLabel = isPhd
+    ? 'Doctoral (Ph.D.)'
+    : isMsc
+    ? 'Postgraduate (M.Sc.)'
+    : 'Undergraduate & Postgraduate (Integrated M.Sc.)';
+
+  const photoSrc = heroImage || '/campus.jpg';
 
   return (
-    <div id={course.id} className="scroll-mt-36 max-w-5xl mx-auto space-y-10 font-sans py-6">
-      {/* Course Title & Quick Facts Bar */}
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <h1 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
+    <article id={course.id} className="w-full space-y-12 sm:space-y-14 font-sans text-left">
+      {/* 1. Header: Two-column layout */}
+      <header className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 items-center">
+        {/* Left: Title, Description, Duration / Level */}
+        <div className="md:col-span-7 flex flex-col justify-center space-y-4">
+          {/* Title */}
+          <h1 className="font-serif text-3xl sm:text-4xl text-gray-900 font-normal tracking-tight leading-tight">
             {displayTitle}
           </h1>
+
+          {/* Short Description */}
+          {course.description && (
+            <p className="text-gray-600 text-sm sm:text-base leading-relaxed pt-1">
+              {course.description}
+            </p>
+          )}
+
+          {/* Duration & Program Level as plain small text separated by a thin divider (not pills) */}
+          <div className="flex items-center gap-3 text-xs sm:text-sm text-gray-600 pt-3 border-t border-gray-200">
+            {course.duration && (
+              <span>
+                Duration: <span className="text-gray-900 font-medium">{course.duration}</span>
+              </span>
+            )}
+            {course.duration && course.level && (
+              <span className="text-gray-300 select-none" aria-hidden="true">|</span>
+            )}
+            {course.level && (
+              <span>
+                Program Level: <span className="text-gray-900 font-medium">{programLevelLabel}</span>
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Quick Facts Bar (Duration & Level) */}
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm font-semibold text-slate-600 pt-1">
-          {course.duration && (
-            <div className="flex items-center space-x-2">
-              <Clock className="w-4.5 h-4.5 text-cyan-accent" />
-              <span>Duration: {course.duration}</span>
-            </div>
-          )}
-          {course.level && (
-            <div className="flex items-center space-x-2">
-              <GraduationCap className="w-4.5 h-4.5 text-cyan-accent" />
-              <span>Program Level: {course.level}</span>
-            </div>
-          )}
+        {/* Right: Single Real Photo (rounded-lg corners, 4:3 crop, stacks below text on mobile) */}
+        <div className="md:col-span-5 w-full">
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+            <Image
+              src={photoSrc}
+              alt="Department of Physics academic facilities and campus at CUSAT"
+              fill
+              sizes="(max-width: 768px) 100vw, 420px"
+              className="object-cover"
+              priority
+            />
+          </div>
         </div>
+      </header>
 
-        {/* Course Description */}
-        {course.description && (
-          <p className="text-slate-700 text-base sm:text-lg leading-relaxed pt-2">
-            {course.description}
-          </p>
-        )}
-      </div>
-
-      {/* Curriculum Scheme & Regulation Table */}
-      <div className="space-y-4 pt-4">
-        <div className="space-y-1">
-          <h2 className="font-serif text-2xl sm:text-3xl font-bold text-oxford border-b border-slate-100 pb-2">
-            Curriculum Scheme &amp; Regulation
+      {/* 2. Curriculum: Two side-by-side cards */}
+      <section className="space-y-6 pt-2">
+        <div>
+          <h2 className="font-serif text-2xl sm:text-3xl text-gray-900 font-normal tracking-tight">
+            Curriculum Structure
           </h2>
         </div>
 
-        <div className="overflow-hidden border border-slate-200/90 rounded-2xl shadow-md bg-white">
-          <table className="min-w-full divide-y divide-slate-200 text-left font-sans text-base">
-            <thead className="bg-slate-50 text-oxford font-bold uppercase tracking-wider text-xs sm:text-sm">
-              <tr>
-                <th scope="col" className="px-6 sm:px-8 py-4 sm:py-5">
-                  Year / Level
-                </th>
-                <th scope="col" className="px-6 sm:px-8 py-4 sm:py-5 text-right">
-                  Curriculum Scheme &amp; Syllabus
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {schemes.map((item, idx) => (
-                <tr
-                  key={idx}
-                  className="hover:bg-cyan-50/40 transition-colors duration-150 group"
-                >
-                  <td className="px-6 sm:px-8 py-5 sm:py-6 text-slate-800 font-bold text-base sm:text-lg">
-                    {item.year}
-                  </td>
-                  <td className="px-6 sm:px-8 py-5 sm:py-6 text-right">
-                    <a
-                      href={item.pdfUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2.5 px-4 py-2 sm:px-5 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-sky-50 text-sky-900 border border-sky-200/80 hover:bg-cyan-accent hover:text-white hover:border-cyan-accent transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer group/btn"
-                    >
-                      <FileText className="w-4 h-4 text-cyan-accent group-hover/btn:text-white transition-colors" />
-                      <span>{item.scheme}</span>
-                      <ArrowUpRight className="w-3.5 h-3.5 opacity-70 group-hover/btn:opacity-100 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-all" />
-                    </a>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div
+          className={`grid grid-cols-1 ${
+            schemes.length === 2 ? 'md:grid-cols-2' : schemes.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'
+          } gap-6`}
+        >
+          {schemes.map((item, idx) => {
+            const displayYear = item.year.replace('Years 2 - 5', 'Years 2-5');
+            const description = getStageDescription(item.year, idx, course.id);
+
+            return (
+              <div
+                key={item.id || idx}
+                className="bg-white border border-gray-200 rounded-lg p-6 sm:p-7 flex flex-col justify-between space-y-6 hover:shadow-xs transition-shadow duration-200"
+              >
+                <div className="space-y-2">
+                  {/* Small gray label at the top */}
+                  <span className="text-xs font-medium uppercase tracking-wider text-gray-500 block">
+                    Stage {idx + 1}
+                  </span>
+
+                  {/* Title */}
+                  <h3 className="font-serif text-lg sm:text-xl text-gray-900 font-normal">
+                    {displayYear}
+                  </h3>
+
+                  {/* One line of description if available */}
+                  {description && (
+                    <p className="text-sm text-gray-600 leading-relaxed pt-1">
+                      {description}
+                    </p>
+                  )}
+                </div>
+
+                {/* Regulation Link as simple outlined button */}
+                <div className="pt-2">
+                  <a
+                    href={item.pdfUrl || '/cvs/cv_placeholder.pdf'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-medium text-[#002147] border border-[#002147] rounded-lg hover:bg-[#002147] hover:text-white transition-colors duration-150 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#002147] focus-visible:ring-offset-2"
+                  >
+                    <FileText className="w-4 h-4 shrink-0" aria-hidden="true" />
+                    <span>{item.scheme || '2024 PhD Regulations'}</span>
+                  </a>
+                </div>
+              </div>
+            );
+          })}
         </div>
-      </div>
-    </div>
+      </section>
+    </article>
   );
 }

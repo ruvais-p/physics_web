@@ -5,6 +5,12 @@ import { getPageHero } from '@/lib/page-hero';
 
 export const revalidate = 300;
 
+export const metadata = {
+  title: 'Academic Programs & Curriculum | Department of Physics, CUSAT',
+  description:
+    'Explore doctoral (Ph.D.), postgraduate (M.Sc.), and integrated academic programs, curriculum regulations, and research pathways at the Department of Physics, Cochin University of Science and Technology (CUSAT).',
+};
+
 export default async function CoursesPage() {
   let courses: CourseWithSchemes[] = [];
 
@@ -36,9 +42,9 @@ export default async function CoursesPage() {
 
   const getCourseOrder = (course: { id: string; level?: string | null; title?: string | null; code?: string | null }) => {
     const text = `${course.id} ${course.level || ''} ${course.title || ''} ${course.code || ''}`.toLowerCase();
-    if (text.includes('integrated') || text.includes('int') || course.id === 'c3') return 1;
-    if (text.includes('phd') || text.includes('ph.d') || text.includes('doctor') || course.id === 'c2') return 3;
+    if (text.includes('phd') || text.includes('ph.d') || text.includes('doctor') || course.id === 'c2') return 1;
     if (text.includes('msc') || text.includes('m.sc') || text.includes('master') || course.id === 'c1') return 2;
+    if (text.includes('integrated') || text.includes('int') || course.id === 'c3') return 3;
     return 4;
   };
 

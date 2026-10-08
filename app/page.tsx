@@ -390,100 +390,97 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Spotlight Projects Section - Redesigned with Rich Texture & Call-to-Action */}
-      <section className="relative w-full overflow-hidden px-6 sm:px-12 lg:px-16 py-20 sm:py-28 bg-[#001738] text-white">
-        {/* Subtle Textured Grid Background Overlay */}
-        <div className="absolute inset-0 opacity-[0.035] pointer-events-none">
-          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+      {/* Spotlight Projects Section - Redesigned Navy Research Funding */}
+      <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#00132e] to-[#001b3d] text-white py-20 px-6 sm:px-8 lg:px-12">
+        {/* Faint dot texture overlay (5% opacity) */}
+        <div className="absolute inset-0 opacity-[0.05] pointer-events-none" aria-hidden="true">
+          <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
             <defs>
-              <pattern id="projects-dot-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+              <pattern id="research-dots" width="24" height="24" patternUnits="userSpaceOnUse">
                 <circle cx="2" cy="2" r="1" fill="#ffffff" />
               </pattern>
-              <pattern id="projects-grid-lines" width="64" height="64" patternUnits="userSpaceOnUse">
-                <path d="M 64 0 L 0 0 0 64" fill="none" stroke="#ffffff" strokeWidth="0.5" />
-              </pattern>
             </defs>
-            <rect width="100%" height="100%" fill="url(#projects-dot-grid)" />
-            <rect width="100%" height="100%" fill="url(#projects-grid-lines)" />
+            <rect width="100%" height="100%" fill="url(#research-dots)" />
           </svg>
         </div>
 
-        <div className="relative z-10 max-w-6xl mx-auto text-center space-y-10 sm:space-y-12">
-          {/* Section Headings */}
-          <div className="space-y-4 max-w-3xl mx-auto">
-            <h2 className="font-serif text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
-              Pioneering Research, Powered by National Grants            </h2>
-
-            <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-sans font-normal max-w-2xl mx-auto">
-              Our faculty lead cutting-edge research funded by leading national and international agencies—tackling frontier challenges in quantum technology, nanostructured energy materials, photonics, and cosmology.
-            </p>
-          </div>
-
-          {/* Research Metrics / Highlights Strip */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 max-w-4xl mx-auto">
-            <div className="p-5 sm:p-6 rounded-2xl bg-white/[0.04] border border-white/10 text-center hover:bg-white/[0.07] hover:border-white/20 transition-all duration-300 group">
-              <div className="font-serif text-2xl sm:text-4xl font-extrabold text-cyan-400 group-hover:scale-105 transition-transform">
-                ₹15+ Cr
-              </div>
-              <div className="text-xs sm:text-sm text-slate-300 mt-1 font-medium">Extramural Funding</div>
-            </div>
-
-            <div className="p-5 sm:p-6 rounded-2xl bg-white/[0.04] border border-white/10 text-center hover:bg-white/[0.07] hover:border-white/20 transition-all duration-300 group">
-              <div className="font-serif text-2xl sm:text-4xl font-extrabold text-cyan-400 group-hover:scale-105 transition-transform">
-                50+
-              </div>
-              <div className="text-xs sm:text-sm text-slate-300 mt-1 font-medium">Sponsored Projects</div>
-            </div>
-
-            <div className="p-5 sm:p-6 rounded-2xl bg-white/[0.04] border border-white/10 text-center hover:bg-white/[0.07] hover:border-white/20 transition-all duration-300 group">
-              <div className="font-serif text-2xl sm:text-4xl font-extrabold text-cyan-400 group-hover:scale-105 transition-transform">
-                8+
-              </div>
-              <div className="text-xs sm:text-sm text-slate-300 mt-1 font-medium">Funding Agencies</div>
-            </div>
-
-            <div className="p-5 sm:p-6 rounded-2xl bg-white/[0.04] border border-white/10 text-center hover:bg-white/[0.07] hover:border-white/20 transition-all duration-300 group">
-              <div className="font-serif text-2xl sm:text-4xl font-extrabold text-cyan-400 group-hover:scale-105 transition-transform">
-                100%
-              </div>
-              <div className="text-xs sm:text-sm text-slate-300 mt-1 font-medium">Peer-Reviewed</div>
-            </div>
-          </div>
-
-          {/* Sponsoring Agencies Pill Badges */}
-          <div className="space-y-3">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
-              Major Sponsoring Bodies &amp; Collaborators
-            </span>
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 max-w-3xl mx-auto">
-              {['DST-SERB', 'ISRO RESPOND', 'BRNS / DAE', 'CSIR', 'UGC-DAE CSR', 'KSCSTE', 'DRDO', 'DST-INSPIRE'].map((agency) => (
-                <span
-                  key={agency}
-                  className="px-3.5 py-1.5 rounded-xl bg-white/[0.05] border border-white/10 text-xs sm:text-sm font-semibold text-slate-200"
+        <div className="relative z-10 max-w-6xl mx-auto">
+          {/* Top Two Columns (Desktop) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+            {/* Left Column: Heading, Paragraph, CTA Buttons */}
+            <div className="space-y-6 text-left">
+              <span className="text-xs font-bold uppercase tracking-widest text-[#0284c7] block">
+                Research Funding
+              </span>
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                Pioneering Research, Powered by National Grants
+              </h2>
+              <p className="text-base sm:text-lg text-[#A9B8D0] leading-relaxed max-w-xl">
+                Our faculty lead cutting-edge research funded by leading national and international agencies—tackling frontier challenges in quantum technology, nanostructured energy materials, photonics, and cosmology.
+              </p>
+              <div className="pt-2 flex flex-wrap items-center gap-4">
+                <Link
+                  id="home-explore-projects-cta"
+                  href="/projects"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#0284c7] hover:bg-[#0369a1] text-white font-semibold text-sm sm:text-base rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0284c7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#001738] group cursor-pointer"
                 >
-                  {agency}
-                </span>
+                  <span>Explore All Research Projects</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-150" />
+                </Link>
+
+                <Link
+                  href="/research"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-white/30 hover:border-white/60 hover:bg-white/[0.05] text-white font-semibold text-sm sm:text-base rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0284c7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#001738] cursor-pointer"
+                >
+                  <span>Research Laboratories</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Right Column: 2x2 Stats Grid */}
+            <div className="grid grid-cols-2 gap-4 sm:gap-5">
+              {[
+                { value: '₹15+ Cr', label: 'Extramural Funding' },
+                { value: '50+', label: 'Sponsored Projects' },
+                { value: '8+', label: 'Funding Agencies' },
+                { value: '100%', label: 'Peer-Reviewed' },
+              ].map((stat) => (
+                <div
+                  key={stat.label}
+                  className="relative p-5 sm:p-6 rounded-xl bg-[#00224d] border border-white/10 hover:border-[#0284c7] hover:-translate-y-[2px] transition-all duration-150 overflow-hidden group"
+                >
+                  {/* Top-left corner 2px blue bar */}
+                  <span className="absolute top-0 left-0 w-8 h-[2px] bg-[#0284c7]" aria-hidden="true" />
+                  <div className="font-serif text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+                    {stat.value}
+                  </div>
+                  <div className="text-xs sm:text-sm font-medium text-[#A9B8D0] mt-1.5">
+                    {stat.label}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
 
-          {/* CTA Buttons to Projects Page */}
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              id="home-explore-projects-cta"
-              href="/projects"
-              className="inline-flex items-center justify-center gap-2.5 px-8 py-4 bg-cyan-accent hover:bg-sky-400 text-white font-bold text-base sm:text-lg rounded-2xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 group cursor-pointer"
-            >
-              <span>Explore All Research Projects</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1.5 transition-transform duration-300" />
-            </Link>
+          {/* Full Width Sponsoring Bodies Section */}
+          <div className="w-full border-t border-white/10 my-12 sm:my-14" />
 
-            <Link
-              href="/research"
-              className="inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl border border-white/20 hover:border-white/40 text-slate-200 hover:text-white hover:bg-white/5 font-semibold text-sm sm:text-base transition-all duration-300 cursor-pointer"
-            >
-              <span>Research Laboratories</span>
-            </Link>
+          <div className="space-y-6">
+            <span className="text-xs font-semibold uppercase tracking-wider text-[#A9B8D0] block text-left">
+              Major Sponsoring Bodies &amp; Collaborators
+            </span>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+              {['DST-SERB', 'ISRO RESPOND', 'BRNS / DAE', 'CSIR', 'UGC-DAE CSR', 'KSCSTE', 'DRDO', 'DST-INSPIRE'].map((agency) => (
+                <div
+                  key={agency}
+                  className="p-4 sm:p-5 rounded-xl bg-[#00224d] border border-white/10 hover:border-[#0284c7] hover:-translate-y-[2px] transition-all duration-150 flex items-center justify-center text-center cursor-default"
+                >
+                  <span className="text-sm sm:text-base font-semibold text-white tracking-wide">
+                    {agency}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>

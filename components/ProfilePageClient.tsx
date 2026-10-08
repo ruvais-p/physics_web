@@ -249,7 +249,7 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
   return (
     <div className="pb-20 relative font-sans">
       <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-20 pt-6 sm:pt-10 space-y-8">
-        
+
         {/* Breadcrumbs */}
         <div className="flex items-center space-x-2 text-base sm:text-lg font-sans font-semibold text-slate-500 pb-2 border-b border-slate-100">
           <Link href="/" className="hover:text-cyan-dark transition-colors">Home</Link>
@@ -258,10 +258,10 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
           <span>&gt;</span>
           <span className="text-oxford font-bold">{person.name}</span>
         </div>
-        
+
         {/* Top Details Block: Left Photo, Right Text (Flat, borderless) */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-16 items-center">
-          
+
           {/* Left Column: Photo (large, rectangular, sharp, no border) */}
           <div className="md:col-span-7 shrink-0 md:-ml-8">
             <div className="relative w-full aspect-[4/3] bg-slate-50 overflow-hidden rounded-2xl border border-slate-100 shadow-sm">
@@ -422,11 +422,10 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
           <div className="flex border-b border-slate-200 justify-start overflow-x-auto">
             <button
               onClick={() => setActiveTab('bio')}
-              className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                activeTab === 'bio'
+              className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'bio'
                   ? 'border-oxford text-oxford'
                   : 'border-transparent text-slate-500 hover:text-oxford'
-              }`}
+                }`}
             >
               Biography
             </button>
@@ -434,11 +433,10 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
             {isFaculty && (
               <button
                 onClick={() => setActiveTab('scholars')}
-                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                  activeTab === 'scholars'
+                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'scholars'
                     ? 'border-oxford text-oxford'
                     : 'border-transparent text-slate-500 hover:text-oxford'
-                }`}
+                  }`}
               >
                 Research Scholars ({supervisedScholars.length})
               </button>
@@ -447,11 +445,10 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
             {isFaculty && (
               <button
                 onClick={() => setActiveTab('projects')}
-                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                  activeTab === 'projects'
+                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'projects'
                     ? 'border-oxford text-oxford'
                     : 'border-transparent text-slate-500 hover:text-oxford'
-                }`}
+                  }`}
               >
                 Research Projects ({facultyProjects.length})
               </button>
@@ -460,11 +457,10 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
             {isFaculty && (
               <button
                 onClick={() => setActiveTab('publications')}
-                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${
-                  activeTab === 'publications'
+                className={`px-6 sm:px-8 py-5 font-bold text-base sm:text-lg border-b-2 transition-all cursor-pointer whitespace-nowrap ${activeTab === 'publications'
                     ? 'border-oxford text-oxford'
                     : 'border-transparent text-slate-500 hover:text-oxford'
-                }`}
+                  }`}
               >
                 Publications ({facultyPublications.length})
               </button>
@@ -516,7 +512,7 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
               <div className="space-y-6 text-left font-sans">
                 <div className="flex items-center justify-between">
                   <h3 className="text-xl sm:text-2xl font-bold text-oxford font-serif">
-                    Funded &amp; Sponsored Research Projects
+                    Funded &amp;  Research Projects
                   </h3>
                   <span className="text-xs sm:text-sm font-semibold text-oxford bg-slate-100 border border-slate-200 px-3.5 py-1 rounded-full">
                     {facultyProjects.length} Projects
@@ -573,11 +569,10 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
                                 </div>
                               )}
                               <div>
-                                <span className={`inline-block text-[11px] font-bold px-2.5 py-0.5 rounded uppercase tracking-wider ${
-                                  proj.status === 'Ongoing'
+                                <span className={`inline-block text-[11px] font-bold px-2.5 py-0.5 rounded uppercase tracking-wider ${proj.status === 'Ongoing'
                                     ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
                                     : 'bg-blue-100 text-blue-800 border border-blue-200'
-                                }`}>
+                                  }`}>
                                   {proj.status || 'Ongoing'}
                                 </span>
                               </div>
