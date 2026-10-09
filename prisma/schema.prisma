@@ -230,6 +230,7 @@ model EventImage {
   eventId   Int      @map("event_id")
   imagePath String   @map("image_path")
   sortOrder Int      @default(0) @map("sort_order")
+  caption   String?  @map("caption")
   createdAt DateTime @default(now()) @map("created_at")
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)

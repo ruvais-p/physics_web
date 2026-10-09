@@ -5,11 +5,13 @@ import { getAdminSession } from '@/lib/api-auth';
 import { deleteUploadedFile } from '@/lib/file-security';
 import { sanitizeWebUrl } from '@/lib/url-security';
 
+import { revalidatePublicPages } from '@/lib/public-cache';
+
 interface Params {
-  params: Promise<{ imageId: string }>;
+  params: Promise<{ id?: string; imageId?: string }>;
 }
 
-// PUT /api/event-images/[imageId] - Replace existing gallery image
+// PUT /api/event-images/[imageId] - Replace existing gallery image or update caption
 export async function PUT(request: Request, { params }: Params) {
   const user = await getAdminSession();
   if (!user) {
@@ -18,7 +20,8 @@ export async function PUT(request: Request, { params }: Params) {
 
   try {
     const resolvedParams = await params;
-    const imageId = parseInt(resolvedParams.imageId, 10);
+    const rawId = resolvedParams.imageId || resolvedParams.id || '';
+    const imageId = parseInt(rawId, 10);
 
     if (isNaN(imageId)) {
       return NextResponse.json({ error: 'Invalid image ID' }, { status: 400 });
@@ -34,6 +37,8 @@ export async function PUT(request: Request, { params }: Params) {
 
     const contentType = request.headers.get('content-type') || '';
     let newImagePath = '';
+    let hasCaptionUpdate = false;
+    let newCaption: string | null = null;
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
@@ -59,19 +64,30 @@ export async function PUT(request: Request, { params }: Params) {
       } else if (imageUrlInput) {
         newImagePath = sanitizeWebUrl(imageUrlInput) || '';
       }
+
+      if (formData.has('caption')) {
+        hasCaptionUpdate = true;
+        const cap = (formData.get('caption') as string || '').trim();
+        newCaption = cap ? cap : null;
+      }
     } else {
       const body = await request.json();
       if (body.imageUrl && body.imageUrl.trim()) {
         newImagePath = sanitizeWebUrl(body.imageUrl) || '';
       }
+      if (body.caption !== undefined) {
+        hasCaptionUpdate = true;
+        const cap = typeof body.caption === 'string' ? body.caption.trim() : '';
+        newCaption = cap ? cap : null;
+      }
     }
 
-    if (!newImagePath) {
-      return NextResponse.json({ error: 'Replacement image file or URL is required' }, { status: 400 });
+    if (!newImagePath && !hasCaptionUpdate) {
+      return NextResponse.json({ error: 'Replacement image file, URL, or caption is required' }, { status: 400 });
     }
 
-    // Clean up old physical file if it was stored in local uploads directory
-    if (existingImage.imagePath.startsWith('/uploads/')) {
+    // Clean up old physical file if image is replaced and was stored in local uploads directory
+    if (newImagePath && existingImage.imagePath.startsWith('/uploads/')) {
       try {
         await deleteUploadedFile(existingImage.imagePath, 'events');
       } catch {
@@ -79,16 +95,21 @@ export async function PUT(request: Request, { params }: Params) {
       }
     }
 
-    // Update imagePath preserving existing id, eventId, and sortOrder
+    const updateData: { imagePath?: string; caption?: string | null } = {};
+    if (newImagePath) updateData.imagePath = newImagePath;
+    if (hasCaptionUpdate) updateData.caption = newCaption;
+
+    // Update imagePath and/or caption preserving existing id, eventId, and sortOrder
     const updatedImage = await (prisma as any).eventImage.update({
       where: { id: imageId },
-      data: { imagePath: newImagePath },
+      data: updateData,
     });
 
+    revalidatePublicPages();
     return NextResponse.json(updatedImage);
   } catch (error) {
-    console.error('Error replacing gallery image:', error);
-    return NextResponse.json({ error: 'Failed to replace gallery image' }, { status: 500 });
+    console.error('Error updating gallery image:', error);
+    return NextResponse.json({ error: 'Failed to update gallery image' }, { status: 500 });
   }
 }
 
@@ -101,7 +122,8 @@ export async function DELETE(request: Request, { params }: Params) {
 
   try {
     const resolvedParams = await params;
-    const imageId = parseInt(resolvedParams.imageId, 10);
+    const rawId = resolvedParams.imageId || resolvedParams.id || '';
+    const imageId = parseInt(rawId, 10);
 
     if (isNaN(imageId)) {
       return NextResponse.json({ error: 'Invalid image ID' }, { status: 400 });
@@ -129,6 +151,7 @@ export async function DELETE(request: Request, { params }: Params) {
       where: { id: imageId },
     });
 
+    revalidatePublicPages();
     return NextResponse.json({ success: true, message: 'Gallery image deleted successfully' });
   } catch (error) {
     console.error('Error deleting gallery image:', error);

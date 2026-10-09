@@ -334,7 +334,7 @@ export default function PageHeroManagementSection() {
               
               <div 
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-300 hover:border-cyan-accent rounded-2xl p-5 text-center cursor-pointer hover:bg-slate-50 transition-all flex flex-col items-center justify-center gap-2"
+                className="border-2 border-dashed border-slate-300 hover:border-oxford rounded-2xl p-5 text-center cursor-pointer hover:bg-slate-50 transition-all flex flex-col items-center justify-center gap-2"
               >
                 <input
                   ref={fileInputRef}

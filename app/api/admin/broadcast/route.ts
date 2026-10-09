@@ -27,6 +27,7 @@ export async function POST(request: Request) {
     let notificationCategory = 'General';
     let imagePath = '';
     let targets: string[] = [];
+    let tvDuration = 12;
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
@@ -37,6 +38,14 @@ export async function POST(request: Request) {
       
       const venueInput = (formData.get('venue') as string || '').trim();
       if (venueInput) venue = venueInput;
+
+      const tvDurInput = (formData.get('tvDuration') as string || '').trim();
+      if (tvDurInput) {
+        const parsedDur = parseInt(tvDurInput, 10);
+        if (!isNaN(parsedDur) && parsedDur >= 5 && parsedDur <= 120) {
+          tvDuration = parsedDur;
+        }
+      }
 
       const applyLinkInput = (formData.get('apply_link') as string || formData.get('link') as string || '').trim();
       if (applyLinkInput) applyLink = sanitizeWebUrl(applyLinkInput, false);
@@ -93,6 +102,12 @@ export async function POST(request: Request) {
       startDateStr = (body.startDate || body.date || '').trim();
       endDateStr = (body.endDate || '').trim();
       venue = body.venue ? String(body.venue).trim() : null;
+      if (body.tvDuration) {
+        const parsedDur = parseInt(String(body.tvDuration), 10);
+        if (!isNaN(parsedDur) && parsedDur >= 5 && parsedDur <= 120) {
+          tvDuration = parsedDur;
+        }
+      }
       applyLink = body.apply_link || body.link ? sanitizeWebUrl(body.apply_link || body.link, false) : null;
       pdfPath = body.pdfUrl ? sanitizeWebUrl(body.pdfUrl, true) : null;
       notificationCategory = body.notificationCategory || body.category || 'General';
@@ -137,8 +152,8 @@ export async function POST(request: Request) {
     // 1. Publish to Events if targeted
     if (willPublishEvent) {
       const eventRows = await prisma.$queryRaw<any[]>`
-        INSERT INTO events (title, description, image, start_date, end_date, venue, apply_link, brochure, broadcast_id, broadcast_to_tv, created_at, updated_at)
-        VALUES (${title}, ${description}, ${imagePath || '/eventssss.jpg'}, ${eventStartDate}, ${eventEndDate}, ${venue}, ${applyLink}, ${pdfPath}, ${broadcastId}, ${willPublishTv}, NOW(), NOW())
+        INSERT INTO events (title, description, image, start_date, end_date, venue, apply_link, brochure, broadcast_id, broadcast_to_tv, tv_duration, created_at, updated_at)
+        VALUES (${title}, ${description}, ${imagePath || '/eventssss.jpg'}, ${eventStartDate}, ${eventEndDate}, ${venue}, ${applyLink}, ${pdfPath}, ${broadcastId}, ${willPublishTv}, ${tvDuration}, NOW(), NOW())
         RETURNING id
       `;
       if (eventRows.length > 0) {

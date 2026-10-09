@@ -684,7 +684,7 @@ export default function CurriculumManagementSection() {
                           href={schemeItem.pdfUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-cyan-accent hover:underline font-medium max-w-[200px] truncate"
+                          className="inline-flex items-center gap-1.5 text-oxford hover:underline font-medium max-w-[200px] truncate"
                           title={schemeItem.pdfUrl}
                         >
                           <FileText className="w-4 h-4 shrink-0" />

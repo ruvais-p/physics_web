@@ -57,6 +57,7 @@ export default function MultiChannelBroadcastModal({
   const [applyLink, setApplyLink] = useState('');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [notificationCategory, setNotificationCategory] = useState('Event');
+  const [tvDuration, setTvDuration] = useState<number>(12);
 
   // Image State
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -94,6 +95,7 @@ export default function MultiChannelBroadcastModal({
     setApplyLink('');
     setPdfFile(null);
     setNotificationCategory('Event');
+    setTvDuration(12);
     setImageFile(null);
     setImageUrl('');
     setImagePreview(null);
@@ -142,6 +144,9 @@ export default function MultiChannelBroadcastModal({
       if (venue.trim() && !isOnlyNotifications) formData.append('venue', venue.trim());
       formData.append('notificationCategory', notificationCategory);
       formData.append('targets', JSON.stringify(selectedTargets));
+      if (isTvSelected) {
+        formData.append('tvDuration', String(tvDuration));
+      }
 
       if (actionType === 'link' && applyLink.trim()) {
         formData.append('apply_link', applyLink.trim());
@@ -185,7 +190,7 @@ export default function MultiChannelBroadcastModal({
       <DialogContent className="max-w-2xl bg-white border border-slate-200 p-6 rounded-3xl shadow-2xl font-serif text-slate-900 max-h-[92vh] overflow-y-auto">
         <DialogHeader className="border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2 text-oxford mb-1">
-            <Radio className="w-5 h-5 text-oxford animate-pulse" />
+            <Radio className="w-5 h-5 text-oxford" />
             <span className="text-xs font-sans font-bold uppercase tracking-widest text-oxford">
               Universal Syndication Engine
             </span>
@@ -325,7 +330,12 @@ export default function MultiChannelBroadcastModal({
 
             {/* Title */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Headline / Title *</label>
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-slate-700">Headline / Title *</label>
+                <span className={`text-[11px] font-mono ${title.length > 150 ? 'text-amber-600 font-semibold' : 'text-slate-400'}`}>
+                  {title.length} chars {title.length > 150 ? '(long for TV ticker)' : '(recommended < 150 for TV/marquee)'}
+                </span>
+              </div>
               <Input
                 type="text"
                 placeholder="e.g. International Conference on Quantum Materials & Nanophotonics"
@@ -421,6 +431,32 @@ export default function MultiChannelBroadcastModal({
                   <option value="Academic">Academic</option>
                   <option value="General">General</option>
                 </select>
+              </div>
+            )}
+
+            {/* TV Display Duration Setting */}
+            {isTvSelected && (
+              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs font-sans">
+                <div className="space-y-0.5">
+                  <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                    <Tv className="w-3.5 h-3.5 text-oxford" />
+                    <span>TV Signage Slide Duration:</span>
+                  </span>
+                  <p className="text-[11px] text-slate-500">
+                    Display time on lobby screen rotation before advancing.
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 font-mono">
+                  <input
+                    type="number"
+                    min={5}
+                    max={120}
+                    value={tvDuration}
+                    onChange={(e) => setTvDuration(parseInt(e.target.value, 10) || 12)}
+                    className="w-16 px-2 py-1 bg-white border border-slate-200 rounded-lg text-center font-bold text-slate-900"
+                  />
+                  <span className="text-slate-500 font-sans">seconds</span>
+                </div>
               </div>
             )}
 

@@ -35,12 +35,17 @@ export async function GET(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
-    const images = await prisma.$queryRaw<any[]>`
-      SELECT id, event_id AS "eventId", image_path AS "imagePath", sort_order AS "sortOrder", created_at AS "createdAt"
-      FROM "EventImage"
-      WHERE event_id = ${eventId}
-      ORDER BY sort_order ASC
-    `.catch(() => []);
+    const images = await (prisma as any).eventImage.findMany({
+      where: { eventId },
+      orderBy: { sortOrder: 'asc' },
+    }).catch(async () => {
+      return prisma.$queryRaw<any[]>`
+        SELECT id, event_id AS "eventId", image_path AS "imagePath", sort_order AS "sortOrder", caption, created_at AS "createdAt"
+        FROM event_images
+        WHERE event_id = ${eventId}
+        ORDER BY sort_order ASC
+      `.catch(() => []);
+    });
 
     return NextResponse.json({ ...event, images });
   } catch (error) {

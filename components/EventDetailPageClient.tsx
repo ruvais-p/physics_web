@@ -36,7 +36,7 @@ export interface EventDetailItem {
   applyLink?: string;
   brochure?: string;
   isFeatured?: boolean;
-  galleryImages?: { id: number; imagePath: string; sortOrder: number }[];
+  galleryImages?: { id: number; imagePath: string; sortOrder: number; caption?: string | null }[];
 }
 
 // Markdown Parser Helper Functions
@@ -324,22 +324,31 @@ export default function EventDetailPageClient({ liveEvent }: { liveEvent: EventD
                 </div>
 
                 {/* Gallery Thumbnail Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 sm:gap-5">
                   {event.galleryImages.map((img, idx) => (
                     <div
                       key={img.id}
                       onClick={() => setLightboxIndex(idx)}
-                      className="aspect-[4/3] rounded-2xl overflow-hidden bg-slate-900 border border-slate-200/80 cursor-pointer relative group shadow-sm hover:shadow-md transition-all"
+                      className="flex flex-col bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs hover:shadow-md transition-all cursor-pointer group"
                     >
-                      <img
-                        src={img.imagePath}
-                        alt={`Gallery ${idx + 1}`}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-sans text-xs font-bold gap-1.5">
-                        <Eye className="w-5 h-5" />
-                        <span>View Photo</span>
+                      <div className="aspect-[4/3] w-full bg-slate-900 relative overflow-hidden">
+                        <img
+                          src={img.imagePath}
+                          alt={img.caption || `Gallery photo ${idx + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white font-sans text-xs font-bold gap-1.5">
+                          <Eye className="w-5 h-5" />
+                          <span>View Photo</span>
+                        </div>
                       </div>
+                      {img.caption && (
+                        <div className="p-3 bg-white border-t border-slate-100 flex-1 flex items-center">
+                          <p className="text-xs sm:text-sm text-slate-700 font-sans font-medium line-clamp-2 leading-snug">
+                            {img.caption}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -489,12 +498,21 @@ export default function EventDetailPageClient({ liveEvent }: { liveEvent: EventD
               </button>
             )}
 
-            <div className="max-w-full max-h-[75vh] flex items-center justify-center overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
-              <img
-                src={event.galleryImages[lightboxIndex].imagePath}
-                alt={`Photo ${lightboxIndex + 1}`}
-                className="max-w-full max-h-[75vh] object-contain rounded-2xl"
-              />
+            <div className="max-w-full max-h-[75vh] flex flex-col items-center justify-center overflow-hidden">
+              <div className="max-w-full max-h-[66vh] flex items-center justify-center overflow-hidden rounded-2xl border border-white/10 shadow-2xl">
+                <img
+                  src={event.galleryImages[lightboxIndex].imagePath}
+                  alt={event.galleryImages[lightboxIndex].caption || `Photo ${lightboxIndex + 1}`}
+                  className="max-w-full max-h-[66vh] object-contain rounded-2xl"
+                />
+              </div>
+              {event.galleryImages[lightboxIndex].caption && (
+                <div className="mt-3 px-5 py-2 rounded-xl bg-black/75 backdrop-blur-md border border-white/15 max-w-2xl text-center shadow-lg">
+                  <p className="text-sm sm:text-base text-slate-100 font-sans font-medium leading-relaxed">
+                    {event.galleryImages[lightboxIndex].caption}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Right Nav Button */}

@@ -59,6 +59,7 @@ const AdminStaffManagementSection = dynamic(
 const AdminFacultyFullManageModal = dynamic(
   () => import('@/components/AdminFacultyFullManageModal'),
 );
+import type { QueuedGalleryImage } from '@/components/EventGallerySection';
 const EventGallerySection = dynamic(() => import('@/components/EventGallerySection'));
 const CurriculumManagementSection = dynamic(
   () => import('@/components/CurriculumManagementSection'),
@@ -80,6 +81,9 @@ const NewsAwardsManagementSection = dynamic(
 );
 const MultiChannelBroadcastModal = dynamic(
   () => import('@/components/MultiChannelBroadcastModal'),
+);
+const TvManagementSection = dynamic(
+  () => import('@/components/TvManagementSection'),
 );
 
 // Import Shadcn UI elements
@@ -455,11 +459,18 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // ADMIN DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'page-heroes' | 'events' | 'notifications' | 'news-awards' | 'faculty' | 'curriculum' | 'labs' | 'facilities' | 'settings'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'page-heroes' | 'events' | 'tv' | 'notifications' | 'news-awards' | 'faculty' | 'staff' | 'curriculum' | 'labs' | 'facilities' | 'settings'>('dashboard');
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deletingNotifId, setDeletingNotifId] = useState<string | null>(null);
+  const [deletingNotifTitle, setDeletingNotifTitle] = useState<string>('');
+  const [isDeletingNotif, setIsDeletingNotif] = useState(false);
+
+  const [deletingFacultyId, setDeletingFacultyId] = useState<string | null>(null);
+  const [deletingFacultyName, setDeletingFacultyName] = useState<string>('');
+  const [isDeletingFaculty, setIsDeletingFaculty] = useState(false);
 
   // Events Management States
   const [eventsList, setEventsList] = useState<any[]>([]);
@@ -484,8 +495,12 @@ export default function UnifiedDashboardPage() {
   const [eventSaving, setEventSaving] = useState(false);
   const [eventError, setEventError] = useState<string | null>(null);
   const [eventImagePreview, setEventImagePreview] = useState<string | null>(null);
-  const [copiedTvLink, setCopiedTvLink] = useState(false);
-  const [eventGalleryFiles, setEventGalleryFiles] = useState<File[]>([]);
+  const [eventGalleryFiles, setEventGalleryFiles] = useState<QueuedGalleryImage[]>([]);
+  const [eventSearchTerm, setEventSearchTerm] = useState('');
+  const [eventFilterStatus, setEventFilterStatus] = useState<'all' | 'upcoming' | 'past' | 'tv'>('all');
+  const [deletingEventId, setDeletingEventId] = useState<number | null>(null);
+  const [deletingEventTitle, setDeletingEventTitle] = useState<string>('');
+  const [isDeletingEvent, setIsDeletingEvent] = useState(false);
 
   const fetchEvents = async () => {
     setLoadingEvents(true);
@@ -581,14 +596,6 @@ export default function UnifiedDashboardPage() {
     }
   };
 
-  const handleCopyTvLink = () => {
-    const url = `${window.location.origin}/display`;
-    navigator.clipboard.writeText(url).then(() => {
-      setCopiedTvLink(true);
-      setTimeout(() => setCopiedTvLink(false), 2500);
-    });
-  };
-
   const handleEventSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setEventError(null);
@@ -659,8 +666,9 @@ export default function UnifiedDashboardPage() {
       if (savedEventId && eventGalleryFiles.length > 0) {
         try {
           const galleryFormData = new FormData();
-          eventGalleryFiles.forEach((file) => {
-            galleryFormData.append('images', file);
+          eventGalleryFiles.forEach((item) => {
+            galleryFormData.append('images', item.file);
+            galleryFormData.append('captions', item.caption || '');
           });
 
           const galleryRes = await fetch(`/api/events/${savedEventId}/images`, {
@@ -688,20 +696,56 @@ export default function UnifiedDashboardPage() {
     }
   };
 
-  const handleDeleteEvent = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this event?')) return;
-
+  const confirmDeleteEvent = async () => {
+    if (!deletingEventId) return;
+    setIsDeletingEvent(true);
     try {
-      const res = await fetch(`/api/events/${id}`, {
+      const res = await fetch(`/api/events/${deletingEventId}`, {
         method: 'DELETE',
       });
       if (res.ok) {
-        setEventsList((prev) => prev.filter((item) => item.id !== id));
+        setEventsList((prev) => prev.filter((item) => item.id !== deletingEventId));
+        setDeletingEventId(null);
+        setDeletingEventTitle('');
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete event');
       }
     } catch (err) {
       console.error('Failed to delete event:', err);
+    } finally {
+      setIsDeletingEvent(false);
     }
   };
+
+  const filteredEventsList = eventsList.filter((ev) => {
+    const q = eventSearchTerm.trim().toLowerCase();
+    if (q) {
+      const matchesSearch =
+        ev.title.toLowerCase().includes(q) ||
+        (ev.venue && ev.venue.toLowerCase().includes(q)) ||
+        String(ev.id).includes(q);
+      if (!matchesSearch) return false;
+    }
+
+    if (eventFilterStatus === 'tv') {
+      return Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv);
+    }
+
+    if (eventFilterStatus === 'upcoming') {
+      const sRaw = ev.startDate || ev.date;
+      const sDate = sRaw ? new Date(sRaw) : null;
+      return sDate ? sDate >= new Date() : true;
+    }
+
+    if (eventFilterStatus === 'past') {
+      const sRaw = ev.startDate || ev.date;
+      const sDate = sRaw ? new Date(sRaw) : null;
+      return sDate ? sDate < new Date() : false;
+    }
+
+    return true;
+  });
 
   // About Us CMS States
   const [aboutContent, setAboutContent] = useState('');
@@ -1577,18 +1621,25 @@ export default function UnifiedDashboardPage() {
     }
   };
 
-  const handleDeleteNotification = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this notification?')) return;
-
+  const confirmDeleteNotification = async () => {
+    if (!deletingNotifId) return;
+    setIsDeletingNotif(true);
     try {
-      const res = await fetch(`/api/admin/notifications/${id}`, {
+      const res = await fetch(`/api/admin/notifications/${deletingNotifId}`, {
         method: 'DELETE',
       });
       if (res.ok) {
-        setNotifications((prev) => prev.filter((item) => item.id !== id));
+        setNotifications((prev) => prev.filter((item) => item.id !== deletingNotifId));
+        setDeletingNotifId(null);
+        setDeletingNotifTitle('');
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete notification');
       }
     } catch (err) {
       console.error('Failed to delete notification:', err);
+    } finally {
+      setIsDeletingNotif(false);
     }
   };
 
@@ -1714,18 +1765,25 @@ export default function UnifiedDashboardPage() {
     }
   };
 
-  const handleDeleteFaculty = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this faculty account record?')) return;
-
+  const confirmDeleteFaculty = async () => {
+    if (!deletingFacultyId) return;
+    setIsDeletingFaculty(true);
     try {
-      const res = await fetch(`/api/admin/faculty/${id}`, {
+      const res = await fetch(`/api/admin/faculty/${deletingFacultyId}`, {
         method: 'DELETE',
       });
       if (res.ok) {
-        setFacultyList((prev) => prev.filter((item) => item.id !== id));
+        setFacultyList((prev) => prev.filter((item) => item.id !== deletingFacultyId));
+        setDeletingFacultyId(null);
+        setDeletingFacultyName('');
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete faculty account');
       }
     } catch (err) {
       console.error('Failed to delete faculty record:', err);
+    } finally {
+      setIsDeletingFaculty(false);
     }
   };
 
@@ -2393,13 +2451,13 @@ export default function UnifiedDashboardPage() {
         <aside className="w-full md:w-80 lg:w-[320px] bg-oxford border-none text-white flex flex-col justify-between shrink-0 h-auto md:h-screen md:sticky md:top-0 p-4 sm:p-5 lg:p-6 shadow-2xl z-40 overflow-hidden">
           {/* Portal Branding Header */}
           <div className="shrink-0 flex items-center gap-3.5 px-2 pt-1 pb-5 border-b border-white/10">
-            <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent shrink-0 shadow-inner">
+            <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0 shadow-inner">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold text-white font-serif leading-tight">Admin Portal</h1>
-                <Badge className="bg-cyan-accent text-oxford font-sans font-bold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded-md">
+                <Badge className="bg-white/15 text-white border border-white/20 font-sans font-bold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded-md">
                   CMS
                 </Badge>
               </div>
@@ -2439,7 +2497,7 @@ export default function UnifiedDashboardPage() {
                   <Sliders className="w-4 h-4" />
                   <span>Home Hero Carousel</span>
                 </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                   {heroSlides.length}/10
                 </Badge>
               </TabsTrigger>
@@ -2452,7 +2510,7 @@ export default function UnifiedDashboardPage() {
                   <ImageIcon className="w-4 h-4" />
                   <span>Page Banners</span>
                 </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                   13 Pages
                 </Badge>
               </TabsTrigger>
@@ -2465,8 +2523,21 @@ export default function UnifiedDashboardPage() {
                   <Calendar className="w-4 h-4" />
                   <span>Events Management</span>
                 </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                   {eventsList.length}
+                </Badge>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="tv"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <Tv className="w-4 h-4" />
+                  <span>TV Signage</span>
+                </div>
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
+                  {eventsList.filter((e) => Boolean(e.broadcastToTv ?? e.broadcast_to_tv)).length} Live
                 </Badge>
               </TabsTrigger>
 
@@ -2478,7 +2549,7 @@ export default function UnifiedDashboardPage() {
                   <Bell className="w-4 h-4" />
                   <span>Notifications</span>
                 </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                   {notifications.length}
                 </Badge>
               </TabsTrigger>
@@ -2501,7 +2572,7 @@ export default function UnifiedDashboardPage() {
                   <Users className="w-4 h-4" />
                   <span>Faculty Accounts</span>
                 </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                   {facultyList.length}
                 </Badge>
               </TabsTrigger>
@@ -2605,7 +2676,7 @@ export default function UnifiedDashboardPage() {
                       <FileText className="w-5 h-5" />
                     </div>
                   </div>
-                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">About Us Page</CardTitle>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">About Us</CardTitle>
                   <CardDescription className="text-sm text-slate-600 leading-normal">
                     Manage department history, research text (Markdown), and top hero background banner image.
                   </CardDescription>
@@ -2616,11 +2687,11 @@ export default function UnifiedDashboardPage() {
                   className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <FileText className="w-4 h-4" />
-                  <span>Manage About Us</span>
+                  <span>About Us</span>
                 </Button>
               </Card>
 
-              {/* Module 2: Hero Carousel */}
+              {/* Module 2: Home Hero Carousel */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2631,7 +2702,7 @@ export default function UnifiedDashboardPage() {
                       {heroSlides.length}/10
                     </span>
                   </div>
-                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Hero Carousel</CardTitle>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Home Hero Carousel</CardTitle>
                   <CardDescription className="text-sm text-slate-600 leading-normal">
                     Manage home page background slides with titles, descriptions, visibility toggles, and reordering.
                   </CardDescription>
@@ -2642,11 +2713,37 @@ export default function UnifiedDashboardPage() {
                   className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <Sliders className="w-4 h-4" />
-                  <span>Manage Hero</span>
+                  <span>Hero Carousel</span>
                 </Button>
               </Card>
 
-              {/* Module 3: Events Management */}
+              {/* Module 3: Page Banners */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <ImageIcon className="w-5 h-5" />
+                    </div>
+                    <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">
+                      13
+                    </span>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Page Banners</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Customize top background banners, badges, titles, and subheadings across all subpages.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('page-heroes')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  <span>Page Banners</span>
+                </Button>
+              </Card>
+
+              {/* Module 4: Events Management */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2668,11 +2765,37 @@ export default function UnifiedDashboardPage() {
                   className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <Calendar className="w-4 h-4" />
-                  <span>Manage Events</span>
+                  <span>Events Management</span>
                 </Button>
               </Card>
 
-              {/* Module 4: Notifications */}
+              {/* Module 5: TV Signage */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <Tv className="w-5 h-5" />
+                    </div>
+                    <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">
+                      {eventsList.filter((e) => Boolean(e.broadcastToTv ?? e.broadcast_to_tv)).length}
+                    </span>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">TV Signage</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Control lobby and corridor TV signage broadcast queue, rotation timers, and live ticker previews.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('tv')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <Tv className="w-4 h-4" />
+                  <span>TV Signage</span>
+                </Button>
+              </Card>
+
+              {/* Module 6: Notifications */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2698,7 +2821,30 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
-              {/* Module 5: Faculty Accounts */}
+              {/* Module 7: News & Honors */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <Newspaper className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">News & Honors</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Publish department news stories, press releases, research breakthroughs, faculty and student awards.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('news-awards')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <Newspaper className="w-4 h-4" />
+                  <span>News & Honors</span>
+                </Button>
+              </Card>
+
+              {/* Module 8: Faculty Accounts */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2724,7 +2870,30 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
-              {/* Module 6: Curriculum & Regulations */}
+              {/* Module 9: Office Staff */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <Briefcase className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Office Staff</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Manage administrative and technical staff directory, designations, and contact details.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('staff')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <Briefcase className="w-4 h-4" />
+                  <span>Office Staff</span>
+                </Button>
+              </Card>
+
+              {/* Module 10: Curriculum & Regulations */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2747,7 +2916,7 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
-              {/* Module 7: Research Laboratories */}
+              {/* Module 11: Research Laboratories */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2757,7 +2926,7 @@ export default function UnifiedDashboardPage() {
                   </div>
                   <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Research Laboratories</CardTitle>
                   <CardDescription className="text-sm text-slate-600 leading-normal">
-                    Create research laboratory entries, research objectives, hero images, and associated faculty.
+                    Create research laboratory entries, research objectives, hero images, and associated members.
                   </CardDescription>
                 </CardContent>
                 <Button
@@ -2770,7 +2939,7 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
-              {/* Module 8: Facilities Management */}
+              {/* Module 12: Facilities Management */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2790,29 +2959,6 @@ export default function UnifiedDashboardPage() {
                 >
                   <Wrench className="w-4 h-4" />
                   <span>Facilities</span>
-                </Button>
-              </Card>
-
-              {/* Module 9: News & Honors */}
-              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
-                <CardContent className="p-0 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
-                      <Newspaper className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">News & Honors</CardTitle>
-                  <CardDescription className="text-sm text-slate-600 leading-normal">
-                    Publish department news stories, press releases, research breakthroughs, faculty and student awards.
-                  </CardDescription>
-                </CardContent>
-                <Button
-                  variant="default"
-                  onClick={() => setAdminTab('news-awards')}
-                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
-                >
-                  <Newspaper className="w-4 h-4" />
-                  <span>Manage News & Honors</span>
                 </Button>
               </Card>
             </div>
@@ -3361,8 +3507,11 @@ export default function UnifiedDashboardPage() {
                           <Button
                             variant="destructive"
                             size="icon"
-                            onClick={() => handleDeleteNotification(notif.id)}
-                            className="h-9 w-9"
+                            onClick={() => {
+                              setDeletingNotifId(notif.id);
+                              setDeletingNotifTitle(notif.title);
+                            }}
+                            className="h-9 w-9 cursor-pointer"
                             title="Delete Notification"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -3558,7 +3707,7 @@ export default function UnifiedDashboardPage() {
                                 Pending Password Reset
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="border-emerald-400 bg-emerald-50 text-emerald-800 font-sans font-medium text-xs">
+                              <Badge variant="outline" className="border-slate-200 bg-slate-100 text-slate-700 font-sans font-medium text-xs">
                                 Password Set & Active
                               </Badge>
                             )}
@@ -3594,7 +3743,10 @@ export default function UnifiedDashboardPage() {
                             <Button
                               variant="destructive"
                               size="icon"
-                              onClick={() => handleDeleteFaculty(faculty.id)}
+                              onClick={() => {
+                                setDeletingFacultyId(faculty.id);
+                                setDeletingFacultyName(faculty.name);
+                              }}
                               className="h-9 w-9 cursor-pointer"
                               title="Delete Faculty Account"
                             >
@@ -3649,62 +3801,72 @@ export default function UnifiedDashboardPage() {
               </div>
             </div>
 
-            {/* TV Signage Quick Launch & Status Card */}
-            <div className="bg-white border border-slate-200/80 p-6 rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5 font-sans">
-              <div className="space-y-1.5">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-oxford/5 border border-oxford/15 flex items-center justify-center text-oxford shrink-0">
-                    <Tv className="w-5 h-5" />
-                  </div>
-                  <div className="flex items-center gap-2.5">
-                    <h3 className="text-xl font-bold font-serif text-slate-900">
-                      Department TV Display Signage
-                    </h3>
-                    <Badge variant="outline" className="font-mono text-xs border-oxford/20 text-oxford bg-oxford/5 px-2 py-0.5 rounded-md">
-                      16:9 • 4K Landscape
-                    </Badge>
-                  </div>
-                </div>
-                <p className="text-sm text-slate-600 max-w-xl leading-relaxed">
-                  Open <span className="font-mono text-xs font-semibold text-oxford bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">/display</span> on any Smart TV, Fire TV Stick, or kiosk PC. Events marked with the TV badge rotate automatically in full-screen mode.
-                </p>
-                <div className="text-xs text-slate-500 flex items-center gap-2.5 pt-1">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                    <strong className="text-slate-800 font-semibold">
-                      {eventsList.filter((e) => Boolean(e.broadcastToTv ?? e.broadcast_to_tv)).length}
-                    </strong> active on TV screen
-                  </span>
-                  <span>•</span>
-                  <span>Auto-refreshes silently every 30s</span>
-                </div>
+            {/* Search & Filter Bar */}
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 font-sans">
+              <div className="relative flex-1">
+                <Search className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
+                <Input
+                  type="text"
+                  placeholder="Search events by title, venue, or ID..."
+                  value={eventSearchTerm}
+                  onChange={(e) => setEventSearchTerm(e.target.value)}
+                  className="pl-11 text-base h-12 w-full"
+                />
               </div>
 
-              <div className="flex items-center gap-3 shrink-0">
-                <Button
-                  variant="outline"
-                  onClick={handleCopyTvLink}
-                  className="bg-white hover:bg-slate-50 text-slate-700 border-slate-200 text-sm py-2.5 px-4 rounded-xl cursor-pointer flex items-center gap-2 shadow-2xs font-semibold"
+              {/* Status Filter Buttons */}
+              <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl shrink-0 overflow-x-auto">
+                <button
+                  type="button"
+                  onClick={() => setEventFilterStatus('all')}
+                  className={`px-3 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                    eventFilterStatus === 'all'
+                      ? 'bg-white text-oxford shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
                 >
-                  {copiedTvLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-slate-500" />}
-                  <span>{copiedTvLink ? 'URL Copied!' : 'Copy TV Link'}</span>
-                </Button>
-                <Button
-                  variant="default"
-                  asChild
-                  className="rounded-xl py-2.5 px-4 text-sm font-semibold cursor-pointer shadow-xs"
+                  All ({eventsList.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventFilterStatus('upcoming')}
+                  className={`px-3 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                    eventFilterStatus === 'upcoming'
+                      ? 'bg-white text-oxford shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
                 >
-                  <a
-                    href="/display"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2"
-                  >
-                    <Tv className="w-4 h-4" />
-                    <span>Launch /display Screen</span>
-                    <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-                  </a>
-                </Button>
+                  Upcoming ({eventsList.filter((e) => {
+                    const s = e.startDate || e.date;
+                    return s ? new Date(s) >= new Date() : true;
+                  }).length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventFilterStatus('past')}
+                  className={`px-3 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                    eventFilterStatus === 'past'
+                      ? 'bg-white text-oxford shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Past ({eventsList.filter((e) => {
+                    const s = e.startDate || e.date;
+                    return s ? new Date(s) < new Date() : false;
+                  }).length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventFilterStatus('tv')}
+                  className={`px-3 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                    eventFilterStatus === 'tv'
+                      ? 'bg-white text-oxford shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Tv className="w-3.5 h-3.5 text-oxford" />
+                  <span>On TV ({eventsList.filter((e) => Boolean(e.broadcastToTv ?? e.broadcast_to_tv)).length})</span>
+                </button>
               </div>
             </div>
 
@@ -3715,6 +3877,21 @@ export default function UnifiedDashboardPage() {
                   <p className="text-base font-semibold text-slate-800">No events found in database</p>
                   <Button variant="outline" onClick={() => openEventModal()} className="mt-2">
                     Create First Event
+                  </Button>
+                </div>
+              ) : filteredEventsList.length === 0 ? (
+                <div className="text-center py-12 space-y-3">
+                  <Search className="w-10 h-10 mx-auto text-slate-400" />
+                  <p className="text-base font-semibold text-slate-800">No events matching &ldquo;{eventSearchTerm}&rdquo;</p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setEventSearchTerm('');
+                      setEventFilterStatus('all');
+                    }}
+                    className="mt-2 text-xs"
+                  >
+                    Clear Search Filter
                   </Button>
                 </div>
               ) : (
@@ -3731,7 +3908,7 @@ export default function UnifiedDashboardPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {eventsList.map((ev) => (
+                    {filteredEventsList.map((ev) => (
                       <TableRow key={ev.id} className="hover:bg-slate-50/40">
                         <TableCell className="py-3">
                           <div className="w-16 h-12 rounded-lg bg-slate-900 overflow-hidden border border-slate-200">
@@ -3741,7 +3918,19 @@ export default function UnifiedDashboardPage() {
 
                         <TableCell className="py-3 max-w-xs">
                           <div className="font-bold text-slate-900 truncate" title={ev.title}>{ev.title}</div>
-                          <div className="text-xs text-slate-500 font-mono">ID: {ev.id}</div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-xs text-slate-500 font-mono">ID: #{ev.id}</span>
+                            <a
+                              href={`/events/${ev.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] font-sans font-semibold text-oxford hover:underline inline-flex items-center gap-1"
+                              title="View published event on public website"
+                            >
+                              <span>View Live Page</span>
+                              <ExternalLink className="w-2.5 h-2.5 opacity-80" />
+                            </a>
+                          </div>
                         </TableCell>
 
                         <TableCell className="font-mono text-sm text-slate-700 py-3 whitespace-nowrap">
@@ -3767,7 +3956,7 @@ export default function UnifiedDashboardPage() {
                             title={Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv) ? 'Click to remove from TV display' : 'Click to broadcast to TV display'}
                             className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
                               Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv)
-                                ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                                ? 'bg-oxford text-white border-oxford hover:bg-oxford-dark'
                                 : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
                             }`}
                           >
@@ -3813,7 +4002,7 @@ export default function UnifiedDashboardPage() {
                             variant="secondary"
                             size="icon"
                             onClick={() => openEventModal(ev)}
-                            className="h-9 w-9 text-slate-600 hover:text-slate-900"
+                            className="h-9 w-9 text-slate-600 hover:text-slate-900 cursor-pointer"
                             title="Edit Event"
                           >
                             <Edit className="w-4 h-4" />
@@ -3821,8 +4010,11 @@ export default function UnifiedDashboardPage() {
                           <Button
                             variant="destructive"
                             size="icon"
-                            onClick={() => handleDeleteEvent(ev.id)}
-                            className="h-9 w-9"
+                            onClick={() => {
+                              setDeletingEventId(ev.id);
+                              setDeletingEventTitle(ev.title);
+                            }}
+                            className="h-9 w-9 cursor-pointer"
                             title="Delete Event"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -3834,6 +4026,15 @@ export default function UnifiedDashboardPage() {
                 </Table>
               )}
             </div>
+          </TabsContent>
+
+          {/* TV SIGNAGE MANAGEMENT TAB */}
+          <TabsContent value="tv" className="space-y-10 animate-fadeIn mt-0">
+            <TvManagementSection
+              onSwitchToNotifications={() => setAdminTab('notifications')}
+              onSwitchToEvents={() => setAdminTab('events')}
+              onEventEdited={fetchEvents}
+            />
           </TabsContent>
 
           {/* NEWS & AWARDS TAB */}
@@ -3865,7 +4066,7 @@ export default function UnifiedDashboardPage() {
         {/* ADMIN MODALS */}
         {/* Event Create / Edit Modal */}
         <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
-          <DialogContent className="max-w-lg bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] sm:max-w-4xl lg:max-w-5xl bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[90vh] overflow-y-auto">
             <DialogHeader className="border-b border-slate-100 pb-4">
               <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-oxford" />
@@ -3913,26 +4114,28 @@ export default function UnifiedDashboardPage() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700">Event Venue (Optional)</label>
-                <Input
-                  type="text"
-                  placeholder="e.g. Department Auditorium, CUSAT"
-                  value={eventFormData.venue}
-                  onChange={(e) => setEventFormData({ ...eventFormData, venue: e.target.value })}
-                  className="w-full text-sm font-sans"
-                />
-              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-slate-700">Event Venue (Optional)</label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Department Auditorium, CUSAT"
+                    value={eventFormData.venue}
+                    onChange={(e) => setEventFormData({ ...eventFormData, venue: e.target.value })}
+                    className="w-full text-sm font-sans"
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700">Apply / Registration URL (Optional)</label>
-                <Input
-                  type="url"
-                  placeholder="https://forms.gle/..."
-                  value={eventFormData.apply_link}
-                  onChange={(e) => setEventFormData({ ...eventFormData, apply_link: e.target.value })}
-                  className="w-full text-sm font-mono"
-                />
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-slate-700">Apply / Registration URL (Optional)</label>
+                  <Input
+                    type="url"
+                    placeholder="https://forms.gle/..."
+                    value={eventFormData.apply_link}
+                    onChange={(e) => setEventFormData({ ...eventFormData, apply_link: e.target.value })}
+                    className="w-full text-sm font-mono"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -3947,7 +4150,7 @@ export default function UnifiedDashboardPage() {
                       setEventImagePreview(URL.createObjectURL(file));
                     }
                   }}
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-cyan-accent hover:file:text-oxford transition-all cursor-pointer"
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-oxford-dark transition-all cursor-pointer"
                 />
 
                 {eventImagePreview && (
@@ -4103,6 +4306,148 @@ export default function UnifiedDashboardPage() {
           </DialogContent>
         </Dialog>
 
+        {/* Delete Event Confirmation Modal */}
+        <Dialog open={deletingEventId !== null} onOpenChange={(open) => { if (!open) setDeletingEventId(null); }}>
+          <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900">
+            <DialogHeader className="border-b border-slate-100 pb-3">
+              <DialogTitle className="text-xl font-bold font-serif text-rose-600 flex items-center gap-2">
+                <Trash2 className="w-5 h-5 text-rose-600" />
+                <span>Confirm Event Deletion</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-2 font-sans text-sm text-slate-600">
+              <p>Are you sure you want to permanently delete this event?</p>
+              <p className="font-bold text-slate-900 bg-slate-50 p-2.5 rounded-xl border border-slate-200 line-clamp-2">
+                &ldquo;{deletingEventTitle}&rdquo;
+              </p>
+              <p className="text-xs text-rose-600">
+                This action will remove the event, its cover image, brochure, and any uploaded highlight gallery photos.
+              </p>
+            </div>
+            <DialogFooter className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 font-sans">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setDeletingEventId(null)}
+                disabled={isDeletingEvent}
+                className="rounded-xl font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                type="button"
+                onClick={confirmDeleteEvent}
+                disabled={isDeletingEvent}
+                className="rounded-xl font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                {isDeletingEvent ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Delete Event</span>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Notification Confirmation Modal */}
+        <Dialog open={deletingNotifId !== null} onOpenChange={(open) => { if (!open) setDeletingNotifId(null); }}>
+          <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900">
+            <DialogHeader className="border-b border-slate-100 pb-3">
+              <DialogTitle className="text-xl font-bold font-serif text-rose-600 flex items-center gap-2">
+                <Trash2 className="w-5 h-5 text-rose-600" />
+                <span>Confirm Notification Deletion</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-2 font-sans text-sm text-slate-600">
+              <p>Are you sure you want to permanently delete this notification announcement?</p>
+              <p className="font-bold text-slate-900 bg-slate-50 p-2.5 rounded-xl border border-slate-200 line-clamp-2">
+                &ldquo;{deletingNotifTitle}&rdquo;
+              </p>
+              <p className="text-xs text-rose-600">This action will remove it from the home page marquee ticker immediately.</p>
+            </div>
+            <DialogFooter className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 font-sans">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setDeletingNotifId(null)}
+                disabled={isDeletingNotif}
+                className="rounded-xl font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                type="button"
+                onClick={confirmDeleteNotification}
+                disabled={isDeletingNotif}
+                className="rounded-xl font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                {isDeletingNotif ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Delete Notification</span>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Faculty Confirmation Modal */}
+        <Dialog open={deletingFacultyId !== null} onOpenChange={(open) => { if (!open) setDeletingFacultyId(null); }}>
+          <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900">
+            <DialogHeader className="border-b border-slate-100 pb-3">
+              <DialogTitle className="text-xl font-bold font-serif text-rose-600 flex items-center gap-2">
+                <Trash2 className="w-5 h-5 text-rose-600" />
+                <span>Confirm Faculty Deletion</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-2 font-sans text-sm text-slate-600">
+              <p>Are you sure you want to delete this faculty member&apos;s account?</p>
+              <p className="font-bold text-slate-900 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                {deletingFacultyName || 'Faculty Member'}
+              </p>
+              <p className="text-xs text-rose-600">
+                This will delete their login credentials and associated research profile from the public directory.
+              </p>
+            </div>
+            <DialogFooter className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 font-sans">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setDeletingFacultyId(null)}
+                disabled={isDeletingFaculty}
+                className="rounded-xl font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                type="button"
+                onClick={confirmDeleteFaculty}
+                disabled={isDeletingFaculty}
+                className="rounded-xl font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                {isDeletingFaculty ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Delete Account</span>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
         {/* Notification Modal */}
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif">
@@ -4120,7 +4465,12 @@ export default function UnifiedDashboardPage() {
               )}
 
               <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700">Notification Title *</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-bold text-slate-700">Notification Title *</label>
+                  <span className={`text-[11px] font-mono ${formData.title.length > 150 ? 'text-amber-600 font-semibold' : 'text-slate-400'}`}>
+                    {formData.title.length} chars {formData.title.length > 150 ? '(long for marquee)' : '(recommended < 150)'}
+                  </span>
+                </div>
                 <Input
                   type="text"
                   placeholder="e.g. National Physics Seminar 2026 Registration Open"
@@ -4609,13 +4959,13 @@ export default function UnifiedDashboardPage() {
       <aside className="w-full md:w-80 lg:w-[320px] bg-oxford border-none text-white flex flex-col justify-between shrink-0 h-auto md:h-screen md:sticky md:top-0 p-4 sm:p-5 lg:p-6 shadow-2xl z-40 font-sans overflow-hidden">
         {/* Portal Branding Header */}
         <div className="shrink-0 flex items-center gap-3.5 px-2 pt-1 pb-5 border-b border-white/10">
-          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent shrink-0 shadow-inner">
-            <Atom className="w-6 h-6 animate-pulse" />
+          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0 shadow-inner">
+            <Atom className="w-6 h-6" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-white font-serif leading-tight">Faculty Portal</h1>
-              <Badge className="bg-cyan-accent text-oxford font-sans font-bold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded-md">
+              <Badge className="bg-white/15 text-white border border-white/20 font-sans font-bold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded-md">
                 Faculty
               </Badge>
             </div>
@@ -4658,7 +5008,7 @@ export default function UnifiedDashboardPage() {
                 <GraduationCap className="w-4 h-4" />
                 <span>Research Scholars</span>
               </div>
-              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                 {studentsList.length}
               </Badge>
             </TabsTrigger>
@@ -4672,7 +5022,7 @@ export default function UnifiedDashboardPage() {
                 <FlaskConical className="w-4 h-4" />
                 <span>Research Projects</span>
               </div>
-              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                 {projectsList.length}
               </Badge>
             </TabsTrigger>
@@ -4686,7 +5036,7 @@ export default function UnifiedDashboardPage() {
                 <BookOpen className="w-4 h-4" />
                 <span>Publications</span>
               </div>
-              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                 {publicationsList.length}
               </Badge>
             </TabsTrigger>
@@ -4850,10 +5200,7 @@ export default function UnifiedDashboardPage() {
           </div>
 
           {/* FACULTY HERO CARD */}
-          <Card className="bg-gradient-to-br from-white via-slate-50/50 to-cyan-50/20 rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 relative overflow-hidden">
-            {/* Subtle decorative background glow */}
-            <div className="absolute -top-24 -right-24 w-72 h-72 bg-cyan-100/40 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-oxford/5 rounded-full blur-3xl pointer-events-none" />
+          <Card className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 relative overflow-hidden">
 
             <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6 lg:gap-8 justify-between">
               {/* Left: Avatar + Identity */}
@@ -5595,65 +5942,6 @@ export default function UnifiedDashboardPage() {
             </div>
           </div>
 
-          {/* TV Signage Quick Launch & Status Card */}
-          <div className="bg-white border border-slate-200/80 p-6 rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5 font-sans">
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-oxford/5 border border-oxford/15 flex items-center justify-center text-oxford shrink-0">
-                  <Tv className="w-5 h-5" />
-                </div>
-                <div className="flex items-center gap-2.5">
-                  <h3 className="text-xl font-bold font-serif text-slate-900">
-                    Department TV Display Signage
-                  </h3>
-                  <Badge variant="outline" className="font-mono text-xs border-oxford/20 text-oxford bg-oxford/5 px-2 py-0.5 rounded-md">
-                    16:9 • 4K Landscape
-                  </Badge>
-                </div>
-              </div>
-              <p className="text-sm text-slate-600 max-w-xl leading-relaxed">
-                Open <span className="font-mono text-xs font-semibold text-oxford bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">/display</span> on any Smart TV, Fire TV Stick, or kiosk PC. Events marked with the TV badge rotate automatically in full-screen mode.
-              </p>
-              <div className="text-xs text-slate-500 flex items-center gap-2.5 pt-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                  <strong className="text-slate-800 font-semibold">
-                    {eventsList.filter((e) => Boolean(e.broadcastToTv ?? e.broadcast_to_tv)).length}
-                  </strong> active on TV screen
-                </span>
-                <span>•</span>
-                <span>Auto-refreshes silently every 30s</span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 shrink-0">
-              <Button
-                variant="outline"
-                onClick={handleCopyTvLink}
-                className="bg-white hover:bg-slate-50 text-slate-700 border-slate-200 text-sm py-2.5 px-4 rounded-xl cursor-pointer flex items-center gap-2 shadow-2xs font-semibold"
-              >
-                {copiedTvLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-slate-500" />}
-                <span>{copiedTvLink ? 'URL Copied!' : 'Copy TV Link'}</span>
-              </Button>
-              <Button
-                variant="default"
-                asChild
-                className="rounded-xl py-2.5 px-4 text-sm font-semibold cursor-pointer shadow-xs"
-              >
-                <a
-                  href="/display"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2"
-                >
-                  <Tv className="w-4 h-4" />
-                  <span>Launch /display Screen</span>
-                  <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-                </a>
-              </Button>
-            </div>
-          </div>
-
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
             {eventsList.length === 0 ? (
               <div className="text-center py-12 space-y-3">
@@ -5712,7 +6000,7 @@ export default function UnifiedDashboardPage() {
                           title={Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv) ? 'Click to remove from TV display' : 'Click to broadcast to TV display'}
                           className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
                             Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv)
-                              ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                              ? 'bg-oxford text-white border-oxford hover:bg-oxford-dark'
                               : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
                           }`}
                         >
@@ -5750,8 +6038,11 @@ export default function UnifiedDashboardPage() {
                         <Button
                           variant="destructive"
                           size="icon"
-                          onClick={() => handleDeleteEvent(ev.id)}
-                          className="h-9 w-9"
+                          onClick={() => {
+                            setDeletingEventId(ev.id);
+                            setDeletingEventTitle(ev.title || 'Untitled Event');
+                          }}
+                          className="h-9 w-9 cursor-pointer"
                           title="Delete Event"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -6830,7 +7121,7 @@ export default function UnifiedDashboardPage() {
 
       {/* Event Create / Edit Modal for Faculty */}
       <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
-        <DialogContent className="max-w-lg bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] sm:max-w-4xl lg:max-w-5xl bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[90vh] overflow-y-auto">
           <DialogHeader className="border-b border-slate-100 pb-4">
             <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
               <Calendar className="w-5 h-5 text-oxford" />
@@ -6878,26 +7169,28 @@ export default function UnifiedDashboardPage() {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-slate-700">Event Venue (Optional)</label>
-              <Input
-                type="text"
-                placeholder="e.g. Department Auditorium, CUSAT"
-                value={eventFormData.venue}
-                onChange={(e) => setEventFormData({ ...eventFormData, venue: e.target.value })}
-                className="w-full text-sm font-sans"
-              />
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Event Venue (Optional)</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Department Auditorium, CUSAT"
+                  value={eventFormData.venue}
+                  onChange={(e) => setEventFormData({ ...eventFormData, venue: e.target.value })}
+                  className="w-full text-sm font-sans"
+                />
+              </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-slate-700">Apply / Registration URL (Optional)</label>
-              <Input
-                type="url"
-                placeholder="https://forms.gle/..."
-                value={eventFormData.apply_link}
-                onChange={(e) => setEventFormData({ ...eventFormData, apply_link: e.target.value })}
-                className="w-full text-sm font-mono"
-              />
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Apply / Registration URL (Optional)</label>
+                <Input
+                  type="url"
+                  placeholder="https://forms.gle/..."
+                  value={eventFormData.apply_link}
+                  onChange={(e) => setEventFormData({ ...eventFormData, apply_link: e.target.value })}
+                  className="w-full text-sm font-mono"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -6912,7 +7205,7 @@ export default function UnifiedDashboardPage() {
                     setEventImagePreview(URL.createObjectURL(file));
                   }
                 }}
-                className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-cyan-accent hover:file:text-oxford transition-all cursor-pointer"
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-oxford-dark transition-all cursor-pointer"
               />
 
               {eventImagePreview && (

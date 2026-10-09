@@ -3,6 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 import { getAdminSession } from '@/lib/api-auth';
 
+import { revalidatePublicPages } from '@/lib/public-cache';
+
 interface Params {
   params: Promise<{ id: string }>;
 }
@@ -58,7 +60,7 @@ export async function POST(request: Request, { params }: Params) {
     const MAX_PHOTOS = 20;
 
     const contentType = request.headers.get('content-type') || '';
-    const newImagePaths: string[] = [];
+    const itemsToCreate: { imagePath: string; caption: string | null }[] = [];
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
@@ -75,6 +77,11 @@ export async function POST(request: Request, { params }: Params) {
       ] as string[];
       const urls = rawUrls.filter((u) => typeof u === 'string' && u.trim());
 
+      const rawCaptions = [
+        ...formData.getAll('captions'),
+        ...formData.getAll('captions[]'),
+      ] as string[];
+
       // Count total incoming photos
       const totalIncoming = files.filter(f => f && f.size > 0).length + urls.filter(u => u && u.trim()).length;
 
@@ -88,7 +95,8 @@ export async function POST(request: Request, { params }: Params) {
       const uploadDir = 'public/uploads/events';
 
       // Save uploaded files as WebP
-      for (const file of files) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
         if (file && file.size > 0) {
           // File size validation: 10MB
           if (file.size > 10 * 1024 * 1024) {
@@ -105,19 +113,30 @@ export async function POST(request: Request, { params }: Params) {
             `gallery_${eventId}`,
             { quality: 85, maxWidth: 1920 }
           );
-          newImagePaths.push(relativePath);
+
+          const captionVal = rawCaptions[i] ? String(rawCaptions[i]).trim() : '';
+          itemsToCreate.push({
+            imagePath: relativePath,
+            caption: captionVal || null,
+          });
         }
       }
 
       // Add direct URL strings
-      for (const urlStr of urls) {
+      for (let j = 0; j < urls.length; j++) {
+        const urlStr = urls[j];
         if (urlStr && urlStr.trim()) {
-          newImagePaths.push(urlStr.trim());
+          const captionVal = rawCaptions[files.length + j] ? String(rawCaptions[files.length + j]).trim() : '';
+          itemsToCreate.push({
+            imagePath: urlStr.trim(),
+            caption: captionVal || null,
+          });
         }
       }
     } else {
       const body = await request.json();
       const urls: string[] = Array.isArray(body.imageUrls) ? body.imageUrls : [];
+      const bodyCaptions: string[] = Array.isArray(body.captions) ? body.captions : [];
       
       if (currentImageCount + urls.length > MAX_PHOTOS) {
         return NextResponse.json(
@@ -126,12 +145,18 @@ export async function POST(request: Request, { params }: Params) {
         );
       }
 
-      urls.forEach(u => {
-        if (u && u.trim()) newImagePaths.push(u.trim());
+      urls.forEach((u, idx) => {
+        if (u && u.trim()) {
+          const captionVal = bodyCaptions[idx] ? String(bodyCaptions[idx]).trim() : '';
+          itemsToCreate.push({
+            imagePath: u.trim(),
+            caption: captionVal || null,
+          });
+        }
       });
     }
 
-    if (newImagePaths.length === 0) {
+    if (itemsToCreate.length === 0) {
       return NextResponse.json({ error: 'No valid image files or URLs provided for upload.' }, { status: 400 });
     }
 
@@ -145,17 +170,19 @@ export async function POST(request: Request, { params }: Params) {
 
     // Create EventImage database records
     const createdRecords = await (prisma as any).$transaction(
-      newImagePaths.map((imagePath, index) =>
+      itemsToCreate.map((item, index) =>
         (prisma as any).eventImage.create({
           data: {
             eventId,
-            imagePath,
+            imagePath: item.imagePath,
+            caption: item.caption,
             sortOrder: startOrder + index,
           },
         })
       )
     );
 
+    revalidatePublicPages();
     return NextResponse.json(createdRecords, { status: 201 });
   } catch (error) {
     console.error('Error uploading event gallery images:', error);

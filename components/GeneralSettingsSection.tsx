@@ -10,6 +10,9 @@ import {
   Save,
   Settings,
   UserCheck,
+  Eye,
+  EyeOff,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,6 +29,7 @@ export default function GeneralSettingsSection() {
   const [departmentEmail, setDepartmentEmail] = useState('');
   const [hodEmail, setHodEmail] = useState('');
   const [appPassword, setAppPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [hasAppPassword, setHasAppPassword] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -178,27 +182,50 @@ export default function GeneralSettingsSection() {
               </div>
 
               <div className="space-y-2">
-                <label
-                  htmlFor="settings-app-password"
-                  className="text-sm font-bold text-slate-700 flex items-center gap-2"
-                >
-                  <KeyRound className="w-4 h-4 text-oxford" />
-                  Department Email App Password
-                </label>
-                <Input
-                  id="settings-app-password"
-                  type="password"
-                  autoComplete="new-password"
-                  required={!hasAppPassword}
-                  value={appPassword}
-                  onChange={(event) => setAppPassword(event.target.value)}
-                  placeholder={
-                    hasAppPassword
-                      ? 'Leave blank to keep the saved app password'
-                      : 'Enter the mailbox app password'
-                  }
-                  className="h-12 text-base"
-                />
+                <div className="flex items-center justify-between">
+                  <label
+                    htmlFor="settings-app-password"
+                    className="text-sm font-bold text-slate-700 flex items-center gap-2"
+                  >
+                    <KeyRound className="w-4 h-4 text-oxford" />
+                    <span>Department Email App Password</span>
+                  </label>
+                  {hasAppPassword && (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>Configured &amp; Active</span>
+                    </span>
+                  )}
+                </div>
+                <div className="relative">
+                  <Input
+                    id="settings-app-password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    required={!hasAppPassword}
+                    value={appPassword}
+                    onChange={(event) => setAppPassword(event.target.value)}
+                    placeholder={
+                      hasAppPassword
+                        ? 'Leave blank to keep the saved app password'
+                        : 'Enter the mailbox app password'
+                    }
+                    className="h-12 text-base pr-12 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 p-1 rounded-lg transition-colors cursor-pointer"
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
                 <p className="text-xs text-slate-500">
                   {hasAppPassword
                     ? 'An encrypted app password is saved. Enter a new one only to replace it.'
