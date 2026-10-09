@@ -321,7 +321,7 @@ export default async function HomePage() {
                   Department Activities
                 </span>
                 <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
-                  UPCOMING &amp; FEATURED EVENTS
+                  EVENTS
                 </h2>
               </div>
 

@@ -1,4 +1,8 @@
+'use client';
+
+import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { 
   MapPin, 
   Mail, 
@@ -8,8 +12,21 @@ import {
   Sparkles,
   ArrowUpRight 
 } from 'lucide-react';
+import { type ProgrammeNavItem } from '@/lib/nav-programmes';
+import { useProgrammes, handleInPageNav } from '@/lib/use-programmes';
 
-export default function Footer() {
+interface FooterProps {
+  initialProgrammes?: ProgrammeNavItem[];
+}
+
+export default function Footer({ initialProgrammes }: FooterProps = {}) {
+  const pathname = usePathname();
+  const programmes = useProgrammes(initialProgrammes);
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    handleInPageNav(e, href, pathname);
+  };
+
   return (
     <footer className="relative bg-gradient-to-b from-[#0f325a] via-[#082547] to-[#031b36] text-slate-200 font-sans overflow-hidden">
       {/* Top subtle divider */}
@@ -23,7 +40,13 @@ export default function Footer() {
           <div className="lg:col-span-4 space-y-6">
             <div className="space-y-4">
               {/* DOP Atom Logo */}
-              <Link href="/" className="inline-block group" aria-label="Department of Physics CUSAT">
+              <Link
+                href="/"
+                scroll={true}
+                onClick={(e) => handleLinkClick(e, '/')}
+                className="inline-block group"
+                aria-label="Department of Physics CUSAT"
+              >
                 <div className="flex items-center gap-3">
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
@@ -92,7 +115,9 @@ export default function Footer() {
               ].map((link) => (
                 <li key={link.href}>
                   <Link 
-                    href={link.href} 
+                    href={link.href}
+                    scroll={true}
+                    onClick={(e) => handleLinkClick(e, link.href)}
                     className="group inline-flex items-center text-slate-300 hover:text-white transition-colors duration-200"
                   >
                     <ChevronRight className="w-3.5 h-3.5 text-sky-400/60 group-hover:text-sky-300 group-hover:translate-x-0.5 transition-all mr-1.5 shrink-0" />
@@ -103,28 +128,36 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Column 3: Academic Programs (2.5 cols) */}
+          {/* Column 3: Academic Programmes (2.5 cols) */}
           <div className="lg:col-span-3 space-y-4">
-            <h4 className="text-[13px] font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1.5">
-              <span>Academic Programs</span>
+            <h4 className="text-xs font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1.5">
+              <span>Academic Programmes</span>
             </h4>
-            <ul className="space-y-2.5 text-[15px]">
-              {[
-                { label: '5-Year Integrated M.Sc.', href: '/courses#integrated' },
-                { label: 'M.Sc. Physics (2 Years)', href: '/courses#msc' },
-                { label: 'Ph.D. Research Program', href: '/courses#phd' },
-                { label: 'Academic Curriculum & CBCS', href: '/courses' },
-              ].map((prog) => (
-                <li key={prog.label}>
+            <ul className="space-y-2.5 text-sm">
+              {programmes.slice(0, 5).map((prog) => (
+                <li key={`footer-${prog.name}-${prog.href}`}>
                   <Link 
-                    href={prog.href} 
+                    href={prog.href}
+                    scroll={true}
+                    onClick={(e) => handleLinkClick(e, prog.href)}
                     className="group inline-flex items-center text-slate-300 hover:text-white transition-colors duration-200"
                   >
                     <ChevronRight className="w-3.5 h-3.5 text-sky-400/60 group-hover:text-sky-300 group-hover:translate-x-0.5 transition-all mr-1.5 shrink-0" />
-                    <span>{prog.label}</span>
+                    <span>{prog.name}</span>
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link 
+                  href="/courses"
+                  scroll={true}
+                  onClick={(e) => handleLinkClick(e, '/courses')}
+                  className="group inline-flex items-center text-sky-300 hover:text-cyan-accent transition-colors duration-200 font-medium"
+                >
+                  <ChevronRight className="w-3.5 h-3.5 text-sky-400/60 group-hover:text-cyan-accent group-hover:translate-x-0.5 transition-all mr-1.5 shrink-0" />
+                  <span>All Programmes & CBCS</span>
+                </Link>
+              </li>
               <li className="pt-2">
                 <a 
                   href="https://cusat.ac.in" 
@@ -175,8 +208,10 @@ export default function Footer() {
 
             <div className="pt-2">
               <Link 
-                href="/contact" 
-                className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-300/30 text-sky-200 hover:text-white text-[13px] font-bold transition-all duration-300 shadow-sm"
+                href="/contact"
+                scroll={true}
+                onClick={(e) => handleLinkClick(e, '/contact')}
+                className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-sky-500/15 hover:bg-sky-500/25 border border-sky-300/30 text-sky-200 hover:text-white text-xs font-bold transition-all duration-300 shadow-sm"
               >
                 <span>Department Inquiry &amp; Map</span>
                 <ArrowUpRight className="w-3.5 h-3.5" />
@@ -194,20 +229,20 @@ export default function Footer() {
             <span className="text-slate-400">All rights reserved.</span>
           </div>
 
-          <div className="flex flex-wrap items-center justify-center gap-6 text-[13px] text-slate-300">
-            <Link href="/about" className="hover:text-white transition-colors">
+          <div className="flex flex-wrap items-center justify-center gap-6 text-xs text-slate-300">
+            <Link href="/about" scroll={true} onClick={(e) => handleLinkClick(e, '/about')} className="hover:text-white transition-colors">
               About Us
             </Link>
-            <Link href="/library" className="hover:text-white transition-colors">
+            <Link href="/library" scroll={true} onClick={(e) => handleLinkClick(e, '/library')} className="hover:text-white transition-colors">
               Library
             </Link>
-            <Link href="/alumni" className="hover:text-white transition-colors">
+            <Link href="/alumni" scroll={true} onClick={(e) => handleLinkClick(e, '/alumni')} className="hover:text-white transition-colors">
               Alumni
             </Link>
-            <Link href="/facilities" className="hover:text-white transition-colors">
+            <Link href="/facilities" scroll={true} onClick={(e) => handleLinkClick(e, '/facilities')} className="hover:text-white transition-colors">
               Instrumentation
             </Link>
-            <Link href="/contact" className="hover:text-white transition-colors">
+            <Link href="/contact" scroll={true} onClick={(e) => handleLinkClick(e, '/contact')} className="hover:text-white transition-colors">
               Admissions &amp; Contact
             </Link>
             <a 

@@ -5,8 +5,6 @@ import FacultyCard from '@/components/FacultyCard';
 import {
   Wrench,
   Users,
-  MapPin,
-  Building2,
   ArrowLeft,
   ExternalLink,
   FileText,
@@ -280,7 +278,7 @@ export default async function FacilityDetailPage({ params }: PageProps) {
       {/* Main Content Area */}
       <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 mt-10 sm:mt-12 space-y-10">
         
-        {/* 1. Facility Type, In-Charge, Location Info Strip (Displayed Under the Hero Image) */}
+        {/* 1. Facility Type Info Strip (Displayed Under the Hero Image) */}
         <div className="flex flex-wrap items-center justify-start gap-y-4 gap-x-8 sm:gap-x-12 pb-8 border-b border-slate-200 text-slate-700 font-sans">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-oxford/10 text-oxford flex items-center justify-center shrink-0">
@@ -291,149 +289,84 @@ export default async function FacilityDetailPage({ params }: PageProps) {
               <span className="text-base sm:text-lg font-bold text-oxford">Central Research Facility</span>
             </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-cyan-accent/10 text-cyan-accent flex items-center justify-center shrink-0">
-              <Users className="w-5 h-5 text-cyan-accent" />
-            </div>
-            <div>
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Faculty In-Charge</span>
-              <span className="text-base sm:text-lg font-bold text-oxford">
-                {facility.faculties && facility.faculties.length > 0
-                  ? `${facility.faculties.length} Faculty Member${facility.faculties.length > 1 ? 's' : ''}`
-                  : 'Faculty In-Charge'}
-              </span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-oxford/10 text-oxford flex items-center justify-center shrink-0">
-              <MapPin className="w-5 h-5 text-oxford" />
-            </div>
-            <div>
-              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Location / Department</span>
-              <span className="text-base sm:text-lg font-bold text-oxford">Department of Physics, CUSAT</span>
-            </div>
-          </div>
         </div>
 
-        {/* 2. Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 sm:gap-16">
+        {/* 2. Main Content Container */}
+        <div className="space-y-12 max-w-5xl">
           
-          {/* Left Column (2/3): Description & Associated Faculty */}
-          <div className="lg:col-span-2 space-y-12">
-            
-            {/* Description of the Facility (Structured Markdown Content) */}
-            <div className="space-y-6 pb-12 border-b border-slate-200">
-              <div className="flex items-center gap-3">
-                <FileText className="w-6 h-6 text-oxford" />
-                <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-oxford">
-                  About the Facility
-                </h2>
-              </div>
-
-              <div className="text-slate-700 leading-relaxed font-sans">
-                {renderMarkdown(facility.description || '')}
-              </div>
+          {/* Description of the Facility (Structured Markdown Content) */}
+          <div className="space-y-6 pb-12 border-b border-slate-200">
+            <div className="flex items-center gap-3">
+              <FileText className="w-6 h-6 text-oxford" />
+              <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-oxford">
+                About the Facility
+              </h2>
             </div>
 
-            {/* Associated Faculty / In-Charge (Under About the Facility with FacultyCard) */}
-            {facility.faculties && facility.faculties.length > 0 && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <Users className="w-6 h-6 text-oxford" />
-                    <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-oxford">
-                      Associated Faculty / In-Charge
-                    </h2>
-                  </div>
-                  <span className="text-xs font-mono font-bold text-oxford bg-oxford/10 px-3.5 py-1.5 rounded-full">
-                    {facility.faculties.length} Faculty Member{facility.faculties.length > 1 ? 's' : ''}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-10 font-sans">
-                  {facility.faculties.map((fac) => {
-                    const person: FacultyMember = {
-                      id: fac.id,
-                      name: fac.name,
-                      designation: fac.designation || 'Faculty Member',
-                      qualification: fac.qualification || 'Ph.D.',
-                      email: fac.email || '',
-                      phone: '',
-                      room: fac.room || '',
-                      researchFocus: [],
-                      bio: '',
-                      publicationsCount: 0,
-                      citations: 0,
-                      image: fac.documents?.image || fac.image || '/faculty.png',
-                      type: 'faculty',
-                    };
-
-                    return (
-                      <Link key={fac.id} href={`/people/${fac.id}`} className="block h-full">
-                        <FacultyCard person={person} />
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-
+            <div className="text-slate-700 leading-relaxed font-sans">
+              {renderMarkdown(facility.description || '')}
+            </div>
           </div>
 
-          {/* Right Column (1/3 Sidebar): Facility Info & Department Contact */}
-          <div className="space-y-10 lg:pl-4">
-
-            {/* Quick Overview */}
-            <div className="space-y-3 pb-8 border-b border-slate-200 font-sans">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                Instrumentation Facility
-              </div>
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
-                <div className="flex items-center gap-2 text-oxford font-bold text-sm">
-                  <Wrench className="w-4 h-4 text-cyan-accent" />
-                  <span>{facility.name}</span>
+          {/* Members (Under About the Facility with FacultyCard) */}
+          {facility.faculties && facility.faculties.length > 0 && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Users className="w-6 h-6 text-oxford" />
+                  <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-oxford">
+                    Members
+                  </h2>
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  Central Research Instrumentation Facility • Advanced Physics Division
-                </p>
+                <span className="text-xs font-mono font-bold text-oxford bg-oxford/10 px-3.5 py-1.5 rounded-full">
+                  {facility.faculties.length} Member{facility.faculties.length > 1 ? 's' : ''}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-10 font-sans">
+                {facility.faculties.map((fac) => {
+                  const person: FacultyMember = {
+                    id: fac.id,
+                    name: fac.name,
+                    designation: fac.designation || 'Faculty Member',
+                    qualification: fac.qualification || 'Ph.D.',
+                    email: fac.email || '',
+                    phone: '',
+                    room: fac.room || '',
+                    researchFocus: [],
+                    bio: '',
+                    publicationsCount: 0,
+                    citations: 0,
+                    image: fac.documents?.image || fac.image || '/faculty.png',
+                    type: 'faculty',
+                  };
+
+                  return (
+                    <Link key={fac.id} href={`/people/${fac.id}`} className="block h-full">
+                      <FacultyCard person={person} />
+                    </Link>
+                  );
+                })}
               </div>
             </div>
+          )}
 
-            {/* Department Venue & Contact */}
-            <div className="space-y-4 font-sans">
-              <div className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-oxford" />
-                <span>Host Department</span>
-              </div>
-
-              <div className="space-y-1.5 text-sm sm:text-base text-slate-600 leading-relaxed">
-                <p className="font-bold text-oxford">Department of Physics</p>
-                <p>Cochin University of Science and Technology (CUSAT)</p>
-                <p>Kochi - 682022, Kerala, India</p>
-              </div>
-
-              <div className="pt-4 space-y-3">
-                <Link
-                  href="/facilities"
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-oxford hover:text-cyan-dark transition-colors"
-                >
-                  <span>Explore all facilities</span>
-                  <ArrowLeft className="w-4 h-4 rotate-180" />
-                </Link>
-                <div>
-                  <Link
-                    href="/people"
-                    className="inline-flex items-center gap-1.5 text-sm font-semibold text-cyan-dark hover:text-cyan-accent transition-colors"
-                  >
-                    <span>View all department faculty & scholars</span>
-                    <ArrowLeft className="w-4 h-4 rotate-180" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-
+          {/* Quick Navigation Links */}
+          <div className="pt-8 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4 font-sans">
+            <Link
+              href="/facilities"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-oxford hover:text-cyan-accent transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Explore all facilities</span>
+            </Link>
+            <Link
+              href="/people"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-cyan-dark hover:text-cyan-accent transition-colors"
+            >
+              <span>View all department faculty &amp; scholars</span>
+              <ArrowLeft className="w-4 h-4 rotate-180" />
+            </Link>
           </div>
 
         </div>

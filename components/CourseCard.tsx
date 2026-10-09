@@ -38,6 +38,13 @@ const DEFAULT_COURSE_SCHEMES: Record<string, CourseSchemeItem[]> = {
     { year: 'Year 3 (B.Sc. Honours Exit Option)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
     { year: 'Years 4 & 5 (M.Sc. Advanced)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
   ],
+  c4: [
+    { year: 'First Year (Semesters 1 & 2)', scheme: '2024 AICTE Model Curriculum', pdfUrl: '/cvs/cv_placeholder.pdf' },
+    { year: 'Second Year (Industrial Project & Thesis)', scheme: '2024 M.Tech Regulations', pdfUrl: '/cvs/cv_placeholder.pdf' },
+  ],
+  c5: [
+    { year: 'Full Academic Year (Modules 1 - 4)', scheme: '2024 Industry-Aligned Diploma Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
+  ],
 };
 
 function getStageDescription(yearTitle: string, index: number, courseId: string): string | null {

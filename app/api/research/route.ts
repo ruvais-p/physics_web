@@ -40,7 +40,7 @@ export async function GET() {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
     });
 
     return NextResponse.json(labs);

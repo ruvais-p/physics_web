@@ -5,17 +5,17 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { Menu, X, ChevronRight, ChevronDown } from 'lucide-react';
-
-interface SubItem {
-  name: string;
-  href: string;
-}
+import {
+  DEFAULT_PROGRAMME_ITEMS,
+  type ProgrammeNavItem,
+} from '@/lib/nav-programmes';
+import { useProgrammes, handleInPageNav } from '@/lib/use-programmes';
 
 interface NavItem {
   name: string;
   href: string;
   iconType: 'chevron' | 'dropdown';
-  dropdown?: SubItem[];
+  dropdown?: ProgrammeNavItem[];
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -35,21 +35,17 @@ const NAV_ITEMS: NavItem[] = [
     iconType: 'chevron',
   },
   {
-    name: 'Programs',
+    name: 'Programmes',
     href: '/courses',
     iconType: 'chevron',
-    dropdown: [
-      { name: 'Integrated M.Sc.', href: '/courses#integrated' },
-      { name: 'M.Sc. Physics', href: '/courses#msc' },
-      { name: 'Ph.D. Program', href: '/courses#phd' },
-    ],
+    dropdown: DEFAULT_PROGRAMME_ITEMS,
   },
   {
     name: 'Research',
     href: '/research',
     iconType: 'chevron',
     dropdown: [
-      { name: 'Research Laboratories', href: '/research#labs' },
+      { name: 'Research Laboratories', href: '/research' },
       { name: 'Projects & Grants', href: '/projects' },
       { name: 'Journals & Publications', href: '/journals' },
       { name: 'Facilities', href: '/facilities' },
@@ -61,7 +57,7 @@ const NAV_ITEMS: NavItem[] = [
     iconType: 'chevron',
     dropdown: [
       { name: 'Events', href: '/events' },
-      { name: 'News', href: '/news' },
+      { name: 'News and Awards', href: '/news' },
       { name: 'Announcements', href: '/announcements' },
     ],
   },
@@ -94,11 +90,27 @@ const DARK_HERO_ROUTES = [
   '/library',
 ];
 
-export default function Navbar() {
+interface NavbarProps {
+  initialProgrammes?: ProgrammeNavItem[];
+}
+
+export default function Navbar({ initialProgrammes }: NavbarProps = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+
+  const programmes = useProgrammes(initialProgrammes);
+
+  const navItems = NAV_ITEMS.map((item) => {
+    if (item.name === 'Programmes') {
+      return {
+        ...item,
+        dropdown: programmes,
+      };
+    }
+    return item;
+  });
 
   // Check if current route has a dark full-bleed hero banner
   const hasDarkHero =
@@ -121,6 +133,17 @@ export default function Navbar() {
 
   const isWhiteNav = !hasDarkHero || isScrolled || mobileMenuOpen;
 
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+    closeMobile = false
+  ) => {
+    handleInPageNav(e, href, pathname, () => {
+      if (closeMobile) setMobileMenuOpen(false);
+      setActiveDropdown(null);
+    });
+  };
+
   return (
     <header className="sticky top-0 z-50 w-full transition-all duration-300">
       {/* Dynamic Top-Attached Navbar Container (Sleek & Compact) */}
@@ -134,7 +157,14 @@ export default function Navbar() {
 
           {/* Left: Brand Logo (Department of Physics) */}
           <div className="flex items-center shrink-0">
-            <Link id="nav-brand-link" href="/" className="flex items-center group py-1" aria-label="Department of Physics Home">
+            <Link
+              id="nav-brand-link"
+              href="/"
+              scroll={true}
+              onClick={(e) => handleNavClick(e, '/')}
+              className="flex items-center group py-1"
+              aria-label="Department of Physics Home"
+            >
               <div className="h-10 sm:h-12 lg:h-14 w-auto text-cyan-accent group-hover:scale-105 transition-transform duration-300 drop-shadow-sm flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -12 255 184" className="h-full w-auto fill-current text-cyan-accent overflow-visible">
                   <text x="2" y="124" fontFamily="Georgia, 'Times New Roman', serif" fontSize="110" fontWeight="900" fill="currentColor">D</text>
@@ -154,7 +184,7 @@ export default function Navbar() {
           <div className="flex items-center gap-5 sm:gap-6 xl:gap-7">
             {/* Desktop Navigation Links */}
             <nav id="desktop-navbar" className="hidden lg:flex items-center space-x-6 xl:space-x-8">
-              {NAV_ITEMS.map((item) => {
+              {navItems.map((item) => {
                 const isDirectActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href.split('#')[0]));
                 const isDropdownActive = Boolean(item.dropdown?.some((sub) => pathname === sub.href || (sub.href !== '/' && pathname.startsWith(sub.href.split('#')[0]))));
                 const isActive = isDirectActive || isDropdownActive;
@@ -170,6 +200,8 @@ export default function Navbar() {
                     <Link
                       id={`nav-link-${item.name.toLowerCase().replace(/\s+/g, '-')}`}
                       href={item.href}
+                      scroll={true}
+                      onClick={(e) => handleNavClick(e, item.href)}
                       className={`flex items-center space-x-1.5 text-base sm:text-lg lg:text-lg font-semibold transition-colors ${isWhiteNav
                           ? isActive ? 'text-cyan-accent font-bold' : 'text-oxford hover:text-cyan-accent'
                           : isActive ? 'text-white font-bold drop-shadow' : 'text-white/90 hover:text-cyan-accent'
@@ -184,15 +216,17 @@ export default function Navbar() {
                     {/* Dropdown Menu */}
                     {hasDropdown && activeDropdown === item.name && (
                       <div className="absolute top-full left-1/2 -translate-x-1/2 pt-4 z-50">
-                        <div className={`w-72 border rounded-xl shadow-2xl p-3 transition-colors ${isWhiteNav
+                        <div className={`w-72 sm:w-80 max-h-[75vh] overflow-y-auto border rounded-xl shadow-2xl p-2.5 transition-colors ${isWhiteNav
                             ? 'bg-white/95 border-slate-200 shadow-xl'
                             : 'bg-slate-900/95 backdrop-blur-2xl border-white/20'
                           }`}>
                           {item.dropdown?.map((sub) => (
                             <Link
-                              key={sub.name}
+                              key={`${sub.name}-${sub.href}`}
                               href={sub.href}
-                              className={`block px-4 py-3 rounded-lg text-base transition-colors ${isWhiteNav
+                              scroll={true}
+                              onClick={(e) => handleNavClick(e, sub.href)}
+                              className={`block px-4 py-2.5 rounded-lg text-sm sm:text-base transition-colors leading-snug ${isWhiteNav
                                   ? 'text-slate-800 hover:bg-slate-100 hover:text-cyan-accent font-medium'
                                   : 'text-slate-200 hover:bg-white/15 hover:text-sky-300'
                                 }`}
@@ -250,11 +284,12 @@ export default function Navbar() {
         {mobileMenuOpen && (
           <div className={`lg:hidden mt-4 pt-4 border-t space-y-2 ${isWhiteNav ? 'border-slate-200' : 'border-white/20'
             }`}>
-            {NAV_ITEMS.map((item) => (
+            {navItems.map((item) => (
               <div key={item.name} className="space-y-1">
                 <Link
                   href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
+                  scroll={true}
+                  onClick={(e) => handleNavClick(e, item.href, true)}
                   className={`flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium transition-colors ${isWhiteNav ? 'text-oxford hover:bg-slate-100' : 'text-white hover:bg-white/20'
                     }`}
                 >
@@ -272,9 +307,10 @@ export default function Navbar() {
                     }`}>
                     {item.dropdown.map((sub) => (
                       <Link
-                        key={sub.name}
+                        key={`mobile-${sub.name}-${sub.href}`}
                         href={sub.href}
-                        onClick={() => setMobileMenuOpen(false)}
+                        scroll={true}
+                        onClick={(e) => handleNavClick(e, sub.href, true)}
                         className={`block px-3 py-2 rounded-lg text-sm transition-colors ${isWhiteNav ? 'text-slate-700 hover:text-cyan-accent' : 'text-slate-200 hover:text-white'
                           }`}
                       >

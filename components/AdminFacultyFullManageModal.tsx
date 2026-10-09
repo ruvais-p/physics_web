@@ -121,6 +121,7 @@ interface StudentItem {
   name: string;
   description: string | null;
   image: string | null;
+  expiryDate?: string | null;
   createdAt: string;
 }
 
@@ -264,6 +265,7 @@ export default function AdminFacultyFullManageModal({
   const [editingStudent, setEditingStudent] = useState<StudentItem | null>(null);
   const [studentName, setStudentName] = useState('');
   const [studentDescription, setStudentDescription] = useState('');
+  const [studentExpiryDate, setStudentExpiryDate] = useState('');
   const [selectedStudentImageFile, setSelectedStudentImageFile] = useState<File | null>(null);
   const [studentImagePreviewUrl, setStudentImagePreviewUrl] = useState<string | null>(null);
   const [deleteStudentImageFlag, setDeleteStudentImageFlag] = useState(false);
@@ -580,6 +582,7 @@ export default function AdminFacultyFullManageModal({
       setEditingStudent(student);
       setStudentName(student.name);
       setStudentDescription(student.description || '');
+      setStudentExpiryDate(student.expiryDate ? student.expiryDate.slice(0, 10) : '');
       setSelectedStudentImageFile(null);
       setStudentImagePreviewUrl(student.image || null);
       setDeleteStudentImageFlag(false);
@@ -587,6 +590,7 @@ export default function AdminFacultyFullManageModal({
       setEditingStudent(null);
       setStudentName('');
       setStudentDescription('');
+      setStudentExpiryDate('');
       setSelectedStudentImageFile(null);
       setStudentImagePreviewUrl(null);
       setDeleteStudentImageFlag(false);
@@ -610,6 +614,7 @@ export default function AdminFacultyFullManageModal({
       const formData = new FormData();
       formData.append('name', studentName.trim());
       formData.append('description', studentDescription.trim());
+      formData.append('expiryDate', studentExpiryDate);
       if (selectedStudentImageFile) formData.append('image', selectedStudentImageFile);
       if (deleteStudentImageFlag) formData.append('deleteImage', 'true');
 
@@ -1475,9 +1480,21 @@ export default function AdminFacultyFullManageModal({
                               </div>
                             )}
                             <div>
-                              <div className="text-xs font-bold text-slate-900">{st.name}</div>
+                              <div className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                <span>{st.name}</span>
+                                {st.expiryDate && new Date(st.expiryDate) < new Date() && (
+                                  <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded font-medium">
+                                    Expired
+                                  </span>
+                                )}
+                              </div>
                               {st.description && (
                                 <div className="text-[11px] text-slate-500 line-clamp-1">{st.description}</div>
+                              )}
+                              {st.expiryDate && (
+                                <div className="text-[10px] text-slate-400">
+                                  Expiry: {new Date(st.expiryDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                </div>
                               )}
                             </div>
                           </div>
@@ -1741,6 +1758,19 @@ export default function AdminFacultyFullManageModal({
                   placeholder="e.g. Ph.D. Scholar working on Quantum Photonics..."
                   className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Tenure Expiry Date (Optional)</label>
+                <input
+                  type="date"
+                  value={studentExpiryDate}
+                  onChange={(e) => setStudentExpiryDate(e.target.value)}
+                  className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-slate-900 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <p className="text-[10px] text-slate-500 mt-1">
+                  After this date, the scholar is hidden from the main Research Scholars page, but remains listed on this faculty profile.
+                </p>
               </div>
 
               <div>
@@ -2067,6 +2097,8 @@ export default function AdminFacultyFullManageModal({
                     <option value="Conference Paper">Conference Paper</option>
                     <option value="Book Chapter">Book Chapter</option>
                     <option value="Preprint">Preprint</option>
+                    <option value="Patent">Patent</option>
+                    <option value="Popular Article">Popular Article</option>
                   </select>
                 </div>
               </div>

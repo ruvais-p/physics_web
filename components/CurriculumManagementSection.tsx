@@ -13,9 +13,10 @@ import {
   AlertCircle,
   RefreshCw,
   Clock,
-  Layers,
   GraduationCap,
   FileCheck2,
+  ArrowUpDown,
+  GripVertical,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 
@@ -56,6 +58,7 @@ interface CourseItem {
   eligibility?: string;
   description: string;
   highlights?: string[];
+  sortOrder?: number;
   schemes: SchemeItem[];
 }
 
@@ -74,9 +77,17 @@ export default function CurriculumManagementSection() {
     duration: '',
     eligibility: '',
     description: '',
+    sortOrder: 1,
   });
   const [savingCourse, setSavingCourse] = useState(false);
   const [courseError, setCourseError] = useState<string | null>(null);
+
+  // Reorder & Drag-and-Drop state
+  const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
+  const [orderedCourses, setOrderedCourses] = useState<CourseItem[]>([]);
+  const [savingReorder, setSavingReorder] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // Scheme Modal state
   const [isSchemeModalOpen, setIsSchemeModalOpen] = useState(false);
@@ -138,6 +149,7 @@ export default function CurriculumManagementSection() {
       duration: '2 Years (4 Semesters)',
       eligibility: '',
       description: '',
+      sortOrder: courses.length + 1,
     });
     setIsCourseModalOpen(true);
   };
@@ -152,6 +164,7 @@ export default function CurriculumManagementSection() {
       duration: course.duration,
       eligibility: course.eligibility || '',
       description: course.description || '',
+      sortOrder: course.sortOrder || (courses.findIndex((c) => c.id === course.id) + 1),
     });
     setIsCourseModalOpen(true);
   };
@@ -190,6 +203,7 @@ export default function CurriculumManagementSection() {
           duration: courseFormData.duration.trim(),
           eligibility: courseFormData.eligibility.trim(),
           description: courseFormData.description.trim(),
+          sortOrder: courseFormData.sortOrder,
         }),
       });
 
@@ -202,6 +216,12 @@ export default function CurriculumManagementSection() {
 
       setSuccessMsg(isEdit ? 'Course details updated successfully!' : 'New course created successfully!');
       setIsCourseModalOpen(false);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('courses-updated'));
+        try {
+          localStorage.setItem('physics_courses_updated', Date.now().toString());
+        } catch {}
+      }
       await fetchCoursesAndSchemes();
       if (data.course?.id) {
         setSelectedCourseId(data.course.id);
@@ -215,6 +235,87 @@ export default function CurriculumManagementSection() {
     }
   };
 
+  // ------------------------------------------------------------------
+  // DRAG-AND-DROP REORDER HANDLERS (MODAL)
+  // ------------------------------------------------------------------
+  const openReorderModal = () => {
+    setOrderedCourses([...courses]);
+    setIsReorderModalOpen(true);
+  };
+
+  // Modal Drag-and-Drop
+  const handleModalDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleModalDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleModalDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const updatedList = [...orderedCourses];
+    const [draggedItem] = updatedList.splice(draggedIndex, 1);
+    updatedList.splice(targetIndex, 0, draggedItem);
+
+    setOrderedCourses(updatedList);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleModalDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleSaveReorder = async () => {
+    setSavingReorder(true);
+    try {
+      const itemsToUpdate = orderedCourses.map((c, idx) => ({
+        id: c.id,
+        sortOrder: idx + 1,
+      }));
+
+      const res = await fetch('/api/courses/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: itemsToUpdate }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to reorder programmes');
+      }
+
+      setSuccessMsg('Programme sequence updated successfully!');
+      setIsReorderModalOpen(false);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('courses-updated'));
+        try {
+          localStorage.setItem('physics_courses_updated', Date.now().toString());
+        } catch {}
+      }
+      await fetchCoursesAndSchemes();
+      setTimeout(() => setSuccessMsg(null), 4000);
+    } catch (err: any) {
+      console.error('Error reordering courses:', err);
+      alert(err.message || 'Failed to save programme sequence.');
+    } finally {
+      setSavingReorder(false);
+    }
+  };
+
   const handleDeleteCourse = async () => {
     if (!deletingCourseId) return;
     setIsDeletingCourse(true);
@@ -225,6 +326,12 @@ export default function CurriculumManagementSection() {
       if (res.ok) {
         setSuccessMsg('Course deleted successfully.');
         setDeletingCourseId(null);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('courses-updated'));
+          try {
+            localStorage.setItem('physics_courses_updated', Date.now().toString());
+          } catch {}
+        }
         await fetchCoursesAndSchemes();
         setTimeout(() => setSuccessMsg(null), 4000);
       } else {
@@ -377,6 +484,15 @@ export default function CurriculumManagementSection() {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
           <Button
+            variant="outline"
+            onClick={openReorderModal}
+            className="flex items-center gap-2 py-3 px-4 font-semibold rounded-xl border-slate-300 text-slate-800 hover:bg-slate-100 transition-all text-sm cursor-pointer shadow-2xs"
+            title="Set programme sequence"
+          >
+            <ArrowUpDown className="w-4 h-4 text-cyan-600" />
+            <span>Reorder Programmes</span>
+          </Button>
+          <Button
             variant="default"
             onClick={openAddCourseModal}
             className="flex items-center gap-2 py-3 px-5 font-semibold rounded-xl shadow-xs transition-all text-base cursor-pointer"
@@ -399,19 +515,19 @@ export default function CurriculumManagementSection() {
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3 pt-1">
         {courses.map((course) => {
           const isActive = selectedCourseId === course.id;
+
           return (
             <button
               key={course.id}
               type="button"
               onClick={() => setSelectedCourseId(course.id)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer border ${
                 isActive
-                  ? 'bg-oxford text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+                  ? 'bg-oxford text-white border-oxford shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 border-slate-200/60'
               }`}
             >
-              <Layers className="w-4 h-4" />
-              <span>{course.title || course.id}</span>
+              {course.title || course.id}
             </button>
           );
         })}
@@ -905,6 +1021,98 @@ export default function CurriculumManagementSection() {
               disabled={isDeletingScheme}
             >
               {isDeletingScheme ? 'Deleting...' : 'Delete Scheme'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ========================================================= */}
+      {/* MODAL 5: REORDER PROGRAMMES SEQUENCE */}
+      {/* ========================================================= */}
+      <Dialog open={isReorderModalOpen} onOpenChange={setIsReorderModalOpen}>
+        <DialogContent className="max-w-xl bg-white border border-slate-200 p-6 rounded-2xl shadow-xl text-slate-900">
+          <DialogHeader className="border-b border-slate-100 pb-3">
+            <DialogTitle className="text-xl font-serif font-bold text-slate-900 flex items-center gap-2">
+              <GripVertical className="w-5 h-5 text-oxford" />
+              <span>Drag &amp; Drop Programme Order</span>
+            </DialogTitle>
+            <DialogDescription className="text-slate-500 text-sm">
+              Click and drag any programme card up or down to set the exact display sequence for the public website.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2.5 py-4 max-h-[60vh] overflow-y-auto">
+            {orderedCourses.map((c, index) => {
+              const isDragging = draggedIndex === index;
+              const isDragOver = dragOverIndex === index && draggedIndex !== index;
+
+              return (
+                <div
+                  key={c.id}
+                  draggable
+                  onDragStart={(e) => handleModalDragStart(e, index)}
+                  onDragOver={(e) => handleModalDragOver(e, index)}
+                  onDrop={(e) => handleModalDrop(e, index)}
+                  onDragEnd={handleModalDragEnd}
+                  className={`flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-grab active:cursor-grabbing select-none ${
+                    isDragging
+                      ? 'opacity-40 bg-slate-200 border-2 border-dashed border-oxford scale-[0.98]'
+                      : isDragOver
+                      ? 'border-2 border-cyan-500 bg-cyan-50 shadow-md scale-[1.01]'
+                      : 'bg-slate-50 hover:bg-slate-100/90 border-slate-200 shadow-2xs'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-1 text-slate-400 hover:text-oxford">
+                      <GripVertical className="w-5 h-5" />
+                    </div>
+                    <div className="w-8 h-8 rounded-lg bg-oxford text-white flex items-center justify-center font-bold font-mono text-xs shrink-0">
+                      #{index + 1}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-900 leading-snug">{c.title}</h4>
+                      <div className="flex items-center gap-2 text-xs text-slate-500 pt-0.5">
+                        <span className="font-semibold text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded border border-cyan-100">
+                          {c.level}
+                        </span>
+                        <span>•</span>
+                        <span>{c.duration}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <span className="text-xs text-slate-400 font-medium hidden sm:inline-block pr-2">
+                    Drag to move
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          <DialogFooter className="border-t border-slate-100 pt-4 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsReorderModalOpen(false)}
+              disabled={savingReorder}
+              className="cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSaveReorder}
+              disabled={savingReorder}
+              className="bg-oxford hover:bg-slate-800 text-white font-semibold cursor-pointer"
+            >
+              {savingReorder ? (
+                <span className="flex items-center gap-1.5">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Saving Order...</span>
+                </span>
+              ) : (
+                'Save Sequence'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

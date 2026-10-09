@@ -39,27 +39,8 @@ export default function AnnouncementsPageClient({
       />
 
       {/* Main Container */}
-      <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-14">
+      <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 py-10 sm:py-14">
         <div className="space-y-8">
-
-          {/* Section Heading & Overview */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-slate-200">
-            <div className="space-y-3">
-              <div className="w-14 h-1 bg-cyan-accent rounded-full" />
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-oxford tracking-tight">
-                Official Department Notices
-              </h2>
-              <p className="text-slate-600 max-w-2xl text-base sm:text-lg font-sans">
-                Browse through all current circulars, academic notifications, admission bulletins, and administrative updates.
-              </p>
-            </div>
-
-            {/* Total Count Badge */}
-            <div className="flex items-center gap-2 text-sm font-semibold text-slate-600 bg-white border border-slate-200/80 px-4 py-2.5 rounded-xl shadow-xs self-start md:self-auto">
-              <Bell className="w-4 h-4 text-cyan-accent" />
-              <span>{announcements.length} {announcements.length === 1 ? 'Notice' : 'Notices'}</span>
-            </div>
-          </div>
 
           {/* Announcements List */}
           {announcements.length > 0 ? (

@@ -63,7 +63,11 @@ import {
   Newspaper,
   Sparkles,
   Radio,
+  Briefcase,
 } from 'lucide-react';
+const AdminStaffManagementSection = dynamic(
+  () => import('@/components/AdminStaffManagementSection'),
+);
 const AdminFacultyFullManageModal = dynamic(
   () => import('@/components/AdminFacultyFullManageModal'),
 );
@@ -267,6 +271,7 @@ interface StudentItem {
   name: string;
   description: string | null;
   image: string | null;
+  expiryDate?: string | null;
   createdAt: string;
 }
 
@@ -1044,6 +1049,7 @@ export default function UnifiedDashboardPage() {
   const [editingStudent, setEditingStudent] = useState<StudentItem | null>(null);
   const [studentName, setStudentName] = useState('');
   const [studentDescription, setStudentDescription] = useState('');
+  const [studentExpiryDate, setStudentExpiryDate] = useState('');
   const [selectedStudentImageFile, setSelectedStudentImageFile] = useState<File | null>(null);
   const [studentImagePreviewUrl, setStudentImagePreviewUrl] = useState<string | null>(null);
   const [deleteStudentImageFlag, setDeleteStudentImageFlag] = useState(false);
@@ -2165,6 +2171,7 @@ export default function UnifiedDashboardPage() {
       setEditingStudent(student);
       setStudentName(student.name);
       setStudentDescription(student.description || '');
+      setStudentExpiryDate(student.expiryDate ? student.expiryDate.slice(0, 10) : '');
       setSelectedStudentImageFile(null);
       setStudentImagePreviewUrl(student.image || null);
       setDeleteStudentImageFlag(false);
@@ -2172,6 +2179,7 @@ export default function UnifiedDashboardPage() {
       setEditingStudent(null);
       setStudentName('');
       setStudentDescription('');
+      setStudentExpiryDate('');
       setSelectedStudentImageFile(null);
       setStudentImagePreviewUrl(null);
       setDeleteStudentImageFlag(false);
@@ -2202,6 +2210,7 @@ export default function UnifiedDashboardPage() {
       const formData = new FormData();
       formData.append('name', studentName.trim());
       formData.append('description', studentDescription.trim());
+      formData.append('expiryDate', studentExpiryDate);
 
       if (selectedStudentImageFile) {
         formData.append('image', selectedStudentImageFile);
@@ -2412,6 +2421,16 @@ export default function UnifiedDashboardPage() {
                 <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
                   {facultyList.length}
                 </Badge>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="staff"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <Briefcase className="w-4 h-4" />
+                  <span>Office Staff</span>
+                </div>
               </TabsTrigger>
 
               <TabsTrigger
@@ -3488,6 +3507,11 @@ export default function UnifiedDashboardPage() {
                 </Table>
               )}
             </div>
+          </TabsContent>
+
+          {/* OFFICE STAFF MANAGEMENT TAB */}
+          <TabsContent value="staff" className="space-y-10 animate-fadeIn mt-0">
+            <AdminStaffManagementSection />
           </TabsContent>
 
           {/* EVENTS MANAGEMENT TAB */}
@@ -4929,8 +4953,20 @@ export default function UnifiedDashboardPage() {
                       )}
                     </div>
                     <div className="space-y-1 flex-1 pr-6 font-serif">
-                      <p className="text-base font-bold text-slate-900">{st.name}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="text-base font-bold text-slate-900">{st.name}</p>
+                        {st.expiryDate && new Date(st.expiryDate) < new Date() && (
+                          <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-800 border-amber-200">
+                            Expired
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-600 line-clamp-2 font-sans">{st.description || 'Research Scholar'}</p>
+                      {st.expiryDate && (
+                        <p className="text-[10px] text-slate-400 font-sans">
+                          Expiry: {new Date(st.expiryDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </p>
+                      )}
                     </div>
                     <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1">
                       <button onClick={() => openStudentModal(st)} className="p-1 text-slate-500 hover:text-slate-900" title="Edit Scholar">
@@ -6078,6 +6114,19 @@ export default function UnifiedDashboardPage() {
               />
             </div>
 
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">Tenure Expiry Date (Optional)</label>
+              <Input
+                type="date"
+                value={studentExpiryDate}
+                onChange={(e) => setStudentExpiryDate(e.target.value)}
+                className="w-full text-sm font-sans"
+              />
+              <p className="text-[11px] text-slate-500 font-sans">
+                After this date, the scholar is hidden from the main Research Scholars directory, but remains listed on your faculty profile.
+              </p>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700">Scholar Photo (Optional)</label>
               <input
@@ -6298,6 +6347,8 @@ export default function UnifiedDashboardPage() {
                     <SelectItem value="Conference Paper">Conference Paper</SelectItem>
                     <SelectItem value="Book Chapter">Book Chapter</SelectItem>
                     <SelectItem value="Preprint">Preprint</SelectItem>
+                    <SelectItem value="Patent">Patent</SelectItem>
+                    <SelectItem value="Popular Article">Popular Article</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

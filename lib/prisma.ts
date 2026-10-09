@@ -10,16 +10,33 @@ function hasCurrentSchema(client: PrismaClient): boolean {
   const hasModels = Boolean(
     runtimeClient.pageHero &&
     runtimeClient.news &&
-    runtimeClient.award
+    runtimeClient.award &&
+    runtimeClient.staff
   );
 
   const runtimeDataModel = (client as unknown as {
-    _runtimeDataModel?: { models?: { Faculty?: { fields?: Array<{ name: string }> } } };
+    _runtimeDataModel?: {
+      models?: {
+        Faculty?: { fields?: Array<{ name: string }> };
+        FacultyStudent?: { fields?: Array<{ name: string }> };
+        ResearchLab?: { fields?: Array<{ name: string }> };
+        Facility?: { fields?: Array<{ name: string }> };
+      };
+    };
   })._runtimeDataModel;
   const facultyFields = runtimeDataModel?.models?.Faculty?.fields?.map((f) => f.name) || [];
   const hasFacultyFields = facultyFields.includes('qualification') && facultyFields.includes('room');
 
-  return hasModels && hasFacultyFields;
+  const studentFields = runtimeDataModel?.models?.FacultyStudent?.fields?.map((f) => f.name) || [];
+  const hasStudentFields = studentFields.includes('expiryDate');
+
+  const labFields = runtimeDataModel?.models?.ResearchLab?.fields?.map((f) => f.name) || [];
+  const hasLabSortOrder = labFields.includes('sortOrder');
+
+  const facilityFields = runtimeDataModel?.models?.Facility?.fields?.map((f) => f.name) || [];
+  const hasFacilitySortOrder = facilityFields.includes('sortOrder');
+
+  return hasModels && hasFacultyFields && hasStudentFields && hasLabSortOrder && hasFacilitySortOrder;
 }
 
 const cachedPrisma = globalForPrisma.prisma;

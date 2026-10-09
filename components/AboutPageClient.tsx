@@ -202,13 +202,9 @@ export default function AboutPageClient({
             {/* Quick Navigation / Discover More Section */}
             <div className="pt-16 border-t border-slate-200 mt-16 space-y-8 font-sans">
               <div className="space-y-2 text-left">
-
                 <h3 className="font-serif text-2xl sm:text-3xl font-extrabold text-oxford">
-                  Discover More at Physics CUSAT
+                  Explore Our Department
                 </h3>
-                <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
-                  Explore our research frontiers, meet our academic community, and stay updated with upcoming scientific lectures and workshops.
-                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">

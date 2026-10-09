@@ -30,7 +30,21 @@ export interface Scholar {
   joiningYear?: number;
   email?: string;
   image: string;
+  expiryDate?: string | null;
   type: 'scholar';
+}
+
+export interface StaffMember {
+  id: string;
+  name: string;
+  designation: string;
+  email?: string;
+  phone?: string;
+  room?: string;
+  image?: string;
+  sortOrder: number;
+  isActive: boolean;
+  type?: 'staff';
 }
 
 export interface Course {
@@ -45,6 +59,7 @@ export interface Course {
   highlights: string[];
   syllabus: { semester: string; subjects: string[] }[];
   fees: string;
+  sortOrder?: number;
 }
 
 export interface ResearchLab {
@@ -93,6 +108,8 @@ export interface Publication {
   citations: number;
   category: string;
   abstract: string;
+  date?: string | null;
+  externalLink?: string | null;
 }
 
 export const DEPARTMENT_STATS = [
@@ -440,6 +457,52 @@ export const COURSES: Course[] = [
       { semester: 'Final Phase', subjects: ['Pre-Synopsis Defense', 'Thesis Submission & Open Defense Viva-Voce'] },
     ],
     fees: '₹8,200 per semester + Laboratory Bench Fees',
+    sortOrder: 3,
+  },
+  {
+    id: 'c4',
+    title: 'M.Tech. in Advanced Materials & Nanotechnology',
+    code: 'PHY-MTECH-201',
+    level: 'MTech',
+    duration: '2 Years (4 Semesters)',
+    intake: 18,
+    eligibility: 'B.Tech. in Nanotechnology/Material Science or M.Sc. in Physics/Applied Physics with minimum 60% marks and valid GATE score.',
+    description: 'An interdisciplinary technological postgraduate programme designed to bridge fundamental condensed matter physics with modern semiconductor fabrication, 2D quantum materials, and industrial nanodevices.',
+    highlights: [
+      'Hands-on cleanroom semiconductor fabrication experience',
+      'Industry internships at leading semiconductor and nano-foundries',
+      'Advanced training in electron microscopy and thin-film spectroscopy',
+      'Choice of specialized electives in quantum computing hardware & photovoltaics',
+    ],
+    syllabus: [
+      { semester: 'Semester 1', subjects: ['Solid State Devices', 'Nanoscale Physics', 'Synthesis of Advanced Materials', 'Cleanroom Lab I'] },
+      { semester: 'Semester 2', subjects: ['Quantum Materials', 'Nanophotonics', 'Characterization Techniques (TEM/AFM/XRD)', 'Advanced Simulation Lab'] },
+      { semester: 'Semesters 3 & 4', subjects: ['Industrial Internship', 'M.Tech Research Thesis & Defense'] },
+    ],
+    fees: '₹25,000 per semester',
+    sortOrder: 4,
+  },
+  {
+    id: 'c5',
+    title: 'PG Diploma in Scientific Instrumentation & Computational Modeling',
+    code: 'PHY-PGD-301',
+    level: 'Diploma',
+    duration: '1 Year (2 Semesters)',
+    intake: 15,
+    eligibility: 'Graduate degree in Science or Engineering with Physics / Electronics / Mathematics as core subject with minimum 50% marks.',
+    description: 'A career-focused professional programme providing rigorous practical training in high-end analytical equipment operation (XRD, AFM, SEM), lab automation, Python data science, and computational physics simulations.',
+    highlights: [
+      'Intensive laboratory hands-on training with departmental research facilities',
+      'Automation using LabVIEW, Python, and microcontroller interfaces',
+      'Certification for laboratory scientific officer and technical manager roles',
+      'Collaborative capstone industry project',
+    ],
+    syllabus: [
+      { semester: 'Semester 1', subjects: ['Precision Measurement & Sensors', 'Analytical Spectroscopy', 'Lab Automation with Python & LabVIEW'] },
+      { semester: 'Semester 2', subjects: ['Microscopy & Diffraction Analysis', 'Computational Data Analysis', 'Hands-on Instrumentation Capstone Project'] },
+    ],
+    fees: '₹15,000 total',
+    sortOrder: 5,
   },
 ];
 

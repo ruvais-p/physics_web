@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Hero from '@/components/Hero';
 import CourseCard, { CourseWithSchemes } from '@/components/CourseCard';
 import { COURSES } from '@/lib/data';
+import { getCourseNavInfo, getCourseOrderFallback } from '@/lib/nav-programmes';
 
 interface CoursesPageClientProps {
   courses: CourseWithSchemes[];
@@ -11,49 +12,36 @@ interface CoursesPageClientProps {
 }
 
 export default function CoursesPageClient({ courses, heroData }: CoursesPageClientProps) {
-  const getCourseOrder = (course: CourseWithSchemes) => {
-    const text = `${course.id} ${course.level} ${course.title} ${course.code}`.toLowerCase();
-    if (text.includes('phd') || text.includes('ph.d') || text.includes('doctor') || course.id === 'c2') return 1;
-    if (text.includes('msc') || text.includes('m.sc') || text.includes('master') || course.id === 'c1') return 2;
-    if (text.includes('integrated') || text.includes('int') || course.id === 'c3') return 3;
-    return 4;
-  };
-
   const rawCourses = courses.length > 0 ? courses : COURSES;
-  const dynamicCourses = [...rawCourses].sort((a, b) => getCourseOrder(a) - getCourseOrder(b));
+  const dynamicCourses = [...rawCourses].sort((a, b) => {
+    if ((a.sortOrder ?? 0) !== (b.sortOrder ?? 0)) {
+      return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+    }
+    return getCourseOrderFallback(a) - getCourseOrderFallback(b);
+  });
 
   const [activeCourseId, setActiveCourseId] = useState<string>(dynamicCourses[0]?.id || 'c2');
 
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.toLowerCase();
+      const hash = window.location.hash;
       if (!hash) return;
 
-      if (hash.includes('phd')) {
-        const c = dynamicCourses.find(
-          (item) => item.id === 'c2' || item.level?.toLowerCase().includes('phd') || item.title?.toLowerCase().includes('ph.d')
+      const cleanHash = decodeURIComponent(hash.replace(/^#/, '')).trim().toLowerCase();
+      if (!cleanHash) return;
+
+      const matched = dynamicCourses.find((c) => {
+        const info = getCourseNavInfo(c);
+        return (
+          c.id.toLowerCase() === cleanHash ||
+          c.code?.toLowerCase() === cleanHash ||
+          info.hash.toLowerCase() === cleanHash ||
+          c.title.toLowerCase().includes(cleanHash)
         );
-        if (c) setActiveCourseId(c.id);
-      } else if (hash.includes('integrated')) {
-        const c = dynamicCourses.find(
-          (item) => item.id === 'c3' || item.level?.toLowerCase().includes('integrated') || item.title?.toLowerCase().includes('integrated')
-        );
-        if (c) setActiveCourseId(c.id);
-      } else if (hash.includes('msc')) {
-        const c = dynamicCourses.find(
-          (item) =>
-            item.id === 'c1' ||
-            ((item.level?.toLowerCase().includes('msc') || item.title?.toLowerCase().includes('m.sc')) &&
-              !item.level?.toLowerCase().includes('integrated') &&
-              !item.title?.toLowerCase().includes('integrated'))
-        );
-        if (c) setActiveCourseId(c.id);
-      } else {
-        const rawId = hash.replace('#', '');
-        const matched = dynamicCourses.find((c) => c.id.toLowerCase() === rawId.toLowerCase());
-        if (matched) {
-          setActiveCourseId(matched.id);
-        }
+      });
+
+      if (matched) {
+        setActiveCourseId(matched.id);
       }
     };
 
@@ -72,8 +60,8 @@ export default function CoursesPageClient({ courses, heroData }: CoursesPageClie
     <div className="relative font-sans bg-[#F8F9FB] min-h-screen pb-20">
       {/* Standard Hero header matching other pages */}
       <Hero
-        title={heroData?.title || 'ACADEMIC PROGRAMS'}
-        badge="HOME > COURSES"
+        title={heroData?.title || 'ACADEMIC PROGRAMMES'}
+        badge="HOME > PROGRAMMES"
         subtitle={heroData?.subtitle || ''}
         bgImage={heroData?.image || '/campus.jpg'}
       />
@@ -83,35 +71,7 @@ export default function CoursesPageClient({ courses, heroData }: CoursesPageClie
         <div className="inline-flex flex-wrap items-center justify-center gap-1.5 p-1.5 bg-white/95 backdrop-blur-xl border border-cyan-accent/30 shadow-lg rounded-2xl sm:rounded-3xl">
           {dynamicCourses.map((course) => {
             const isActive = activeCourseId === course.id;
-            const isIntegrated =
-              course.id === 'c3' ||
-              course.level?.toLowerCase().includes('integrated') ||
-              course.title?.toLowerCase().includes('integrated');
-            const isPhd =
-              course.id === 'c2' ||
-              course.level?.toLowerCase().includes('phd') ||
-              course.title?.toLowerCase().includes('ph.d');
-            const isMsc =
-              !isIntegrated &&
-              (course.id === 'c1' ||
-                course.level?.toLowerCase().includes('msc') ||
-                course.title?.toLowerCase().includes('m.sc'));
-
-            const buttonLabel = isPhd
-              ? 'Ph.D. Program'
-              : isMsc
-              ? 'M.Sc. Physics'
-              : isIntegrated
-              ? 'Integrated M.Sc.'
-              : course.title;
-
-            const hashLink = isPhd
-              ? '#phd'
-              : isMsc
-              ? '#msc'
-              : isIntegrated
-              ? '#integrated'
-              : `#${course.id}`;
+            const navInfo = getCourseNavInfo(course);
 
             return (
               <button
@@ -119,7 +79,7 @@ export default function CoursesPageClient({ courses, heroData }: CoursesPageClie
                 type="button"
                 onClick={() => {
                   setActiveCourseId(course.id);
-                  window.history.pushState(null, '', hashLink);
+                  window.history.pushState(null, '', `#${navInfo.hash}`);
                 }}
                 className={`px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-cyan-accent ${
                   isActive
@@ -127,7 +87,7 @@ export default function CoursesPageClient({ courses, heroData }: CoursesPageClie
                     : 'text-oxford hover:text-cyan-accent hover:bg-slate-50'
                 }`}
               >
-                {buttonLabel}
+                {navInfo.name}
               </button>
             );
           })}

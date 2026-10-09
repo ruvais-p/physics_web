@@ -2,6 +2,7 @@ import CoursesPageClient from '@/components/CoursesPageClient';
 import type { CourseWithSchemes } from '@/components/CourseCard';
 import { prisma } from '@/lib/prisma';
 import { getPageHero } from '@/lib/page-hero';
+import { getCourseOrderFallback } from '@/lib/nav-programmes';
 
 export const revalidate = 300;
 
@@ -27,26 +28,19 @@ export default async function CoursesPage() {
         eligibility: true,
         description: true,
         highlights: true,
+        sortOrder: true,
         schemes: {
           select: { id: true, year: true, scheme: true, pdfUrl: true, sortOrder: true },
           orderBy: { sortOrder: 'asc' },
         },
       },
-      orderBy: { id: 'asc' },
+      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
     }).catch((error) => {
       console.error('Failed to fetch courses:', error);
       return [];
     }),
     getPageHero('courses'),
   ]);
-
-  const getCourseOrder = (course: { id: string; level?: string | null; title?: string | null; code?: string | null }) => {
-    const text = `${course.id} ${course.level || ''} ${course.title || ''} ${course.code || ''}`.toLowerCase();
-    if (text.includes('phd') || text.includes('ph.d') || text.includes('doctor') || course.id === 'c2') return 1;
-    if (text.includes('msc') || text.includes('m.sc') || text.includes('master') || course.id === 'c1') return 2;
-    if (text.includes('integrated') || text.includes('int') || course.id === 'c3') return 3;
-    return 4;
-  };
 
   courses = records
     .map((course) => ({
@@ -55,8 +49,14 @@ export default async function CoursesPage() {
       intake: course.intake || 0,
       fees: course.fees || '',
       eligibility: course.eligibility || '',
+      sortOrder: course.sortOrder ?? 0,
     }))
-    .sort((a, b) => getCourseOrder(a) - getCourseOrder(b));
+    .sort((a, b) => {
+      if ((a.sortOrder ?? 0) !== (b.sortOrder ?? 0)) {
+        return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+      }
+      return getCourseOrderFallback(a) - getCourseOrderFallback(b);
+    });
 
   return <CoursesPageClient courses={courses} heroData={heroData} />;
 }

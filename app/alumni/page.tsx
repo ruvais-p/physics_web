@@ -22,7 +22,7 @@ export interface AlumniCommitteeMember {
   batch?: string;
 }
 
-export const ALUMNI_COMMITTEE: AlumniCommitteeMember[] = [
+const ALUMNI_COMMITTEE: AlumniCommitteeMember[] = [
   {
     id: 'ac1',
     name: 'Prof. (Dr.) M. R. Anantharaman',
@@ -74,7 +74,7 @@ export interface EndowmentItem {
   description: string;
 }
 
-export const ENDOWMENTS: EndowmentItem[] = [
+const ENDOWMENTS: EndowmentItem[] = [
   {
     id: 'e1',
     title: 'Prof. M. Sabir Endowment',
