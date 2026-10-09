@@ -4,9 +4,6 @@ import React, { useState, useEffect } from 'react';
 import {
   X,
   User,
-  Mail,
-  Lock,
-  KeyRound,
   Globe,
   FileText,
   FlaskConical,
@@ -15,23 +12,9 @@ import {
   Trash2,
   Edit3,
   ExternalLink,
-  Upload,
-  FileCheck,
   Eye,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
-  Bold,
-  Italic,
-  List as ListIcon,
-  Heading,
-  Quote as QuoteIcon,
-  Code,
-  Link as LinkIcon,
-  Users,
-  UserPlus,
-  RefreshCw,
-  Download,
   BookOpen
 } from 'lucide-react';
 
@@ -271,7 +254,6 @@ export default function AdminFacultyFullManageModal({
   const [deleteStudentImageFlag, setDeleteStudentImageFlag] = useState(false);
   const [savingStudent, setSavingStudent] = useState(false);
   const [studentError, setStudentError] = useState<string | null>(null);
-  const [studentSuccess, setStudentSuccess] = useState<string | null>(null);
 
   // Research Projects State
   const [projectsList, setProjectsList] = useState<ProjectItem[]>([]);
@@ -290,7 +272,6 @@ export default function AdminFacultyFullManageModal({
   const [projectOtherFaculty, setProjectOtherFaculty] = useState('');
   const [savingProject, setSavingProject] = useState(false);
   const [projectError, setProjectError] = useState<string | null>(null);
-  const [projectSuccess, setProjectSuccess] = useState<string | null>(null);
 
   // Publications State
   const [publicationsList, setPublicationsList] = useState<PublicationItem[]>([]);
@@ -577,7 +558,6 @@ export default function AdminFacultyFullManageModal({
   // Guided Students Modal & Actions
   const openStudentModal = (student?: StudentItem) => {
     setStudentError(null);
-    setStudentSuccess(null);
     if (student) {
       setEditingStudent(student);
       setStudentName(student.name);
@@ -601,7 +581,6 @@ export default function AdminFacultyFullManageModal({
   const handleSaveStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     setStudentError(null);
-    setStudentSuccess(null);
 
     if (!studentName.trim()) {
       setStudentError('Student name is required.');
@@ -629,9 +608,7 @@ export default function AdminFacultyFullManageModal({
 
       await fetchFacultyFullData();
       setIsStudentModalOpen(false);
-      setStudentSuccess(editingStudent ? 'Student updated!' : 'Student added!');
       onFacultyUpdated();
-      setTimeout(() => setStudentSuccess(null), 2500);
     } catch (err: any) {
       setStudentError(err.message || 'Failed to save student.');
     } finally {
@@ -657,7 +634,6 @@ export default function AdminFacultyFullManageModal({
   // Research Projects Modal & Actions
   const openProjectModal = (project?: ProjectItem) => {
     setProjectError(null);
-    setProjectSuccess(null);
     if (project) {
       setEditingProject(project);
       setProjectTitle(project.title);
@@ -700,7 +676,6 @@ export default function AdminFacultyFullManageModal({
   const handleSaveProject = async (e: React.FormEvent) => {
     e.preventDefault();
     setProjectError(null);
-    setProjectSuccess(null);
 
     if (!projectTitle.trim()) {
       setProjectError('Project Title is required.');
@@ -743,9 +718,7 @@ export default function AdminFacultyFullManageModal({
 
       await fetchFacultyFullData();
       setIsProjectModalOpen(false);
-      setProjectSuccess(editingProject ? 'Research project updated!' : 'Research project added!');
       onFacultyUpdated();
-      setTimeout(() => setProjectSuccess(null), 2500);
     } catch (err: any) {
       setProjectError(err.message || 'Failed to save research project.');
     } finally {
@@ -929,7 +902,7 @@ export default function AdminFacultyFullManageModal({
                 : 'border-transparent text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <BookOpen className="w-3.5 h-3.5" />
             <span>Markdown Bio</span>
           </button>
           <button
@@ -1787,6 +1760,11 @@ export default function AdminFacultyFullManageModal({
                   }}
                   className="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-2 file:rounded-lg file:border-0 file:bg-indigo-50 file:text-indigo-600 hover:file:bg-indigo-100 cursor-pointer"
                 />
+                {studentImagePreviewUrl && (
+                  <div className="mt-2 w-14 h-14 rounded-lg overflow-hidden border border-slate-200">
+                    <img src={studentImagePreviewUrl} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
               </div>
 
               <div className="pt-3 flex justify-end gap-2 border-t border-slate-200">

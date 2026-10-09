@@ -22,10 +22,10 @@ export default function ResearchDomainsSection({
           <div className="text-center space-y-4 max-w-3xl mx-auto">
             <h2 className="flex flex-col items-center justify-center font-extrabold tracking-tight leading-none text-center">
               <span className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl text-[#0B1E36] font-extrabold block">
-                Research
+                {title.split(' ')[0] || 'Research'}
               </span>
               <span className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl text-[#839763] font-extrabold block -mt-1 sm:-mt-2">
-                Domains
+                {title.split(' ').slice(1).join(' ') || 'Domains'}
               </span>
             </h2>
             <p className="text-slate-600 text-base sm:text-lg lg:text-xl font-normal leading-relaxed pt-2 max-w-2xl mx-auto">

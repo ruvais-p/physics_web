@@ -74,7 +74,7 @@ export async function PUT(request: Request, { params }: Params) {
     if (existingImage.imagePath.startsWith('/uploads/')) {
       try {
         await deleteUploadedFile(existingImage.imagePath, 'events');
-      } catch (err) {
+      } catch {
         console.warn('Could not delete old file:', existingImage.imagePath);
       }
     }
@@ -119,7 +119,7 @@ export async function DELETE(request: Request, { params }: Params) {
     if (existingImage.imagePath.startsWith('/uploads/')) {
       try {
         await deleteUploadedFile(existingImage.imagePath, 'events');
-      } catch (err) {
+      } catch {
         console.warn('File removal warning:', existingImage.imagePath);
       }
     }

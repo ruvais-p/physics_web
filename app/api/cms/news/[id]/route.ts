@@ -22,7 +22,7 @@ export async function GET(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'News item not found' }, { status: 404 });
     }
     return NextResponse.json(records[0]);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch news item' }, { status: 500 });
   }
 }
@@ -118,7 +118,7 @@ export async function DELETE(request: Request, { params }: Params) {
     await prisma.$queryRaw`DELETE FROM "News" WHERE id = ${id}`;
     revalidatePublicPages();
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to delete news item.' }, { status: 500 });
   }
 }

@@ -4,7 +4,10 @@ import { getAdminSession } from '@/lib/api-auth';
 import { saveImageAsWebp } from '@/lib/image';
 import { sanitizeWebUrl } from '@/lib/url-security';
 import { revalidatePublicPages } from '@/lib/public-cache';
+import { hasPdfSignature } from '@/lib/file-security';
 import { randomUUID } from 'crypto';
+import fs from 'fs/promises';
+import path from 'path';
 
 export async function POST(request: Request) {
   const user = await getAdminSession();
@@ -20,6 +23,7 @@ export async function POST(request: Request) {
     let endDateStr = '';
     let venue: string | null = null;
     let applyLink: string | null = null;
+    let pdfPath: string | null = null;
     let notificationCategory = 'General';
     let imagePath = '';
     let targets: string[] = [];
@@ -61,6 +65,27 @@ export async function POST(request: Request) {
       } else if (imageUrlInput) {
         imagePath = sanitizeWebUrl(imageUrlInput) || '';
       }
+
+      const pdfFile = formData.get('pdf') as File | null;
+      const pdfUrlInput = (formData.get('pdfUrl') as string || '').trim();
+
+      if (pdfFile && pdfFile.size > 0) {
+        if (pdfFile.name.toLowerCase().endsWith('.pdf') || pdfFile.type === 'application/pdf') {
+          const bytes = await pdfFile.arrayBuffer();
+          const buffer = Buffer.from(bytes);
+          if (hasPdfSignature(buffer)) {
+            const timestamp = Date.now();
+            const sanitizedName = path.parse(pdfFile.name).name.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50);
+            const fileName = `notice_${timestamp}_${sanitizedName || 'document'}.pdf`;
+            const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'notifications');
+            await fs.mkdir(uploadDir, { recursive: true });
+            await fs.writeFile(path.join(uploadDir, fileName), buffer);
+            pdfPath = `/uploads/notifications/${fileName}`;
+          }
+        }
+      } else if (pdfUrlInput) {
+        pdfPath = sanitizeWebUrl(pdfUrlInput, true);
+      }
     } else {
       const body = await request.json();
       title = (body.title || '').trim();
@@ -69,6 +94,7 @@ export async function POST(request: Request) {
       endDateStr = (body.endDate || '').trim();
       venue = body.venue ? String(body.venue).trim() : null;
       applyLink = body.apply_link || body.link ? sanitizeWebUrl(body.apply_link || body.link, false) : null;
+      pdfPath = body.pdfUrl ? sanitizeWebUrl(body.pdfUrl, true) : null;
       notificationCategory = body.notificationCategory || body.category || 'General';
       imagePath = sanitizeWebUrl(body.image) || '';
       targets = Array.isArray(body.targets) ? body.targets.map((t: string) => String(t).toLowerCase()) : [];
@@ -103,15 +129,16 @@ export async function POST(request: Request) {
       eventId?: number;
     } = {};
 
-    const willPublishEvent = targets.includes('events') || targets.includes('event');
+    const willPublishTv = targets.includes('display') || targets.includes('tv');
+    const willPublishEvent = targets.includes('events') || targets.includes('event') || willPublishTv;
     const willPublishNews = targets.includes('news');
     const willPublishNotification = targets.includes('notifications') || targets.includes('notification');
 
     // 1. Publish to Events if targeted
     if (willPublishEvent) {
       const eventRows = await prisma.$queryRaw<any[]>`
-        INSERT INTO events (title, description, image, start_date, end_date, venue, apply_link, broadcast_id, created_at, updated_at)
-        VALUES (${title}, ${description}, ${imagePath || '/eventssss.jpg'}, ${eventStartDate}, ${eventEndDate}, ${venue}, ${applyLink}, ${broadcastId}, NOW(), NOW())
+        INSERT INTO events (title, description, image, start_date, end_date, venue, apply_link, brochure, broadcast_id, broadcast_to_tv, created_at, updated_at)
+        VALUES (${title}, ${description}, ${imagePath || '/eventssss.jpg'}, ${eventStartDate}, ${eventEndDate}, ${venue}, ${applyLink}, ${pdfPath}, ${broadcastId}, ${willPublishTv}, NOW(), NOW())
         RETURNING id
       `;
       if (eventRows.length > 0) {
@@ -124,7 +151,7 @@ export async function POST(request: Request) {
       const newsId = randomUUID();
       await prisma.$queryRaw`
         INSERT INTO "News" (id, title, description, image, date, link, "broadcastId", "createdAt", "updatedAt")
-        VALUES (${newsId}, ${title}, ${description}, ${imagePath || null}, ${eventStartDate}, ${applyLink}, ${broadcastId}, NOW(), NOW())
+        VALUES (${newsId}, ${title}, ${description}, ${imagePath || null}, ${eventStartDate}, ${applyLink || pdfPath}, ${broadcastId}, NOW(), NOW())
       `;
       createdSummary.newsId = newsId;
     }
@@ -145,11 +172,16 @@ export async function POST(request: Request) {
         }
       }
 
+      // Mutually exclusive: if a PDF flyer/notice is attached, link is null for notification
+      if (pdfPath) {
+        notifLink = null;
+      }
+
       const notifCategory = notificationCategory || (willPublishEvent ? 'Event' : willPublishNews ? 'News' : 'Notice');
 
       await prisma.$queryRaw`
-        INSERT INTO "Notification" (id, title, content, category, link, "isActive", "broadcastId", date, "createdAt", "updatedAt")
-        VALUES (${notifId}, ${title}, ${description || null}, ${notifCategory}, ${notifLink}, true, ${broadcastId}, ${eventStartDate}, NOW(), NOW())
+        INSERT INTO "Notification" (id, title, content, category, link, "pdfUrl", "isActive", "broadcastId", date, "createdAt", "updatedAt")
+        VALUES (${notifId}, ${title}, ${description || null}, ${notifCategory}, ${notifLink}, ${pdfPath}, true, ${broadcastId}, ${eventStartDate}, NOW(), NOW())
       `;
       createdSummary.notificationId = notifId;
     }

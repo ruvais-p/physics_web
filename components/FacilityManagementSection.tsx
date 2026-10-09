@@ -15,8 +15,9 @@ import {
   ChevronUp,
   ChevronDown,
   Search,
+  GraduationCap,
 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +43,13 @@ interface FacultyOption {
   designation?: string | null;
 }
 
+interface ScholarOption {
+  id: string;
+  name: string;
+  supervisor?: string;
+  description?: string | null;
+}
+
 interface FacilityData {
   id: string;
   name: string;
@@ -49,12 +57,14 @@ interface FacilityData {
   image?: string | null;
   sortOrder?: number;
   faculties?: FacultyOption[];
+  students?: ScholarOption[];
   createdAt?: string;
 }
 
 export default function FacilityManagementSection() {
   const [facilities, setFacilities] = useState<FacilityData[]>([]);
   const [facultyList, setFacultyList] = useState<FacultyOption[]>([]);
+  const [scholarList, setScholarList] = useState<ScholarOption[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Modal states
@@ -66,6 +76,7 @@ export default function FacilityManagementSection() {
     imageFile: null as File | null,
     imageUrl: '',
     selectedFacultyIds: [] as string[],
+    selectedStudentIds: [] as string[],
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -183,22 +194,45 @@ export default function FacilityManagementSection() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [facilitiesRes, facultyRes] = await Promise.all([
+      const [facilitiesRes, facultyRes, scholarsRes] = await Promise.all([
         fetch('/api/facilities'),
         fetch('/api/public/faculty'),
+        fetch('/api/public/scholars'),
       ]);
 
       if (facilitiesRes.ok) {
         const data = await facilitiesRes.json();
-        setFacilities(data || []);
+        setFacilities(
+          (data || []).map((fac: any) => ({
+            ...fac,
+            students: (fac.students || []).map((s: any) => ({
+              id: s.uid || s.id,
+              name: s.name,
+              supervisor: s.faculty?.name || s.supervisor,
+              description: s.description,
+            })),
+          }))
+        );
       }
 
       if (facultyRes.ok) {
         const fData = await facultyRes.json();
         setFacultyList(fData.map((f: any) => ({ id: f.id, name: f.name, designation: f.designation })));
       }
+
+      if (scholarsRes.ok) {
+        const sData = await scholarsRes.json();
+        setScholarList(
+          (sData || []).map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            supervisor: s.supervisor,
+            description: s.description,
+          }))
+        );
+      }
     } catch (err) {
-      console.error('Failed to fetch facilities or faculty:', err);
+      console.error('Failed to fetch facilities, faculty, or scholars:', err);
     } finally {
       setLoading(false);
     }
@@ -217,6 +251,7 @@ export default function FacilityManagementSection() {
       imageFile: null,
       imageUrl: '',
       selectedFacultyIds: [],
+      selectedStudentIds: [],
     });
     setImagePreview(null);
     setIsModalOpen(true);
@@ -231,6 +266,7 @@ export default function FacilityManagementSection() {
       imageFile: null,
       imageUrl: facItem.image || '',
       selectedFacultyIds: facItem.faculties ? facItem.faculties.map((f) => f.id) : [],
+      selectedStudentIds: facItem.students ? facItem.students.map((s: any) => s.id || s.uid) : [],
     });
     setImagePreview(facItem.image || null);
     setIsModalOpen(true);
@@ -248,6 +284,23 @@ export default function FacilityManagementSection() {
         return {
           ...prev,
           selectedFacultyIds: [...prev.selectedFacultyIds, facultyId],
+        };
+      }
+    });
+  };
+
+  const toggleStudentSelection = (studentId: string) => {
+    setFormData((prev) => {
+      const exists = prev.selectedStudentIds.includes(studentId);
+      if (exists) {
+        return {
+          ...prev,
+          selectedStudentIds: prev.selectedStudentIds.filter((id) => id !== studentId),
+        };
+      } else {
+        return {
+          ...prev,
+          selectedStudentIds: [...prev.selectedStudentIds, studentId],
         };
       }
     });
@@ -278,6 +331,7 @@ export default function FacilityManagementSection() {
       payload.append('name', formData.name.trim());
       payload.append('description', formData.description.trim());
       payload.append('facultyIds', JSON.stringify(formData.selectedFacultyIds));
+      payload.append('studentIds', JSON.stringify(formData.selectedStudentIds));
 
       if (formData.imageFile) {
         payload.append('image', formData.imageFile);
@@ -434,7 +488,7 @@ export default function FacilityManagementSection() {
                   <TableHead className="w-32 text-base font-bold">Order</TableHead>
                   <TableHead className="font-bold w-24">Facility Image</TableHead>
                   <TableHead className="font-bold">Facility Name</TableHead>
-                  <TableHead className="font-bold">Faculty In-Charge / Team</TableHead>
+                  <TableHead className="font-bold">Members (Faculty & Scholars)</TableHead>
                   <TableHead className="text-right font-bold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -445,7 +499,8 @@ export default function FacilityManagementSection() {
                     const term = searchTerm.toLowerCase();
                     return (
                       facItem.name.toLowerCase().includes(term) ||
-                      (facItem.faculties || []).some((f) => f.name.toLowerCase().includes(term))
+                      (facItem.faculties || []).some((f) => f.name.toLowerCase().includes(term)) ||
+                      (facItem.students || []).some((s) => s.name.toLowerCase().includes(term))
                     );
                   })
                   .map((facItem, idx) => {
@@ -529,20 +584,37 @@ export default function FacilityManagementSection() {
                           <div className="font-bold text-slate-900 text-base font-serif">{facItem.name}</div>
                         </TableCell>
                         <TableCell className="py-4">
-                          {facItem.faculties && facItem.faculties.length > 0 ? (
-                            <div className="flex flex-wrap gap-1.5">
-                              {facItem.faculties.map((f) => (
-                                <span
-                                  key={f.id}
-                                  className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"
-                                >
-                                  {f.name}
-                                </span>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-slate-400 italic text-xs">No faculty assigned</span>
-                          )}
+                          <div className="space-y-1.5">
+                            {facItem.faculties && facItem.faculties.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5">
+                                {facItem.faculties.map((f) => (
+                                  <span
+                                    key={f.id}
+                                    className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"
+                                  >
+                                    {f.name}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {facItem.students && facItem.students.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5">
+                                {facItem.students.map((s) => (
+                                  <span
+                                    key={s.id}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                  >
+                                    <GraduationCap className="w-3 h-3 text-emerald-600 shrink-0" />
+                                    <span>{s.name}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {(!facItem.faculties || facItem.faculties.length === 0) &&
+                              (!facItem.students || facItem.students.length === 0) && (
+                                <span className="text-slate-400 italic text-xs">No members assigned</span>
+                              )}
+                          </div>
                         </TableCell>
                         <TableCell className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
                           <a
@@ -666,10 +738,10 @@ export default function FacilityManagementSection() {
               />
             </div>
 
-            {/* Associated Faculty Members */}
+            {/* Faculty In-Charge */}
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-slate-800">
-                Faculty In-Charge / Associated Faculty
+                Faculty In-Charge
               </label>
               <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl max-h-48 overflow-y-auto space-y-1.5">
                 {facultyList.length === 0 ? (
@@ -693,6 +765,54 @@ export default function FacilityManagementSection() {
                           <Check className="w-4 h-4 text-white" />
                         ) : (
                           <Plus className="w-3.5 h-3.5 text-slate-400" />
+                        )}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* Associated Research Scholars */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-800 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <GraduationCap className="w-4 h-4 text-emerald-600" />
+                  <span>Research Scholars Associated</span>
+                </span>
+                <span className="text-xs font-normal text-slate-500">
+                  {formData.selectedStudentIds.length} selected
+                </span>
+              </label>
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl max-h-48 overflow-y-auto space-y-1.5">
+                {scholarList.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic">No research scholars found in database.</p>
+                ) : (
+                  scholarList.map((sch) => {
+                    const isSelected = formData.selectedStudentIds.includes(sch.id);
+                    return (
+                      <button
+                        key={sch.id}
+                        type="button"
+                        onClick={() => toggleStudentSelection(sch.id)}
+                        className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer text-left ${
+                          isSelected
+                            ? 'bg-emerald-700 text-white border border-emerald-700 shadow-xs'
+                            : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                        }`}
+                      >
+                        <div className="flex flex-col">
+                          <span>{sch.name}</span>
+                          {sch.supervisor && (
+                            <span className={`text-[10px] font-normal ${isSelected ? 'text-emerald-100' : 'text-slate-500'}`}>
+                              Supervisor: {sch.supervisor}
+                            </span>
+                          )}
+                        </div>
+                        {isSelected ? (
+                          <Check className="w-4 h-4 text-white shrink-0 ml-2" />
+                        ) : (
+                          <Plus className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-2" />
                         )}
                       </button>
                     );

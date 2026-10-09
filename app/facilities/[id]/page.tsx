@@ -6,10 +6,11 @@ import {
   Wrench,
   Users,
   ArrowLeft,
-  ExternalLink,
   FileText,
+  GraduationCap,
+  ExternalLink,
 } from 'lucide-react';
-import type { FacultyMember } from '@/lib/data';
+import type { FacultyMember, Scholar } from '@/lib/data';
 import { sanitizeWebUrl } from '@/lib/url-security';
 import { prisma } from '@/lib/prisma';
 
@@ -41,12 +42,25 @@ interface FacultyAssociated {
   documents?: { image?: string | null } | null;
 }
 
+interface ScholarAssociated {
+  uid: string;
+  name: string;
+  description?: string | null;
+  image?: string | null;
+  createdAt: Date;
+  expiryDate?: Date | null;
+  faculty?: {
+    name: string;
+  } | null;
+}
+
 interface FacilityDetailData {
   id: string;
   name: string;
   description: string;
   image?: string | null;
   faculties?: FacultyAssociated[];
+  students?: ScholarAssociated[];
 }
 
 // Markdown Parser Helper Functions (Matching Research & Events Detail Pages)
@@ -240,6 +254,21 @@ export default async function FacilityDetailPage({ params }: PageProps) {
             documents: { select: { image: true } },
           },
         },
+        students: {
+          select: {
+            uid: true,
+            name: true,
+            description: true,
+            image: true,
+            createdAt: true,
+            expiryDate: true,
+            faculty: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
       },
     });
   } catch (error) {
@@ -262,6 +291,27 @@ export default async function FacilityDetailPage({ params }: PageProps) {
     );
   }
 
+  const faculties = facility.faculties || [];
+  const now = new Date();
+  const scholars: Scholar[] = (facility.students || [])
+    .filter((student) => {
+      if (!student.expiryDate) return true;
+      const exp = new Date(student.expiryDate);
+      exp.setHours(23, 59, 59, 999);
+      return exp >= now;
+    })
+    .map((student) => ({
+      id: student.uid,
+      name: student.name,
+      supervisor: student.faculty?.name || 'Department Faculty',
+      topic: student.description || '',
+      joiningYear: student.createdAt ? new Date(student.createdAt).getFullYear() : undefined,
+      image: student.image || '/faculty.png',
+      expiryDate: student.expiryDate ? new Date(student.expiryDate).toISOString().slice(0, 10) : null,
+      type: 'scholar' as const,
+    }));
+
+  const totalMembers = faculties.length + scholars.length;
   const heroImage = facility.image || 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=600&q=80';
 
   return (
@@ -308,10 +358,10 @@ export default async function FacilityDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Members (Under About the Facility with FacultyCard) */}
-          {facility.faculties && facility.faculties.length > 0 && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
+          {/* Members (Faculty & Scholars) */}
+          {totalMembers > 0 && (
+            <div className="space-y-10">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200">
                 <div className="flex items-center gap-3">
                   <Users className="w-6 h-6 text-oxford" />
                   <h2 className="font-serif text-2xl sm:text-3xl font-extrabold text-oxford">
@@ -319,35 +369,68 @@ export default async function FacilityDetailPage({ params }: PageProps) {
                   </h2>
                 </div>
                 <span className="text-xs font-mono font-bold text-oxford bg-oxford/10 px-3.5 py-1.5 rounded-full">
-                  {facility.faculties.length} Member{facility.faculties.length > 1 ? 's' : ''}
+                  {totalMembers} Member{totalMembers > 1 ? 's' : ''}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-10 font-sans">
-                {facility.faculties.map((fac) => {
-                  const person: FacultyMember = {
-                    id: fac.id,
-                    name: fac.name,
-                    designation: fac.designation || 'Faculty Member',
-                    qualification: fac.qualification || 'Ph.D.',
-                    email: fac.email || '',
-                    phone: '',
-                    room: fac.room || '',
-                    researchFocus: [],
-                    bio: '',
-                    publicationsCount: 0,
-                    citations: 0,
-                    image: fac.documents?.image || fac.image || '/faculty.png',
-                    type: 'faculty',
-                  };
+              {/* Faculty In-Charge */}
+              {faculties.length > 0 && (
+                <div className="space-y-6">
+                  {scholars.length > 0 && (
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg sm:text-xl font-bold font-serif text-oxford">
+                        Faculty In-Charge
+                      </h3>
+                    </div>
+                  )}
 
-                  return (
-                    <Link key={fac.id} href={`/people/${fac.id}`} className="block h-full">
-                      <FacultyCard person={person} />
-                    </Link>
-                  );
-                })}
-              </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-10 font-sans">
+                    {faculties.map((fac) => {
+                      const person: FacultyMember = {
+                        id: fac.id,
+                        name: fac.name,
+                        designation: fac.designation || 'Faculty Member',
+                        qualification: fac.qualification || 'Ph.D.',
+                        email: fac.email || '',
+                        phone: '',
+                        room: fac.room || '',
+                        researchFocus: [],
+                        bio: '',
+                        publicationsCount: 0,
+                        citations: 0,
+                        image: fac.documents?.image || fac.image || '/faculty.png',
+                        type: 'faculty',
+                      };
+
+                      return (
+                        <Link key={fac.id} href={`/people/${fac.id}`} className="block h-full">
+                          <FacultyCard person={person} />
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Research Scholars */}
+              {scholars.length > 0 && (
+                <div className="space-y-6 pt-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg sm:text-xl font-bold font-serif text-oxford flex items-center gap-2">
+                      <GraduationCap className="w-5 h-5 text-oxford" />
+                      <span>Research Scholars</span>
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 sm:gap-10 font-sans">
+                    {scholars.map((sch) => (
+                      <div key={sch.id} className="block h-full">
+                        <FacultyCard person={sch} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

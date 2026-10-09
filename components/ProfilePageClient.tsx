@@ -239,7 +239,20 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
     }));
   };
 
-  if (!person || person.type !== 'faculty') {
+  const isFaculty = person?.type === 'faculty';
+  const facultyPublications = useMemo(() => {
+    return isFaculty && person?.publications ? person.publications : [];
+  }, [person, isFaculty]);
+
+  // Group publications according to the prioritized category order
+  const groupedPublications = useMemo(() => {
+    return groupPublicationsByCategory(facultyPublications);
+  }, [facultyPublications]);
+
+  const supervisedScholars = isFaculty && person ? person.students || [] : [];
+  const facultyProjects = isFaculty && person ? person.projects || [] : [];
+
+  if (!person || !isFaculty) {
     return (
       <div className="max-w-4xl mx-auto py-20 px-6 text-center space-y-4 font-sans">
         <h2 className="text-2xl font-bold text-oxford">Faculty Member Not Found</h2>
@@ -250,16 +263,6 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
       </div>
     );
   }
-
-  const isFaculty = person.type === 'faculty';
-  const supervisedScholars = isFaculty ? person.students || [] : [];
-  const facultyProjects = isFaculty ? person.projects || [] : [];
-  const facultyPublications = isFaculty ? person.publications || [] : [];
-
-  // Group publications according to the prioritized category order
-  const groupedPublications = useMemo(() => {
-    return groupPublicationsByCategory(facultyPublications);
-  }, [facultyPublications]);
 
   return (
     <div className="pb-20 relative font-sans">

@@ -1,16 +1,15 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { 
   Images, 
-  Upload, 
   Trash2, 
   RefreshCw, 
   ChevronUp, 
   ChevronDown, 
   Eye, 
   X, 
-  Plus, 
   AlertCircle, 
   CheckCircle2, 
   ArrowLeft, 
@@ -19,7 +18,6 @@ import {
   UploadCloud
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
@@ -33,19 +31,26 @@ export interface GalleryImage {
 
 interface EventGallerySectionProps {
   eventId: number | null;
+  queuedFiles?: File[];
+  setQueuedFiles?: React.Dispatch<React.SetStateAction<File[]>>;
 }
 
-export default function EventGallerySection({ eventId }: EventGallerySectionProps) {
+export default function EventGallerySection({
+  eventId,
+  queuedFiles,
+  setQueuedFiles,
+}: EventGallerySectionProps) {
   const [images, setImages] = useState<GalleryImage[]>([]);
   const [loading, setLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [isReplacing, setIsReplacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  // Queue of selected files & previews for batch upload
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [filePreviews, setFilePreviews] = useState<string[]>([]);
-  const [urlInput, setUrlInput] = useState('');
+  // Fallback internal queue if parent doesn't provide state
+  const [internalFiles, setInternalFiles] = useState<File[]>([]);
+
+  const activeFiles = queuedFiles ?? internalFiles;
+  const updateFiles = setQueuedFiles ?? setInternalFiles;
 
   // Drag & drop highlight state
   const [isDraggingOver, setIsDraggingOver] = useState(false);
@@ -60,15 +65,7 @@ export default function EventGallerySection({ eventId }: EventGallerySectionProp
 
   const MAX_PHOTOS = 20;
 
-  useEffect(() => {
-    if (eventId) {
-      fetchGalleryImages();
-    } else {
-      setImages([]);
-    }
-  }, [eventId]);
-
-  const fetchGalleryImages = async () => {
+  const fetchGalleryImages = useCallback(async () => {
     if (!eventId) return;
     setLoading(true);
     setError(null);
@@ -81,13 +78,31 @@ export default function EventGallerySection({ eventId }: EventGallerySectionProp
         const err = await res.json();
         setError(err.error || 'Failed to load gallery images');
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error loading gallery images:', err);
       setError('Failed to fetch gallery images');
     } finally {
       setLoading(false);
     }
-  };
+  }, [eventId]);
+
+  useEffect(() => {
+    if (eventId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchGalleryImages();
+    }
+  }, [eventId, fetchGalleryImages]);
+
+  // Generate preview URLs for queued files without cascading render side-effects
+  const filePreviews = useMemo(() => {
+    return activeFiles.map((f) => URL.createObjectURL(f));
+  }, [activeFiles]);
+
+  useEffect(() => {
+    return () => {
+      filePreviews.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, [filePreviews]);
 
   const addFilesToQueue = (newFiles: File[]) => {
     setError(null);
@@ -96,7 +111,6 @@ export default function EventGallerySection({ eventId }: EventGallerySectionProp
     if (newFiles.length === 0) return;
 
     const validNewFiles: File[] = [];
-    const validNewPreviews: string[] = [];
 
     for (const f of newFiles) {
       const isFormatValid = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'].includes(f.type) ||
@@ -113,17 +127,15 @@ export default function EventGallerySection({ eventId }: EventGallerySectionProp
       }
 
       validNewFiles.push(f);
-      validNewPreviews.push(URL.createObjectURL(f));
     }
 
-    const currentTotalCount = images.length + selectedFiles.length;
+    const currentTotalCount = images.length + activeFiles.length;
     if (currentTotalCount + validNewFiles.length > MAX_PHOTOS) {
-      setError(`Cannot add ${validNewFiles.length} photo(s). Maximum limit of ${MAX_PHOTOS} photos reached (currently ${images.length} uploaded + ${selectedFiles.length} queued).`);
+      setError(`Cannot add ${validNewFiles.length} photo(s). Maximum limit of ${MAX_PHOTOS} photos reached (currently ${images.length} uploaded + ${activeFiles.length} queued).`);
       return;
     }
 
-    setSelectedFiles((prev) => [...prev, ...validNewFiles]);
-    setFilePreviews((prev) => [...prev, ...validNewPreviews]);
+    updateFiles((prev) => [...prev, ...validNewFiles]);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,72 +151,7 @@ export default function EventGallerySection({ eventId }: EventGallerySectionProp
   };
 
   const removeSelectedFile = (index: number) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-    setFilePreviews((prev) => {
-      const targetUrl = prev[index];
-      if (targetUrl) URL.revokeObjectURL(targetUrl);
-      return prev.filter((_, i) => i !== index);
-    });
-  };
-
-  const handleUploadImages = async () => {
-    if (!eventId) return;
-
-    // Parse URL lines if entered
-    const urlList = urlInput
-      .split(/[\n,]+/)
-      .map((u) => u.trim())
-      .filter((u) => u.length > 0);
-
-    if (selectedFiles.length === 0 && urlList.length === 0) {
-      setError('Please select one or more image files or paste image URLs to upload.');
-      return;
-    }
-
-    const totalIncoming = selectedFiles.length + urlList.length;
-    if (images.length + totalIncoming > MAX_PHOTOS) {
-      setError(`Gallery limit exceeded! Maximum ${MAX_PHOTOS} photos allowed per event. Currently has ${images.length} photo(s).`);
-      return;
-    }
-
-    setUploading(true);
-    setError(null);
-    setSuccess(null);
-
-    try {
-      const formData = new FormData();
-      selectedFiles.forEach((file) => {
-        formData.append('images', file);
-      });
-      urlList.forEach((url) => {
-        formData.append('imageUrls', url);
-      });
-
-      const res = await fetch(`/api/events/${eventId}/images`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || 'Batch upload failed');
-      }
-
-      const uploadedCount = selectedFiles.length + urlList.length;
-      setSuccess(`Successfully uploaded ${uploadedCount} photo(s) to event gallery!`);
-      
-      // Clean up local preview ObjectURLs
-      filePreviews.forEach((url) => URL.revokeObjectURL(url));
-      setSelectedFiles([]);
-      setFilePreviews([]);
-      setUrlInput('');
-      
-      await fetchGalleryImages();
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while uploading gallery images.');
-    } finally {
-      setUploading(false);
-    }
+    updateFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Move / Reorder handler
@@ -232,8 +179,9 @@ export default function EventGallerySection({ eventId }: EventGallerySectionProp
         const err = await res.json();
         throw new Error(err.error || 'Failed to reorder images');
       }
-    } catch (err: any) {
-      setError(err.message || 'Failed to persist new sort order');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to persist new sort order';
+      setError(msg);
       await fetchGalleryImages(); // Revert on failure
     }
   };
@@ -257,7 +205,7 @@ export default function EventGallerySection({ eventId }: EventGallerySectionProp
       return;
     }
 
-    setUploading(true);
+    setIsReplacing(true);
     setError(null);
     setSuccess(null);
 
@@ -277,10 +225,11 @@ export default function EventGallerySection({ eventId }: EventGallerySectionProp
 
       setSuccess('Gallery image replaced successfully!');
       await fetchGalleryImages();
-    } catch (err: any) {
-      setError(err.message || 'Failed to replace image');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to replace image';
+      setError(msg);
     } finally {
-      setUploading(false);
+      setIsReplacing(false);
       setReplacingImageId(null);
     }
   };
@@ -304,22 +253,14 @@ export default function EventGallerySection({ eventId }: EventGallerySectionProp
 
       setSuccess('Gallery image deleted.');
       setImages((prev) => prev.filter((img) => img.id !== imageId));
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete image');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete image';
+      setError(msg);
     }
   };
 
-  if (!eventId) {
-    return (
-      <div className="border border-dashed border-slate-300 rounded-2xl p-6 text-center space-y-2 bg-slate-50/50">
-        <Images className="w-8 h-8 mx-auto text-slate-400" />
-        <h4 className="text-sm font-bold text-slate-700">Event Gallery Available After Saving</h4>
-        <p className="text-xs text-slate-500 font-sans">
-          Create and save the event first to upload up to 20 gallery photos.
-        </p>
-      </div>
-    );
-  }
+  const totalPhotosCount = images.length + activeFiles.length;
+  const hasQueuedItems = activeFiles.length > 0;
 
   return (
     <div className="space-y-6 pt-4 border-t border-slate-200">
@@ -350,7 +291,7 @@ export default function EventGallerySection({ eventId }: EventGallerySectionProp
             <h3 className="font-serif font-bold text-base text-slate-900">Event Photo Gallery</h3>
           </div>
           <p className="text-xs text-slate-600 font-sans">
-            Upload multiple event photos at once (up to {MAX_PHOTOS} max). Reorder, replace, or preview gallery images.
+            Add photos to your event gallery (up to {MAX_PHOTOS} max). Queued photos will be automatically uploaded when saving the event.
           </p>
         </div>
 
@@ -358,23 +299,31 @@ export default function EventGallerySection({ eventId }: EventGallerySectionProp
           <Badge
             variant="outline"
             className={`font-mono text-xs px-3 py-1 font-bold ${
-              images.length >= MAX_PHOTOS
+              totalPhotosCount >= MAX_PHOTOS
                 ? 'bg-rose-50 text-rose-700 border-rose-200'
                 : 'bg-indigo-50 text-indigo-700 border-indigo-200'
             }`}
           >
-            {images.length}/{MAX_PHOTOS} Photos
+            {eventId ? (
+              activeFiles.length > 0
+                ? `${totalPhotosCount}/${MAX_PHOTOS} (${images.length} saved, ${activeFiles.length} queued)`
+                : `${images.length}/${MAX_PHOTOS} Photos`
+            ) : (
+              `${activeFiles.length}/${MAX_PHOTOS} Queued`
+            )}
           </Badge>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={fetchGalleryImages}
-            className="h-8 w-8 text-slate-600"
-            title="Refresh Gallery"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-          </Button>
+          {eventId && (
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              onClick={fetchGalleryImages}
+              className="h-8 w-8 text-slate-600"
+              title="Refresh Gallery"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+          )}
         </div>
       </div>
 
@@ -394,15 +343,15 @@ export default function EventGallerySection({ eventId }: EventGallerySectionProp
       )}
 
       {/* Multi-File Upload Dropzone */}
-      {images.length < MAX_PHOTOS && (
+      {totalPhotosCount < MAX_PHOTOS && (
         <div className="bg-slate-50/80 border border-slate-200 rounded-2xl p-5 space-y-4 font-sans">
           <div className="flex items-center justify-between">
             <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
               <UploadCloud className="w-4 h-4 text-oxford" />
-              <span>Upload Multiple Photos Simultaneously</span>
+              <span>Queue Photos for Gallery</span>
             </label>
             <span className="text-[11px] text-slate-500 font-mono">
-              Available slots: {MAX_PHOTOS - images.length - selectedFiles.length}
+              Available slots: {MAX_PHOTOS - totalPhotosCount}
             </span>
           </div>
 
@@ -437,36 +386,36 @@ export default function EventGallerySection({ eventId }: EventGallerySectionProp
           </div>
 
           {/* Selected Batch Files Queue */}
-          {selectedFiles.length > 0 && (
+          {activeFiles.length > 0 && (
             <div className="space-y-3 pt-2 border-t border-slate-200">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
-                  <span>Queued Photos for Upload ({selectedFiles.length})</span>
+                  <span>Queued Photos ({activeFiles.length})</span>
                 </span>
                 <button
                   type="button"
                   onClick={() => {
-                    filePreviews.forEach((u) => URL.revokeObjectURL(u));
-                    setSelectedFiles([]);
-                    setFilePreviews([]);
+                    updateFiles([]);
                   }}
-                  className="text-[11px] font-semibold text-rose-600 hover:underline"
+                  className="text-[11px] font-semibold text-rose-600 hover:underline cursor-pointer"
                 >
                   Clear Queue
                 </button>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-48 overflow-y-auto p-1">
-                {selectedFiles.map((file, idx) => (
+                {activeFiles.map((file, idx) => (
                   <div
                     key={idx}
                     className="relative aspect-square rounded-xl overflow-hidden border border-slate-300 bg-slate-900 group shadow-xs"
                   >
-                    <img
-                      src={filePreviews[idx]}
-                      alt={file.name}
-                      className="w-full h-full object-cover"
-                    />
+                    {filePreviews[idx] && (
+                      <img
+                        src={filePreviews[idx]}
+                        alt={file.name}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button
                         type="button"
@@ -489,144 +438,128 @@ export default function EventGallerySection({ eventId }: EventGallerySectionProp
             </div>
           )}
 
-          {/* Multiple Image URLs Input */}
-          <div className="space-y-1.5 pt-2 border-t border-slate-200">
-            <label className="text-[11px] font-bold text-slate-700 block">
-              Or Paste Direct Image URLs (separated by new lines or commas)
-            </label>
-            <textarea
-              rows={2}
-              placeholder="https://images.unsplash.com/photo-1&#10;https://images.unsplash.com/photo-2"
-              value={urlInput}
-              onChange={(e) => setUrlInput(e.target.value)}
-              className="w-full text-xs font-mono bg-white border border-slate-300 rounded-xl p-2.5 focus:ring-2 focus:ring-oxford focus:outline-none"
-            />
-          </div>
-
-          {/* Submit Batch Upload Button */}
-          <div className="flex justify-end pt-1">
-            <Button
-              type="button"
-              onClick={handleUploadImages}
-              disabled={uploading || (selectedFiles.length === 0 && !urlInput.trim())}
-              className="font-semibold text-xs py-2.5 px-6 flex items-center gap-2 rounded-xl cursor-pointer"
-            >
-              <Upload className="w-4 h-4" />
+          {/* One-Click Submit Queue Notice */}
+          {hasQueuedItems && (
+            <div className="flex items-center gap-2.5 p-3 bg-indigo-50 border border-indigo-200 rounded-xl text-xs text-indigo-900 font-medium">
+              <CheckCircle2 className="w-4 h-4 text-indigo-600 shrink-0" />
               <span>
-                {uploading
-                  ? `Uploading ${selectedFiles.length || 'batch'} photo(s)...`
-                  : `Upload ${selectedFiles.length ? selectedFiles.length + ' Selected Photo(s)' : 'Photos'}`}
+                <strong>Ready to upload:</strong> {activeFiles.length} photo(s) will be uploaded automatically when you click{' '}
+                <span className="font-semibold underline">
+                  {eventId ? '"Update Event"' : '"Create Event"'}
+                </span>{' '}
+                below.
               </span>
-            </Button>
-          </div>
+            </div>
+          )}
         </div>
       )}
 
-      {/* Gallery Grid */}
-      <div className="space-y-3 font-sans">
-        <div className="flex items-center justify-between text-xs text-slate-600 font-semibold">
-          <span>Uploaded Gallery Images ({images.length})</span>
-          {images.length > 1 && <span className="text-[11px] text-slate-400">Use ▲ ▼ controls to reorder</span>}
-        </div>
-
-        {images.length === 0 ? (
-          <div className="p-8 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 space-y-1">
-            <Images className="w-7 h-7 mx-auto text-slate-400" />
-            <p className="text-xs font-semibold text-slate-700">No gallery images uploaded yet</p>
-            <p className="text-[11px] text-slate-400">Upload multiple event photos above to showcase event highlights on the public website.</p>
+      {/* Uploaded Gallery Grid (Shown for saved events) */}
+      {eventId && (
+        <div className="space-y-3 font-sans">
+          <div className="flex items-center justify-between text-xs text-slate-600 font-semibold">
+            <span>Uploaded Gallery Images ({images.length})</span>
+            {images.length > 1 && <span className="text-[11px] text-slate-400">Use ▲ ▼ controls to reorder</span>}
           </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            {images.map((img, idx) => (
-              <div
-                key={img.id}
-                className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between group hover:border-slate-300 transition-all"
-              >
-                {/* Image Container & Lightbox Trigger */}
+
+          {images.length === 0 ? (
+            <div className="p-8 text-center bg-slate-50/50 rounded-2xl border border-dashed border-slate-200 space-y-1">
+              <Images className="w-7 h-7 mx-auto text-slate-400" />
+              <p className="text-xs font-semibold text-slate-700">No gallery images uploaded yet</p>
+              <p className="text-[11px] text-slate-400">Queue event photos above and click &quot;Update Event&quot; to showcase them on the public website.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+              {images.map((img, idx) => (
                 <div
-                  className="aspect-[4/3] w-full relative bg-slate-900 cursor-pointer overflow-hidden group/img"
+                  key={img.id}
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col justify-between group hover:border-slate-300 transition-all"
                 >
-                  <img
-                    src={img.imagePath}
-                    alt={`Gallery ${idx + 1}`}
-                    onClick={() => setLightboxIndex(idx)}
-                    className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
-                  />
-                  <div 
-                    onClick={() => setLightboxIndex(idx)}
-                    className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white"
+                  {/* Image Container & Lightbox Trigger */}
+                  <div
+                    className="aspect-[4/3] w-full relative bg-slate-900 cursor-pointer overflow-hidden group/img"
                   >
-                    <Eye className="w-6 h-6" />
-                  </div>
+                    <img
+                      src={img.imagePath}
+                      alt={`Gallery ${idx + 1}`}
+                      onClick={() => setLightboxIndex(idx)}
+                      className="w-full h-full object-cover group-hover/img:scale-105 transition-transform duration-300"
+                    />
+                    <div 
+                      onClick={() => setLightboxIndex(idx)}
+                      className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center text-white"
+                    >
+                      <Eye className="w-6 h-6" />
+                    </div>
 
-
-
-                  {/* Direct Delete Overlay Button on Top-Right of Card */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDelete(img.id);
-                    }}
-                    className="absolute top-2 right-2 p-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white shadow-md transition-all cursor-pointer z-10"
-                    title="Delete Image"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-
-                {/* Card Controls */}
-                <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-1">
-                  {/* Reorder Buttons */}
-                  <div className="inline-flex items-center gap-0.5 bg-white border border-slate-200 rounded-lg p-0.5">
+                    {/* Direct Delete Overlay Button on Top-Right of Card */}
                     <button
                       type="button"
-                      disabled={idx === 0}
-                      onClick={() => handleMove(idx, 'up')}
-                      className="p-1 text-slate-600 hover:text-slate-950 disabled:opacity-30 cursor-pointer"
-                      title="Move Left/Up"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(img.id);
+                      }}
+                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white shadow-md transition-all cursor-pointer z-10"
+                      title="Delete Image"
                     >
-                      <ChevronUp className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={idx === images.length - 1}
-                      onClick={() => handleMove(idx, 'down')}
-                      className="p-1 text-slate-600 hover:text-slate-950 disabled:opacity-30 cursor-pointer"
-                      title="Move Right/Down"
-                    >
-                      <ChevronDown className="w-3.5 h-3.5" />
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
-                  {/* Actions: Explicit Replace & Delete Buttons */}
-                  <div className="flex items-center gap-1.5">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => triggerReplace(img.id)}
-                      className="h-7 text-[11px] px-2 font-semibold text-slate-700 hover:bg-slate-100 cursor-pointer"
-                    >
-                      Replace
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDelete(img.id)}
-                      className="h-7 text-[11px] px-2 font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 cursor-pointer flex items-center gap-1"
-                    >
-                      <Trash2 className="w-3 h-3 text-rose-600" />
-                      <span>Delete</span>
-                    </Button>
+                  {/* Card Controls */}
+                  <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-1">
+                    {/* Reorder Buttons */}
+                    <div className="inline-flex items-center gap-0.5 bg-white border border-slate-200 rounded-lg p-0.5">
+                      <button
+                        type="button"
+                        disabled={idx === 0}
+                        onClick={() => handleMove(idx, 'up')}
+                        className="p-1 text-slate-600 hover:text-slate-950 disabled:opacity-30 cursor-pointer"
+                        title="Move Left/Up"
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        disabled={idx === images.length - 1}
+                        onClick={() => handleMove(idx, 'down')}
+                        className="p-1 text-slate-600 hover:text-slate-950 disabled:opacity-30 cursor-pointer"
+                        title="Move Right/Down"
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
+                    {/* Actions: Explicit Replace & Delete Buttons */}
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={isReplacing && replacingImageId === img.id}
+                        onClick={() => triggerReplace(img.id)}
+                        className="h-7 text-[11px] px-2 font-semibold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                      >
+                        {isReplacing && replacingImageId === img.id ? 'Replacing...' : 'Replace'}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDelete(img.id)}
+                        className="h-7 text-[11px] px-2 font-semibold text-rose-600 border-rose-200 hover:bg-rose-50 cursor-pointer flex items-center gap-1"
+                      >
+                        <Trash2 className="w-3 h-3 text-rose-600" />
+                        <span>Delete</span>
+                      </Button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Lightbox Preview Dialog */}
       {lightboxIndex !== null && images[lightboxIndex] && (

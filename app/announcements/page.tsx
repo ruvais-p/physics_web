@@ -24,6 +24,7 @@ export default async function AnnouncementsPage() {
         content: true,
         category: true,
         link: true,
+        pdfUrl: true,
         date: true,
       },
     }).catch((error) => {
@@ -38,7 +39,8 @@ export default async function AnnouncementsPage() {
     title: item.title,
     content: item.content,
     category: item.category || 'General',
-    link: sanitizeWebUrl(item.link) || '#',
+    link: item.pdfUrl || sanitizeWebUrl(item.link) || '#',
+    pdfUrl: item.pdfUrl || null,
     date: item.date.toLocaleDateString('en-US', {
       month: 'short',
       day: '2-digit',

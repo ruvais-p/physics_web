@@ -23,7 +23,7 @@ export async function GET(request: Request, { params }: Params) {
     }
 
     const items = await prisma.$queryRaw<any[]>`
-      SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, brochure, created_at AS "createdAt", updated_at AS "updatedAt"
+      SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, brochure, broadcast_to_tv AS "broadcastToTv", tv_duration AS "tvDuration", created_at AS "createdAt", updated_at AS "updatedAt"
       FROM events
       WHERE id = ${eventId}
       LIMIT 1
@@ -65,7 +65,7 @@ export async function PUT(request: Request, { params }: Params) {
     }
 
     const existingEvents = await prisma.$queryRaw<any[]>`
-      SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, brochure
+      SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, brochure, broadcast_to_tv, tv_duration
       FROM events
       WHERE id = ${eventId}
       LIMIT 1
@@ -86,6 +86,8 @@ export async function PUT(request: Request, { params }: Params) {
     let apply_link = existingEvent.apply_link;
     let brochurePath: string | null = existingEvent.brochure;
     let imagePath = existingEvent.image;
+    let broadcastToTv = existingEvent.broadcast_to_tv ?? false;
+    let tvDuration = existingEvent.tv_duration ?? 12;
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
@@ -101,6 +103,14 @@ export async function PUT(request: Request, { params }: Params) {
       if (formData.has('apply_link')) {
         const applyVal = (formData.get('apply_link') as string || '').trim();
         apply_link = applyVal ? (sanitizeWebUrl(applyVal, true) || applyVal) : null;
+      }
+      if (formData.has('broadcastToTv')) {
+        const raw = formData.get('broadcastToTv');
+        broadcastToTv = raw === 'true' || raw === '1' || raw === 'on';
+      }
+      if (formData.has('tvDuration')) {
+        const parsed = parseInt(String(formData.get('tvDuration')), 10);
+        if (!isNaN(parsed) && parsed >= 5 && parsed <= 120) tvDuration = parsed;
       }
 
       const imageFile = formData.get('image') as File | null;
@@ -165,6 +175,11 @@ export async function PUT(request: Request, { params }: Params) {
       if (body.apply_link !== undefined) apply_link = body.apply_link ? (sanitizeWebUrl(body.apply_link, true) || String(body.apply_link)) : null;
       if (body.brochure !== undefined) brochurePath = body.brochure ? (sanitizeWebUrl(body.brochure, true) || String(body.brochure)) : null;
       if (body.image !== undefined && body.image.trim()) imagePath = sanitizeWebUrl(body.image) || body.image || imagePath;
+      if (body.broadcastToTv !== undefined) broadcastToTv = Boolean(body.broadcastToTv);
+      if (body.tvDuration !== undefined) {
+        const parsed = parseInt(String(body.tvDuration), 10);
+        if (!isNaN(parsed) && parsed >= 5 && parsed <= 120) tvDuration = parsed;
+      }
     }
 
     if (!title) {
@@ -198,9 +213,11 @@ export async function PUT(request: Request, { params }: Params) {
         venue = ${venue},
         apply_link = ${apply_link},
         brochure = ${brochurePath},
+        broadcast_to_tv = ${broadcastToTv},
+        tv_duration = ${tvDuration},
         updated_at = NOW()
       WHERE id = ${eventId}
-      RETURNING id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, brochure, created_at AS "createdAt", updated_at AS "updatedAt"
+      RETURNING id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, brochure, broadcast_to_tv AS "broadcastToTv", tv_duration AS "tvDuration", created_at AS "createdAt", updated_at AS "updatedAt"
     `;
 
     revalidatePublicPages();
@@ -209,6 +226,41 @@ export async function PUT(request: Request, { params }: Params) {
     console.error('Error updating event:', error);
     const message = error instanceof Error ? error.message : 'Failed to update event';
     return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+// PATCH /api/events/[id] - Fast toggle broadcastToTv or specific fields (Admin only)
+export async function PATCH(request: Request, { params }: Params) {
+  const user = await getAdminSession();
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
+  }
+
+  try {
+    const resolvedParams = await params;
+    const eventId = parseInt(resolvedParams.id, 10);
+
+    if (isNaN(eventId)) {
+      return NextResponse.json({ error: 'Invalid event ID' }, { status: 400 });
+    }
+
+    const body = await request.json();
+    if (body.broadcastToTv !== undefined) {
+      const broadcastToTv = Boolean(body.broadcastToTv);
+      const result = await prisma.$queryRaw<any[]>`
+        UPDATE events
+        SET broadcast_to_tv = ${broadcastToTv}, updated_at = NOW()
+        WHERE id = ${eventId}
+        RETURNING id, title, broadcast_to_tv AS "broadcastToTv"
+      `;
+      revalidatePublicPages();
+      return NextResponse.json(result[0] || { success: true });
+    }
+
+    return NextResponse.json({ error: 'No valid patch parameters provided' }, { status: 400 });
+  } catch (error) {
+    console.error('Error patching event:', error);
+    return NextResponse.json({ error: 'Failed to update event' }, { status: 500 });
   }
 }
 

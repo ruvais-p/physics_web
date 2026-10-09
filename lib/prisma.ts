@@ -31,10 +31,10 @@ function hasCurrentSchema(client: PrismaClient): boolean {
   const hasStudentFields = studentFields.includes('expiryDate');
 
   const labFields = runtimeDataModel?.models?.ResearchLab?.fields?.map((f) => f.name) || [];
-  const hasLabSortOrder = labFields.includes('sortOrder');
+  const hasLabSortOrder = labFields.includes('sortOrder') && labFields.includes('students');
 
   const facilityFields = runtimeDataModel?.models?.Facility?.fields?.map((f) => f.name) || [];
-  const hasFacilitySortOrder = facilityFields.includes('sortOrder');
+  const hasFacilitySortOrder = facilityFields.includes('sortOrder') && facilityFields.includes('students');
 
   return hasModels && hasFacultyFields && hasStudentFields && hasLabSortOrder && hasFacilitySortOrder;
 }
@@ -42,19 +42,23 @@ function hasCurrentSchema(client: PrismaClient): boolean {
 const cachedPrisma = globalForPrisma.prisma;
 
 // Turbopack preserves globalThis across hot reloads. If Prisma was generated
-// after the dev server started, replace the cached instance so new model
-// delegates (such as pageHero) become available without another crash.
-if (cachedPrisma && !hasCurrentSchema(cachedPrisma)) {
-  void cachedPrisma.$disconnect().catch(() => undefined);
+function createClient(): PrismaClient {
+  if (typeof require !== 'undefined' && require.cache) {
+    for (const key of Object.keys(require.cache)) {
+      if (key.includes('.prisma') || key.includes('@prisma/client')) {
+        delete require.cache[key];
+      }
+    }
+    const FreshClient = require('@prisma/client').PrismaClient;
+    return new FreshClient({ log: ['error'] });
+  }
+  return new PrismaClient({ log: ['error'] });
 }
 
 export const prisma =
   cachedPrisma && hasCurrentSchema(cachedPrisma)
     ? cachedPrisma
-    : new PrismaClient({
-        // Avoid logging query parameters that can contain personal or authentication data.
-        log: ['error'],
-      });
+    : createClient();
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;

@@ -31,6 +31,7 @@ model Notification {
   content   String?
   category  String   @default("General")
   link        String?
+  pdfUrl      String?
   isActive    Boolean  @default(true)
   broadcastId String?
   date        DateTime @default(now())
@@ -47,20 +48,22 @@ model ResearchLab {
   description String    @db.Text
   image       String?
   sortOrder   Int       @default(0)
-  faculties   Faculty[] @relation("FacultyResearchLabs")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  faculties   Faculty[]        @relation("FacultyResearchLabs")
+  students    FacultyStudent[] @relation("StudentResearchLabs")
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   @@index([sortOrder, createdAt(sort: Desc)])
 }
 
 model Facility {
-  id          String    @id @default(uuid())
+  id          String           @id @default(uuid())
   name        String
-  description String    @db.Text
+  description String           @db.Text
   image       String?
-  sortOrder   Int       @default(0)
-  faculties   Faculty[] @relation("FacultyFacilities")
+  sortOrder   Int              @default(0)
+  faculties   Faculty[]        @relation("FacultyFacilities")
+  students    FacultyStudent[] @relation("StudentFacilities")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -172,8 +175,10 @@ model FacultyStudent {
   description String?   @db.Text
   image       String?
   expiryDate  DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  researchLabs ResearchLab[] @relation("StudentResearchLabs")
+  facilities   Facility[]    @relation("StudentFacilities")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   @@index([facultyId])
 }
@@ -209,11 +214,14 @@ model Event {
   apply_link  String?
   brochure    String?      @map("brochure")
   broadcastId String?      @map("broadcast_id")
+  broadcastToTv Boolean    @default(false) @map("broadcast_to_tv")
+  tvDuration    Int        @default(12) @map("tv_duration")
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")
   images      EventImage[]
 
   @@index([startDate(sort: Desc)])
+  @@index([broadcastToTv])
   @@map("events")
 }
 

@@ -3,16 +3,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { 
-  Image as ImageIcon, 
   Upload, 
   Save, 
   RefreshCw, 
-  Sparkles, 
   CheckCircle2, 
   AlertCircle,
-  ExternalLink,
   Edit3,
-  Eye,
   Layout
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -187,7 +183,7 @@ export default function PageHeroManagementSection() {
       {/* Pages Grid */}
       {loading ? (
         <div className="py-16 text-center text-slate-500 space-y-3">
-          <div className="w-8 h-8 border-4 border-cyan-accent border-t-transparent rounded-full animate-spin mx-auto" />
+          <div className="w-8 h-8 border-4 border-oxford border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-sm font-medium">Loading page hero configurations...</p>
         </div>
       ) : (
@@ -195,7 +191,7 @@ export default function PageHeroManagementSection() {
           {pageHeroes.map((hero) => (
             <Card
               key={hero.pageKey}
-              className="bg-white border border-slate-200 hover:border-cyan-accent/60 rounded-3xl overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between group"
+              className="bg-white border border-slate-200 hover:border-oxford/40 rounded-3xl overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between group"
             >
               <div>
                 {/* Banner Image Preview Container */}
@@ -249,7 +245,7 @@ export default function PageHeroManagementSection() {
                 <Button
                   type="button"
                   onClick={() => openEditModal(hero)}
-                  className="w-full flex items-center justify-center gap-2 bg-oxford hover:bg-cyan-accent text-white hover:text-oxford font-bold text-xs py-2.5 rounded-xl shadow-xs transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 bg-oxford hover:bg-oxford/90 text-white font-bold text-xs py-2.5 rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
                   <span>Edit {hero.pageName} Banner</span>
@@ -404,7 +400,7 @@ export default function PageHeroManagementSection() {
               <Button
                 type="submit"
                 disabled={saving}
-                className="rounded-xl bg-oxford hover:bg-cyan-dark text-white font-bold flex items-center gap-2 px-6"
+                className="rounded-xl bg-oxford hover:bg-oxford/90 text-white font-bold flex items-center gap-2 px-6"
               >
                 <Save className="w-4 h-4" />
                 <span>{saving ? 'Saving & Publishing...' : 'Save & Publish Banner'}</span>

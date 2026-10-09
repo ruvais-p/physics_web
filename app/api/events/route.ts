@@ -12,7 +12,7 @@ import { hasPdfSignature } from '@/lib/file-security';
 export async function GET() {
   try {
     const events = await prisma.$queryRaw<any[]>`
-      SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, brochure, created_at AS "createdAt", updated_at AS "updatedAt"
+      SELECT id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, brochure, broadcast_to_tv AS "broadcastToTv", tv_duration AS "tvDuration", created_at AS "createdAt", updated_at AS "updatedAt"
       FROM events
       ORDER BY start_date DESC
     `;
@@ -40,6 +40,8 @@ export async function POST(request: Request) {
     let apply_link: string | null = null;
     let brochurePath: string | null = null;
     let imagePath = '';
+    let broadcastToTv = false;
+    let tvDuration = 12;
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
@@ -51,6 +53,14 @@ export async function POST(request: Request) {
       if (venueInput) venue = venueInput;
       const applyLinkInput = (formData.get('apply_link') as string || '').trim();
       if (applyLinkInput) apply_link = sanitizeWebUrl(applyLinkInput, false);
+
+      const broadcastToTvRaw = formData.get('broadcastToTv');
+      broadcastToTv = broadcastToTvRaw === 'true' || broadcastToTvRaw === '1' || broadcastToTvRaw === 'on';
+      const tvDurationRaw = formData.get('tvDuration');
+      if (tvDurationRaw) {
+        const parsed = parseInt(String(tvDurationRaw), 10);
+        if (!isNaN(parsed) && parsed >= 5 && parsed <= 120) tvDuration = parsed;
+      }
 
       const imageFile = formData.get('image') as File | null;
       const imageUrlInput = (formData.get('imageUrl') as string || '').trim();
@@ -100,6 +110,11 @@ export async function POST(request: Request) {
       apply_link = body.apply_link ? sanitizeWebUrl(body.apply_link, false) : null;
       brochurePath = body.brochure ? sanitizeWebUrl(body.brochure, false) : null;
       imagePath = sanitizeWebUrl(body.image) || '';
+      broadcastToTv = Boolean(body.broadcastToTv);
+      if (body.tvDuration) {
+        const parsed = parseInt(String(body.tvDuration), 10);
+        if (!isNaN(parsed) && parsed >= 5 && parsed <= 120) tvDuration = parsed;
+      }
     }
 
     if (!title) {
@@ -129,9 +144,9 @@ export async function POST(request: Request) {
     }
 
     const result = await prisma.$queryRaw<any[]>`
-      INSERT INTO events (title, description, image, start_date, end_date, venue, apply_link, brochure, created_at, updated_at)
-      VALUES (${title}, ${description}, ${imagePath}, ${eventStartDate}, ${eventEndDate}, ${venue}, ${apply_link}, ${brochurePath}, NOW(), NOW())
-      RETURNING id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, brochure, created_at AS "createdAt", updated_at AS "updatedAt"
+      INSERT INTO events (title, description, image, start_date, end_date, venue, apply_link, brochure, broadcast_to_tv, tv_duration, created_at, updated_at)
+      VALUES (${title}, ${description}, ${imagePath}, ${eventStartDate}, ${eventEndDate}, ${venue}, ${apply_link}, ${brochurePath}, ${broadcastToTv}, ${tvDuration}, NOW(), NOW())
+      RETURNING id, title, description, image, start_date AS "startDate", end_date AS "endDate", venue, apply_link, brochure, broadcast_to_tv AS "broadcastToTv", tv_duration AS "tvDuration", created_at AS "createdAt", updated_at AS "updatedAt"
     `;
 
     revalidatePublicPages();

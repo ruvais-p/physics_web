@@ -1,6 +1,3 @@
-import Image from 'next/image';
-import { FolderGit2, ArrowUpRight } from 'lucide-react';
-
 export interface ProjectItem {
   id: string;
   title: string;

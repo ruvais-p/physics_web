@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
+import React, { useState, useEffect } from 'react';
 import {
   Newspaper,
   Award,
@@ -11,17 +10,13 @@ import {
   ExternalLink,
   Search,
   RefreshCw,
-  Sparkles,
   CheckCircle2,
   AlertCircle,
-  Upload,
-  Calendar,
   Image as ImageIcon,
   Radio,
   Eye,
-  Link as LinkIcon,
 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -92,8 +87,6 @@ export default function NewsAwardsManagementSection() {
   // Delete State
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<{ id: string; type: 'news' | 'awards'; title: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch News & Awards
   const fetchData = async () => {

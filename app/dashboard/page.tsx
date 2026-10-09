@@ -21,7 +21,6 @@ import {
   Users,
   UserPlus,
   Atom,
-  UserCheck,
   KeyRound,
   Lock,
   CheckCircle2,
@@ -31,20 +30,10 @@ import {
   Phone,
   Globe,
   BookOpen,
-  Share2,
   Upload,
-  FileCheck,
-  FilePlus,
   Image as ImageIcon,
-  Download,
   User,
-  Heading,
-  Bold,
-  Italic,
-  List,
-  Quote as QuoteIcon,
   Code,
-  Link as LinkIcon,
   Edit3,
   ChevronUp,
   ChevronDown,
@@ -52,18 +41,17 @@ import {
   Calendar,
   Wrench,
   GripVertical,
-  ArrowUpDown,
   Mail,
   Building2,
   Check,
-  Award,
   Info,
   ArrowRight,
   Settings,
   Newspaper,
-  Sparkles,
   Radio,
   Briefcase,
+  Tv,
+  Copy,
 } from 'lucide-react';
 const AdminStaffManagementSection = dynamic(
   () => import('@/components/AdminStaffManagementSection'),
@@ -97,7 +85,6 @@ const MultiChannelBroadcastModal = dynamic(
 // Import Shadcn UI elements
 import {
   Card,
-  CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
@@ -136,6 +123,7 @@ interface NotificationItem {
   title: string;
   category: string;
   link: string | null;
+  pdfUrl?: string | null;
   content: string | null;
   isActive: boolean;
   date: string;
@@ -157,19 +145,6 @@ interface FacultyItem {
   updatedAt: string;
 }
 
-// Types for Faculty View
-interface FacultyProfile {
-  id: string;
-  name: string;
-  email: string;
-  designation: string | null;
-  department: string | null;
-  qualification?: string | null;
-  room?: string | null;
-  mustChangePassword: boolean;
-  isActive: boolean;
-  phone?: string | null;
-}
 
 interface PublicationItem {
   id: string;
@@ -503,10 +478,14 @@ export default function UnifiedDashboardPage() {
     removeBrochure: false,
     imageFile: null as File | null,
     imageUrl: '',
+    broadcastToTv: false,
+    tvDuration: 12,
   });
   const [eventSaving, setEventSaving] = useState(false);
   const [eventError, setEventError] = useState<string | null>(null);
   const [eventImagePreview, setEventImagePreview] = useState<string | null>(null);
+  const [copiedTvLink, setCopiedTvLink] = useState(false);
+  const [eventGalleryFiles, setEventGalleryFiles] = useState<File[]>([]);
 
   const fetchEvents = async () => {
     setLoadingEvents(true);
@@ -525,6 +504,7 @@ export default function UnifiedDashboardPage() {
 
   const openEventModal = (ev?: any) => {
     setEventError(null);
+    setEventGalleryFiles([]);
     if (ev) {
       setEditingEvent(ev);
       const startRaw = ev.startDate || ev.date;
@@ -546,6 +526,8 @@ export default function UnifiedDashboardPage() {
         removeBrochure: false,
         imageFile: null,
         imageUrl: ev.image || '',
+        broadcastToTv: Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv),
+        tvDuration: ev.tvDuration ?? ev.tv_duration ?? 12,
       });
       setEventImagePreview(ev.image || null);
     } else {
@@ -562,6 +544,8 @@ export default function UnifiedDashboardPage() {
         removeBrochure: false,
         imageFile: null,
         imageUrl: '',
+        broadcastToTv: true, // Default to true so newly added events can be broadcasted to TV easily
+        tvDuration: 12,
       });
       setEventImagePreview(null);
     }
@@ -572,6 +556,37 @@ export default function UnifiedDashboardPage() {
     setIsEventModalOpen(false);
     setEditingEvent(null);
     setEventImagePreview(null);
+    setEventGalleryFiles([]);
+  };
+
+  const handleToggleTvBroadcast = async (ev: any) => {
+    try {
+      const nextVal = !Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv);
+      const res = await fetch(`/api/events/${ev.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ broadcastToTv: nextVal }),
+      });
+      if (res.ok) {
+        setEventsList((prev) =>
+          prev.map((item) =>
+            item.id === ev.id
+              ? { ...item, broadcastToTv: nextVal, broadcast_to_tv: nextVal }
+              : item
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Failed to toggle TV broadcast status:', err);
+    }
+  };
+
+  const handleCopyTvLink = () => {
+    const url = `${window.location.origin}/display`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopiedTvLink(true);
+      setTimeout(() => setCopiedTvLink(false), 2500);
+    });
   };
 
   const handleEventSave = async (e: React.FormEvent) => {
@@ -590,8 +605,8 @@ export default function UnifiedDashboardPage() {
       setEventError('Event Start Date & Time is required');
       return;
     }
-    if (!editingEvent && !eventFormData.imageFile && !eventFormData.imageUrl.trim()) {
-      setEventError('Please provide an Image File or Image URL');
+    if (!editingEvent && !eventFormData.imageFile) {
+      setEventError('Please select a Cover Image file');
       return;
     }
 
@@ -610,6 +625,8 @@ export default function UnifiedDashboardPage() {
       }
       formData.append('venue', eventFormData.venue.trim());
       formData.append('apply_link', eventFormData.apply_link.trim());
+      formData.append('broadcastToTv', String(eventFormData.broadcastToTv));
+      formData.append('tvDuration', String(eventFormData.tvDuration));
 
       if (eventFormData.removeBrochure) {
         formData.append('removeBrochure', 'true');
@@ -633,6 +650,33 @@ export default function UnifiedDashboardPage() {
       if (!res.ok) {
         const errData = await res.json();
         throw new Error(errData.error || 'Failed to save event');
+      }
+
+      const savedData = await res.json();
+      const savedEventId = editingEvent ? editingEvent.id : (savedData?.id ?? savedData?.event?.id);
+
+      // Automatically upload any queued gallery photos in the same unified save flow
+      if (savedEventId && eventGalleryFiles.length > 0) {
+        try {
+          const galleryFormData = new FormData();
+          eventGalleryFiles.forEach((file) => {
+            galleryFormData.append('images', file);
+          });
+
+          const galleryRes = await fetch(`/api/events/${savedEventId}/images`, {
+            method: 'POST',
+            body: galleryFormData,
+          });
+
+          if (!galleryRes.ok) {
+            const galleryErr = await galleryRes.json();
+            console.error('Failed to upload gallery images:', galleryErr);
+            alert(`Event details saved, but some gallery photos failed to upload: ${galleryErr.error || 'Unknown error'}`);
+          }
+        } catch (uploadErr) {
+          console.error('Error uploading gallery photos:', uploadErr);
+          alert('Event details saved, but a network error occurred while uploading gallery photos.');
+        }
       }
 
       await fetchEvents();
@@ -964,10 +1008,14 @@ export default function UnifiedDashboardPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNotif, setEditingNotif] = useState<NotificationItem | null>(null);
+  const [actionType, setActionType] = useState<'none' | 'link' | 'pdf'>('none');
   const [formData, setFormData] = useState({
     title: '',
     category: 'General',
     link: '',
+    pdfUrl: '',
+    pdfFile: null as File | null,
+    removePdf: false,
     isActive: true,
   });
   const [saving, setSaving] = useState(false);
@@ -1412,18 +1460,31 @@ export default function UnifiedDashboardPage() {
     setFormError(null);
     if (notif) {
       setEditingNotif(notif);
+      const initialActionType: 'none' | 'link' | 'pdf' = notif.pdfUrl
+        ? 'pdf'
+        : notif.link
+        ? 'link'
+        : 'none';
+      setActionType(initialActionType);
       setFormData({
         title: notif.title,
         category: notif.category || 'General',
         link: notif.link || '',
+        pdfUrl: notif.pdfUrl || '',
+        pdfFile: null,
+        removePdf: false,
         isActive: notif.isActive,
       });
     } else {
       setEditingNotif(null);
+      setActionType('none');
       setFormData({
         title: '',
         category: 'General',
         link: '',
+        pdfUrl: '',
+        pdfFile: null,
+        removePdf: false,
         isActive: true,
       });
     }
@@ -1451,10 +1512,32 @@ export default function UnifiedDashboardPage() {
         : '/api/admin/notifications';
       const method = editingNotif ? 'PUT' : 'POST';
 
+      const data = new FormData();
+      data.append('title', formData.title.trim());
+      data.append('category', formData.category);
+      data.append('isActive', String(formData.isActive));
+
+      // Mutually exclusive: strictly enforce either Link OR PDF, not both
+      if (actionType === 'link') {
+        data.append('link', formData.link.trim());
+        data.append('removePdf', 'true');
+      } else if (actionType === 'pdf') {
+        data.append('link', '');
+        if (formData.removePdf) {
+          data.append('removePdf', 'true');
+        } else if (formData.pdfFile) {
+          data.append('pdf', formData.pdfFile);
+        } else if (formData.pdfUrl) {
+          data.append('pdfUrl', formData.pdfUrl.trim());
+        }
+      } else {
+        data.append('link', '');
+        data.append('removePdf', 'true');
+      }
+
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: data,
       });
 
       if (!res.ok) {
@@ -2507,7 +2590,7 @@ export default function UnifiedDashboardPage() {
                   onClick={() => setIsBroadcastModalOpen(true)}
                   className="flex items-center gap-2 py-3 px-5 font-semibold rounded-xl shadow-xs transition-all text-sm cursor-pointer"
                 >
-                  <Radio className="w-4 h-4 text-cyan-accent" />
+                  <Radio className="w-4 h-4 text-white" />
                   <span>Multi-Channel Broadcast</span>
                 </Button>
               </div>
@@ -3132,7 +3215,7 @@ export default function UnifiedDashboardPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-transparent py-2 rounded-none shadow-none">
               <div>
                 <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
-                  <Bell className="w-7 h-7 text-cyan-accent" />
+                  <Bell className="w-7 h-7 text-oxford" />
                   <span>Notifications Management</span>
                 </h2>
                 <p className="text-slate-600 text-base mt-1">
@@ -3190,7 +3273,7 @@ export default function UnifiedDashboardPage() {
                       <TableHead className="text-base font-bold">Status</TableHead>
                       <TableHead className="text-base font-bold">Title</TableHead>
                       <TableHead className="text-base font-bold">Category</TableHead>
-                      <TableHead className="text-base font-bold">Redirect Link</TableHead>
+                      <TableHead className="text-base font-bold">Action / Destination</TableHead>
                       <TableHead className="text-base font-bold">Date</TableHead>
                       <TableHead className="text-right text-base font-bold">Actions</TableHead>
                     </TableRow>
@@ -3221,24 +3304,42 @@ export default function UnifiedDashboardPage() {
                           <span className="line-clamp-2">{notif.title}</span>
                         </TableCell>
                         <TableCell className="text-base py-4">
-                          <span className="font-semibold text-base text-cyan-700">
+                          <span className="font-semibold text-base text-oxford">
                             {notif.category}
                           </span>
                         </TableCell>
-                        <TableCell className="text-slate-600 text-base py-4">
-                          {notif.link ? (
-                            <a
-                              href={sanitizeWebUrl(notif.link) || '#'}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 text-base text-cyan-accent hover:underline max-w-[150px] truncate font-medium"
-                            >
-                              <span>{notif.link}</span>
-                              <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                            </a>
-                          ) : (
-                            <span className="text-base text-slate-400">—</span>
-                          )}
+                        <TableCell className="text-slate-600 text-sm py-4">
+                          <div className="flex flex-col gap-1 items-start">
+                            {notif.pdfUrl && (
+                              <a
+                                href={sanitizeWebUrl(notif.pdfUrl, true) || '#'}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 text-xs font-semibold"
+                                title="Open PDF Document"
+                              >
+                                <FileText className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                                <span>PDF Notice</span>
+                                <ExternalLink className="w-3 h-3 shrink-0 opacity-70" />
+                              </a>
+                            )}
+                            {notif.link && (
+                              <a
+                                href={sanitizeWebUrl(notif.link) || '#'}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 text-xs text-oxford hover:underline max-w-[160px] truncate font-medium"
+                                title={notif.link}
+                              >
+                                <Globe className="w-3.5 h-3.5 shrink-0 text-slate-500" />
+                                <span className="truncate">{notif.link}</span>
+                                <ExternalLink className="w-3 h-3 shrink-0 opacity-70" />
+                              </a>
+                            )}
+                            {!notif.pdfUrl && !notif.link && (
+                              <span className="text-base text-slate-400">—</span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-base text-slate-600 whitespace-nowrap font-mono py-4">
                           {new Date(notif.date).toLocaleDateString('en-US', {
@@ -3548,6 +3649,65 @@ export default function UnifiedDashboardPage() {
               </div>
             </div>
 
+            {/* TV Signage Quick Launch & Status Card */}
+            <div className="bg-white border border-slate-200/80 p-6 rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5 font-sans">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-oxford/5 border border-oxford/15 flex items-center justify-center text-oxford shrink-0">
+                    <Tv className="w-5 h-5" />
+                  </div>
+                  <div className="flex items-center gap-2.5">
+                    <h3 className="text-xl font-bold font-serif text-slate-900">
+                      Department TV Display Signage
+                    </h3>
+                    <Badge variant="outline" className="font-mono text-xs border-oxford/20 text-oxford bg-oxford/5 px-2 py-0.5 rounded-md">
+                      16:9 • 4K Landscape
+                    </Badge>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-600 max-w-xl leading-relaxed">
+                  Open <span className="font-mono text-xs font-semibold text-oxford bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">/display</span> on any Smart TV, Fire TV Stick, or kiosk PC. Events marked with the TV badge rotate automatically in full-screen mode.
+                </p>
+                <div className="text-xs text-slate-500 flex items-center gap-2.5 pt-1">
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <strong className="text-slate-800 font-semibold">
+                      {eventsList.filter((e) => Boolean(e.broadcastToTv ?? e.broadcast_to_tv)).length}
+                    </strong> active on TV screen
+                  </span>
+                  <span>•</span>
+                  <span>Auto-refreshes silently every 30s</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 shrink-0">
+                <Button
+                  variant="outline"
+                  onClick={handleCopyTvLink}
+                  className="bg-white hover:bg-slate-50 text-slate-700 border-slate-200 text-sm py-2.5 px-4 rounded-xl cursor-pointer flex items-center gap-2 shadow-2xs font-semibold"
+                >
+                  {copiedTvLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-slate-500" />}
+                  <span>{copiedTvLink ? 'URL Copied!' : 'Copy TV Link'}</span>
+                </Button>
+                <Button
+                  variant="default"
+                  asChild
+                  className="rounded-xl py-2.5 px-4 text-sm font-semibold cursor-pointer shadow-xs"
+                >
+                  <a
+                    href="/display"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2"
+                  >
+                    <Tv className="w-4 h-4" />
+                    <span>Launch /display Screen</span>
+                    <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                  </a>
+                </Button>
+              </div>
+            </div>
+
             <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
               {eventsList.length === 0 ? (
                 <div className="text-center py-12 space-y-3">
@@ -3564,6 +3724,7 @@ export default function UnifiedDashboardPage() {
                       <TableHead className="text-base font-bold">Cover Image</TableHead>
                       <TableHead className="text-base font-bold">Event Title & ID</TableHead>
                       <TableHead className="text-base font-bold">Event Date</TableHead>
+                      <TableHead className="text-base font-bold text-center">TV Signage</TableHead>
                       <TableHead className="text-base font-bold">Brochure PDF</TableHead>
                       <TableHead className="text-base font-bold">Apply Link</TableHead>
                       <TableHead className="text-right text-base font-bold">Actions</TableHead>
@@ -3596,6 +3757,23 @@ export default function UnifiedDashboardPage() {
                               : null;
                             return eStr ? `${sStr} to ${eStr}` : sStr;
                           })()}
+                        </TableCell>
+
+                        {/* TV Broadcast Toggle */}
+                        <TableCell className="py-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleTvBroadcast(ev)}
+                            title={Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv) ? 'Click to remove from TV display' : 'Click to broadcast to TV display'}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
+                              Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv)
+                                ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                                : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                            }`}
+                          >
+                            <Tv className="w-3.5 h-3.5" />
+                            <span>{Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv) ? 'Live on TV' : 'Off'}</span>
+                          </button>
                         </TableCell>
 
                         <TableCell className="py-3">
@@ -3758,34 +3936,19 @@ export default function UnifiedDashboardPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Cover Image File OR Image URL *</label>
-                <div className="space-y-2">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setEventFormData({ ...eventFormData, imageFile: file, imageUrl: '' });
-                        setEventImagePreview(URL.createObjectURL(file));
-                      }
-                    }}
-                    className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-cyan-accent hover:file:text-oxford transition-all"
-                  />
-
-                  <div className="text-center text-xs text-slate-400 font-sans">OR</div>
-
-                  <Input
-                    type="text"
-                    placeholder="https://images.unsplash.com/..."
-                    value={eventFormData.imageUrl}
-                    onChange={(e) => {
-                      setEventFormData({ ...eventFormData, imageUrl: e.target.value, imageFile: null });
-                      setEventImagePreview(e.target.value);
-                    }}
-                    className="w-full text-xs font-mono"
-                  />
-                </div>
+                <label className="text-sm font-bold text-slate-700">Cover Image *</label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setEventFormData({ ...eventFormData, imageFile: file, imageUrl: '' });
+                      setEventImagePreview(URL.createObjectURL(file));
+                    }
+                  }}
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-cyan-accent hover:file:text-oxford transition-all cursor-pointer"
+                />
 
                 {eventImagePreview && (
                   <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-200 mt-2 group">
@@ -3823,41 +3986,22 @@ export default function UnifiedDashboardPage() {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <input
-                    type="file"
-                    accept="application/pdf,.pdf"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setEventFormData({
-                          ...eventFormData,
-                          brochureFile: file,
-                          brochureUrl: '',
-                          removeBrochure: false,
-                        });
-                      }
-                    }}
-                    className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-oxford-dark transition-all cursor-pointer"
-                  />
-
-                  <div className="text-center text-xs text-slate-400 font-sans">OR PDF URL</div>
-
-                  <Input
-                    type="text"
-                    placeholder="/uploads/events/... or https://..."
-                    value={eventFormData.brochureUrl}
-                    onChange={(e) => {
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
                       setEventFormData({
                         ...eventFormData,
-                        brochureUrl: e.target.value,
-                        brochureFile: null,
+                        brochureFile: file,
+                        brochureUrl: '',
                         removeBrochure: false,
                       });
-                    }}
-                    className="w-full text-xs font-mono"
-                  />
-                </div>
+                    }
+                  }}
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-oxford-dark transition-all cursor-pointer"
+                />
 
                 {(eventFormData.brochureFile || (eventFormData.brochureUrl && !eventFormData.removeBrochure)) && (
                   <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs text-slate-800 mt-2 font-sans">
@@ -3897,14 +4041,62 @@ export default function UnifiedDashboardPage() {
               </div>
 
               {/* Event Gallery Management Section */}
-              <EventGallerySection eventId={editingEvent ? editingEvent.id : null} />
+              <EventGallerySection
+                eventId={editingEvent ? editingEvent.id : null}
+                queuedFiles={eventGalleryFiles}
+                setQueuedFiles={setEventGalleryFiles}
+              />
+
+              {/* TV Display Broadcasting Options */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 font-sans">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <label className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                      <Tv className="w-4 h-4 text-oxford" />
+                      <span>Broadcast to TV Display (/display)</span>
+                    </label>
+                    <p className="text-xs text-slate-500">
+                      Feature this event on the 16:9 full-screen department TV signage display.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={eventFormData.broadcastToTv}
+                    onChange={(e) => setEventFormData({ ...eventFormData, broadcastToTv: e.target.checked })}
+                    className="w-5 h-5 accent-oxford rounded cursor-pointer"
+                  />
+                </div>
+
+                {eventFormData.broadcastToTv && (
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-3 text-xs">
+                    <span className="text-slate-600 font-medium">Slide Display Duration on TV:</span>
+                    <div className="flex items-center gap-1.5 font-mono">
+                      <input
+                        type="number"
+                        min={5}
+                        max={120}
+                        value={eventFormData.tvDuration}
+                        onChange={(e) => setEventFormData({ ...eventFormData, tvDuration: parseInt(e.target.value, 10) || 12 })}
+                        className="w-16 px-2 py-1 bg-white border border-slate-200 rounded-lg text-center font-bold text-slate-900"
+                      />
+                      <span className="text-slate-500">seconds</span>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
                 <Button variant="outline" type="button" onClick={closeEventModal} className="px-4">
                   Cancel
                 </Button>
                 <Button type="submit" disabled={eventSaving} className="px-5 font-semibold">
-                  {eventSaving ? 'Saving Event...' : editingEvent ? 'Update Event' : 'Create Event'}
+                  {eventSaving
+                    ? eventGalleryFiles.length > 0
+                      ? 'Saving Event & Photos...'
+                      : 'Saving Event...'
+                    : editingEvent
+                    ? 'Update Event'
+                    : 'Create Event'}
                 </Button>
               </DialogFooter>
             </form>
@@ -3948,24 +4140,172 @@ export default function UnifiedDashboardPage() {
                     <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="General">General</SelectItem>
+                    <SelectItem value="Event">Event</SelectItem>
+                    <SelectItem value="News">News</SelectItem>
+                    <SelectItem value="Notice">Notice</SelectItem>
                     <SelectItem value="Admissions">Admissions</SelectItem>
-                    <SelectItem value="Research">Research & Conferences</SelectItem>
-                    <SelectItem value="Exams">Exams & Timetables</SelectItem>
-                    <SelectItem value="Events">Events & Workshops</SelectItem>
+                    <SelectItem value="Academic">Academic</SelectItem>
+                    <SelectItem value="General">General</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700">Destination Link (Optional)</label>
-                <Input
-                  type="url"
-                  placeholder="https://..."
-                  value={formData.link}
-                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                  className="w-full text-base font-mono text-sm"
-                />
+              {/* Notice Action Destination: Mutually Exclusive (Link OR PDF) */}
+              <div className="space-y-3 pt-2 border-t border-slate-100 font-sans">
+                <div>
+                  <label className="text-sm font-bold text-slate-800 block">
+                    Notice Action (Choose At Most One)
+                  </label>
+                  <p className="text-xs text-slate-500">
+                    Choose whether clicking this notice redirects to a webpage or opens a PDF document.
+                  </p>
+                </div>
+
+                {/* 3-way Segmented Control */}
+                <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActionType('none');
+                      setFormData({
+                        ...formData,
+                        link: '',
+                        pdfFile: null,
+                        pdfUrl: '',
+                        removePdf: true,
+                      });
+                    }}
+                    className={`py-2 px-3 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      actionType === 'none'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    None (Text Only)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActionType('link');
+                      setFormData({
+                        ...formData,
+                        pdfFile: null,
+                        pdfUrl: '',
+                        removePdf: true,
+                      });
+                    }}
+                    className={`py-2 px-3 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      actionType === 'link'
+                        ? 'bg-white text-oxford shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Globe className="w-3.5 h-3.5 text-oxford" />
+                    <span>Webpage Link</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActionType('pdf');
+                      setFormData({
+                        ...formData,
+                        link: '',
+                      });
+                    }}
+                    className={`py-2 px-3 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      actionType === 'pdf'
+                        ? 'bg-white text-rose-700 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <FileText className="w-3.5 h-3.5 text-rose-600" />
+                    <span>PDF Document</span>
+                  </button>
+                </div>
+
+                {/* Option: Webpage Link */}
+                {actionType === 'link' && (
+                  <div className="space-y-1.5 p-3.5 bg-blue-50/50 border border-blue-100 rounded-xl">
+                    <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                      <Globe className="w-3.5 h-3.5 text-oxford" />
+                      <span>Webpage Destination URL *</span>
+                    </label>
+                    <Input
+                      type="url"
+                      placeholder="https://..."
+                      value={formData.link}
+                      onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                      className="w-full text-xs font-mono bg-white"
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* Option: PDF Document */}
+                {actionType === 'pdf' && (
+                  <div className="space-y-2.5 p-3.5 bg-rose-50/40 border border-rose-100 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Upload PDF Notice Document (.pdf) *</span>
+                      </label>
+                      {formData.pdfUrl && !formData.removePdf && (
+                        <a
+                          href={sanitizeWebUrl(formData.pdfUrl, true) || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-oxford hover:underline flex items-center gap-1 font-semibold"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>Preview Current PDF</span>
+                        </a>
+                      )}
+                    </div>
+
+                    <input
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setFormData({
+                            ...formData,
+                            pdfFile: file,
+                            pdfUrl: '',
+                            removePdf: false,
+                            link: '',
+                          });
+                        }
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-oxford/90 cursor-pointer"
+                    />
+
+                    {(formData.pdfFile || (formData.pdfUrl && !formData.removePdf)) && (
+                      <div className="p-2.5 bg-white border border-rose-200 rounded-xl flex items-center justify-between text-xs text-slate-800 shadow-xs">
+                        <div className="flex items-center gap-2 truncate">
+                          <FileText className="w-4 h-4 text-rose-600 shrink-0" />
+                          <span className="truncate font-semibold text-slate-800">
+                            {formData.pdfFile ? formData.pdfFile.name : formData.pdfUrl}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              pdfFile: null,
+                              pdfUrl: '',
+                              removePdf: true,
+                            })
+                          }
+                          className="text-rose-600 hover:text-rose-800 font-bold ml-2 shrink-0 cursor-pointer"
+                        >
+                          Remove PDF
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
@@ -4362,7 +4702,7 @@ export default function UnifiedDashboardPage() {
             onClick={() => setShowPasswordModal(true)}
             className="w-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center gap-2 text-xs font-semibold rounded-xl py-3 cursor-pointer shadow-xs transition-all"
           >
-            <KeyRound className="w-3.5 h-3.5 text-cyan-accent" />
+            <KeyRound className="w-3.5 h-3.5 text-slate-300" />
             <span>Change Password</span>
           </Button>
 
@@ -5068,7 +5408,12 @@ export default function UnifiedDashboardPage() {
           </div>
 
           <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            {publicationsList.length === 0 ? (
+            {loadingPublications ? (
+              <div className="p-12 text-center text-slate-500 space-y-2">
+                <BookOpen className="w-8 h-8 mx-auto text-slate-400 animate-pulse" />
+                <p className="text-sm font-semibold text-slate-700">Loading publications...</p>
+              </div>
+            ) : publicationsList.length === 0 ? (
               <div className="p-12 text-center text-slate-500 space-y-3">
                 <BookOpen className="w-10 h-10 mx-auto text-slate-400" />
                 <p className="text-base font-semibold text-slate-800">No publications listed yet.</p>
@@ -5250,6 +5595,65 @@ export default function UnifiedDashboardPage() {
             </div>
           </div>
 
+          {/* TV Signage Quick Launch & Status Card */}
+          <div className="bg-white border border-slate-200/80 p-6 rounded-2xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5 font-sans">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-oxford/5 border border-oxford/15 flex items-center justify-center text-oxford shrink-0">
+                  <Tv className="w-5 h-5" />
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <h3 className="text-xl font-bold font-serif text-slate-900">
+                    Department TV Display Signage
+                  </h3>
+                  <Badge variant="outline" className="font-mono text-xs border-oxford/20 text-oxford bg-oxford/5 px-2 py-0.5 rounded-md">
+                    16:9 • 4K Landscape
+                  </Badge>
+                </div>
+              </div>
+              <p className="text-sm text-slate-600 max-w-xl leading-relaxed">
+                Open <span className="font-mono text-xs font-semibold text-oxford bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">/display</span> on any Smart TV, Fire TV Stick, or kiosk PC. Events marked with the TV badge rotate automatically in full-screen mode.
+              </p>
+              <div className="text-xs text-slate-500 flex items-center gap-2.5 pt-1">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                  <strong className="text-slate-800 font-semibold">
+                    {eventsList.filter((e) => Boolean(e.broadcastToTv ?? e.broadcast_to_tv)).length}
+                  </strong> active on TV screen
+                </span>
+                <span>•</span>
+                <span>Auto-refreshes silently every 30s</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              <Button
+                variant="outline"
+                onClick={handleCopyTvLink}
+                className="bg-white hover:bg-slate-50 text-slate-700 border-slate-200 text-sm py-2.5 px-4 rounded-xl cursor-pointer flex items-center gap-2 shadow-2xs font-semibold"
+              >
+                {copiedTvLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4 text-slate-500" />}
+                <span>{copiedTvLink ? 'URL Copied!' : 'Copy TV Link'}</span>
+              </Button>
+              <Button
+                variant="default"
+                asChild
+                className="rounded-xl py-2.5 px-4 text-sm font-semibold cursor-pointer shadow-xs"
+              >
+                <a
+                  href="/display"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2"
+                >
+                  <Tv className="w-4 h-4" />
+                  <span>Launch /display Screen</span>
+                  <ExternalLink className="w-3.5 h-3.5 opacity-80" />
+                </a>
+              </Button>
+            </div>
+          </div>
+
           <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
             {eventsList.length === 0 ? (
               <div className="text-center py-12 space-y-3">
@@ -5266,6 +5670,7 @@ export default function UnifiedDashboardPage() {
                     <TableHead className="text-base font-bold">Cover Image</TableHead>
                     <TableHead className="text-base font-bold">Event Title & ID</TableHead>
                     <TableHead className="text-base font-bold">Event Date</TableHead>
+                    <TableHead className="text-base font-bold text-center">TV Signage</TableHead>
                     <TableHead className="text-base font-bold">Apply Link</TableHead>
                     <TableHead className="text-right text-base font-bold">Actions</TableHead>
                   </TableRow>
@@ -5297,6 +5702,23 @@ export default function UnifiedDashboardPage() {
                             : null;
                           return eStr ? `${sStr} to ${eStr}` : sStr;
                         })()}
+                      </TableCell>
+
+                      {/* TV Broadcast Toggle */}
+                      <TableCell className="py-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleTvBroadcast(ev)}
+                          title={Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv) ? 'Click to remove from TV display' : 'Click to broadcast to TV display'}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
+                            Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv)
+                              ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                              : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                          }`}
+                        >
+                          <Tv className="w-3.5 h-3.5" />
+                          <span>{Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv) ? 'Live on TV' : 'Off'}</span>
+                        </button>
                       </TableCell>
 
                       <TableCell className="py-3">
@@ -6135,6 +6557,11 @@ export default function UnifiedDashboardPage() {
                 onChange={handleStudentImageSelect}
                 className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
               />
+              {studentImagePreviewUrl && (
+                <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-slate-200 mt-2">
+                  <img src={studentImagePreviewUrl} alt="Scholar preview" className="w-full h-full object-cover" />
+                </div>
+              )}
             </div>
 
             <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
@@ -6474,34 +6901,19 @@ export default function UnifiedDashboardPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Cover Image File OR Image URL *</label>
-              <div className="space-y-2">
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setEventFormData({ ...eventFormData, imageFile: file, imageUrl: '' });
-                      setEventImagePreview(URL.createObjectURL(file));
-                    }
-                  }}
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-cyan-accent hover:file:text-oxford transition-all"
-                />
-
-                <div className="text-center text-xs text-slate-400 font-sans">OR</div>
-
-                <Input
-                  type="text"
-                  placeholder="https://images.unsplash.com/..."
-                  value={eventFormData.imageUrl}
-                  onChange={(e) => {
-                    setEventFormData({ ...eventFormData, imageUrl: e.target.value, imageFile: null });
-                    setEventImagePreview(e.target.value);
-                  }}
-                  className="w-full text-xs font-mono"
-                />
-              </div>
+              <label className="text-sm font-bold text-slate-700">Cover Image *</label>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setEventFormData({ ...eventFormData, imageFile: file, imageUrl: '' });
+                    setEventImagePreview(URL.createObjectURL(file));
+                  }
+                }}
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-cyan-accent hover:file:text-oxford transition-all cursor-pointer"
+              />
 
               {eventImagePreview && (
                 <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-200 mt-2 group">
@@ -6534,14 +6946,62 @@ export default function UnifiedDashboardPage() {
             </div>
 
             {/* Event Gallery Management Section */}
-            <EventGallerySection eventId={editingEvent ? editingEvent.id : null} />
+            <EventGallerySection
+              eventId={editingEvent ? editingEvent.id : null}
+              queuedFiles={eventGalleryFiles}
+              setQueuedFiles={setEventGalleryFiles}
+            />
+
+            {/* TV Display Broadcasting Options */}
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 font-sans">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <label className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <Tv className="w-4 h-4 text-oxford" />
+                    <span>Broadcast to TV Display (/display)</span>
+                  </label>
+                  <p className="text-xs text-slate-500">
+                    Feature this event on the 16:9 full-screen department TV signage display.
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={eventFormData.broadcastToTv}
+                  onChange={(e) => setEventFormData({ ...eventFormData, broadcastToTv: e.target.checked })}
+                  className="w-5 h-5 accent-oxford rounded cursor-pointer"
+                />
+              </div>
+
+              {eventFormData.broadcastToTv && (
+                <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-3 text-xs">
+                  <span className="text-slate-600 font-medium">Slide Display Duration on TV:</span>
+                  <div className="flex items-center gap-1.5 font-mono">
+                    <input
+                      type="number"
+                      min={5}
+                      max={120}
+                      value={eventFormData.tvDuration}
+                      onChange={(e) => setEventFormData({ ...eventFormData, tvDuration: parseInt(e.target.value, 10) || 12 })}
+                      className="w-16 px-2 py-1 bg-white border border-slate-200 rounded-lg text-center font-bold text-slate-900"
+                    />
+                    <span className="text-slate-500">seconds</span>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
               <Button variant="outline" type="button" onClick={closeEventModal} className="px-4">
                 Cancel
               </Button>
               <Button type="submit" disabled={eventSaving} className="px-5 font-semibold">
-                {eventSaving ? 'Saving Event...' : editingEvent ? 'Update Event' : 'Create Event'}
+                {eventSaving
+                  ? eventGalleryFiles.length > 0
+                    ? 'Saving Event & Photos...'
+                    : 'Saving Event...'
+                  : editingEvent
+                  ? 'Update Event'
+                  : 'Create Event'}
               </Button>
             </DialogFooter>
           </form>
@@ -6668,7 +7128,7 @@ export default function UnifiedDashboardPage() {
                         >
                           <span>{fac.name}</span>
                           {isSelected ? (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-cyan-accent" />
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                           ) : (
                             <Plus className="w-3.5 h-3.5 text-slate-400" />
                           )}

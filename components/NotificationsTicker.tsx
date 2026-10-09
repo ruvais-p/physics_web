@@ -43,6 +43,8 @@ export default function NotificationsTicker({
               <Link
                 key={`notif-${item.id}-${idx}`}
                 href={item.link || '#'}
+                target={item.link?.toLowerCase().endsWith('.pdf') || item.link?.startsWith('http') ? '_blank' : undefined}
+                rel={item.link?.toLowerCase().endsWith('.pdf') || item.link?.startsWith('http') ? 'noopener noreferrer' : undefined}
                 className="hover:text-cyan-accent transition-colors duration-200 flex items-center space-x-3 group"
               >
                 <span className="bg-sky-50 text-sky-800 text-[11px] sm:text-[12px] font-extrabold px-3 py-1 rounded-md border border-sky-200 font-sans tracking-wide uppercase shrink-0">

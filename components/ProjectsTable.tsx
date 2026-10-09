@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ExternalLink, FolderGit2, Building2, User, Calendar, ChevronDown, ChevronUp, DollarSign } from 'lucide-react';
+import { ExternalLink, FolderGit2, ChevronDown, ChevronUp } from 'lucide-react';
 
 export interface ProjectData {
   id: string;

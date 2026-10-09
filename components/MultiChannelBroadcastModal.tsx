@@ -10,20 +10,20 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   Radio,
   Bell,
   Newspaper,
   Calendar,
-  Sparkles,
+  Send,
   CheckCircle2,
   Trash2,
   AlertCircle,
   ExternalLink,
-  Upload,
   MapPin,
   Clock,
+  Tv,
+  FileText,
 } from 'lucide-react';
 
 interface MultiChannelBroadcastModalProps {
@@ -42,6 +42,7 @@ export default function MultiChannelBroadcastModal({
     'notifications',
     'news',
     'events',
+    'display',
   ]);
 
   // Form Fields
@@ -52,7 +53,9 @@ export default function MultiChannelBroadcastModal({
   );
   const [endDate, setEndDate] = useState('');
   const [venue, setVenue] = useState('');
+  const [actionType, setActionType] = useState<'none' | 'link' | 'pdf'>('none');
   const [applyLink, setApplyLink] = useState('');
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [notificationCategory, setNotificationCategory] = useState('Event');
 
   // Image State
@@ -77,6 +80,9 @@ export default function MultiChannelBroadcastModal({
   const isEventSelected = selectedTargets.includes('events');
   const isNewsSelected = selectedTargets.includes('news');
   const isNotifSelected = selectedTargets.includes('notifications');
+  const isTvSelected = selectedTargets.includes('display');
+  const isOnlyNotifications =
+    selectedTargets.length === 1 && selectedTargets.includes('notifications');
 
   const handleResetForm = () => {
     setTitle('');
@@ -84,7 +90,9 @@ export default function MultiChannelBroadcastModal({
     setStartDate(new Date().toISOString().slice(0, 16));
     setEndDate('');
     setVenue('');
+    setActionType('none');
     setApplyLink('');
+    setPdfFile(null);
     setNotificationCategory('Event');
     setImageFile(null);
     setImageUrl('');
@@ -108,18 +116,18 @@ export default function MultiChannelBroadcastModal({
       return;
     }
 
-    if (!description.trim()) {
+    if (!isOnlyNotifications && !description.trim()) {
       setError('Description is required.');
       return;
     }
 
-    if (isEventSelected && !startDate.trim()) {
-      setError('Event Start Date & Time is required.');
+    if ((isEventSelected || isTvSelected) && !startDate.trim()) {
+      setError('Start Date & Time is required.');
       return;
     }
 
-    if ((isEventSelected || isNewsSelected) && !imageFile && !imageUrl.trim()) {
-      setError('A cover image (upload or URL) is required when publishing to News or Events.');
+    if ((isEventSelected || isNewsSelected || isTvSelected) && !imageFile && !imageUrl.trim()) {
+      setError('A cover image (upload or URL) is required when publishing to News, Events, or TV Display.');
       return;
     }
 
@@ -128,13 +136,18 @@ export default function MultiChannelBroadcastModal({
     try {
       const formData = new FormData();
       formData.append('title', title.trim());
-      formData.append('description', description.trim());
-      formData.append('startDate', startDate);
-      if (endDate.trim()) formData.append('endDate', endDate);
-      if (venue.trim()) formData.append('venue', venue.trim());
-      if (applyLink.trim()) formData.append('apply_link', applyLink.trim());
+      formData.append('description', isOnlyNotifications ? '' : description.trim());
+      formData.append('startDate', isOnlyNotifications ? new Date().toISOString() : startDate);
+      if (endDate.trim() && !isOnlyNotifications) formData.append('endDate', endDate);
+      if (venue.trim() && !isOnlyNotifications) formData.append('venue', venue.trim());
       formData.append('notificationCategory', notificationCategory);
       formData.append('targets', JSON.stringify(selectedTargets));
+
+      if (actionType === 'link' && applyLink.trim()) {
+        formData.append('apply_link', applyLink.trim());
+      } else if (actionType === 'pdf' && pdfFile) {
+        formData.append('pdf', pdfFile);
+      }
 
       if (imageFile) {
         formData.append('image', imageFile);
@@ -171,7 +184,7 @@ export default function MultiChannelBroadcastModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl bg-white border border-slate-200 p-6 rounded-3xl shadow-2xl font-serif text-slate-900 max-h-[92vh] overflow-y-auto">
         <DialogHeader className="border-b border-slate-100 pb-4">
-          <div className="flex items-center gap-2 text-cyan-accent mb-1">
+          <div className="flex items-center gap-2 text-oxford mb-1">
             <Radio className="w-5 h-5 text-oxford animate-pulse" />
             <span className="text-xs font-sans font-bold uppercase tracking-widest text-oxford">
               Universal Syndication Engine
@@ -205,7 +218,7 @@ export default function MultiChannelBroadcastModal({
             <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block font-sans">
               1. Select Publish Channels ({selectedTargets.length} Active)
             </label>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {/* Channel 1: Notifications */}
               <button
                 type="button"
@@ -277,6 +290,30 @@ export default function MultiChannelBroadcastModal({
                   <div className="text-[11px] text-slate-500 font-sans mt-0.5">/events &amp; Home Page</div>
                 </div>
               </button>
+
+              {/* Channel 4: TV Display Screen */}
+              <button
+                type="button"
+                onClick={() => toggleTarget('display')}
+                className={`p-3.5 rounded-2xl border text-left transition-all flex flex-col justify-between cursor-pointer ${
+                  isTvSelected
+                    ? 'bg-oxford/5 border-oxford text-oxford shadow-xs ring-2 ring-oxford/20'
+                    : 'bg-slate-50/60 border-slate-200 text-slate-500 hover:border-slate-300'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full mb-2">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isTvSelected ? 'bg-oxford text-white' : 'bg-slate-200 text-slate-600'}`}>
+                    <Tv className="w-4 h-4" />
+                  </div>
+                  <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isTvSelected ? 'border-oxford bg-oxford text-white' : 'border-slate-300'}`}>
+                    {isTvSelected && <span className="text-[10px] font-bold">✓</span>}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm font-bold font-sans">TV Display</div>
+                  <div className="text-[11px] text-slate-500 font-sans mt-0.5">/display (16:9 Signage)</div>
+                </div>
+              </button>
             </div>
           </div>
 
@@ -299,53 +336,57 @@ export default function MultiChannelBroadcastModal({
               />
             </div>
 
-            {/* Description */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">Description / Article Content *</label>
-              <textarea
-                rows={4}
-                placeholder="Write the announcement, schedule, or full summary..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm text-slate-900 font-sans focus:outline-none focus:ring-2 focus:ring-oxford leading-relaxed"
-                required
-              />
-            </div>
-
-            {/* Date & Time Settings */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Description (Hidden if only Notifications is selected) */}
+            {!isOnlyNotifications && (
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Start Date &amp; Time *</span>
-                </label>
-                <Input
-                  type="datetime-local"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full text-xs font-mono"
-                  required
+                <label className="text-xs font-bold text-slate-700">Description / Article Content *</label>
+                <textarea
+                  rows={4}
+                  placeholder="Write the announcement, schedule, or full summary..."
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm text-slate-900 font-sans focus:outline-none focus:ring-2 focus:ring-oxford leading-relaxed"
+                  required={!isOnlyNotifications}
                 />
               </div>
+            )}
 
-              {isEventSelected && (
+            {/* Date & Time Settings (Hidden if only Notifications is selected) */}
+            {!isOnlyNotifications && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5 text-slate-500" />
-                    <span>End Date &amp; Time (Optional)</span>
+                    <span>Start Date &amp; Time *</span>
                   </label>
                   <Input
                     type="datetime-local"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
                     className="w-full text-xs font-mono"
+                    required={!isOnlyNotifications}
                   />
                 </div>
-              )}
-            </div>
+
+                {(isEventSelected || isTvSelected) && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
+                      <Clock className="w-3.5 h-3.5 text-slate-500" />
+                      <span>End Date &amp; Time (Optional)</span>
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full text-xs font-mono"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Event Venue */}
-            {isEventSelected && (
+            {(isEventSelected || isTvSelected) && (
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
                   <MapPin className="w-3.5 h-3.5 text-slate-500" />
@@ -383,27 +424,149 @@ export default function MultiChannelBroadcastModal({
               </div>
             )}
 
-            {/* Action / Apply Link */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700 flex items-center gap-1">
-                <ExternalLink className="w-3.5 h-3.5 text-slate-500" />
-                <span>Action / Registration Link (Optional)</span>
-              </label>
-              <Input
-                type="url"
-                placeholder={
-                  isEventSelected
-                    ? 'Leave blank to auto-link to event page, or paste external form URL'
-                    : 'https://...'
-                }
-                value={applyLink}
-                onChange={(e) => setApplyLink(e.target.value)}
-                className="w-full text-xs font-mono"
-              />
+            {/* Notice / Event Action: Mutually Exclusive (Link OR PDF) */}
+            <div className="space-y-3 pt-2 border-t border-slate-100 font-sans">
+              <div>
+                <label className="text-xs font-bold text-slate-700 block uppercase tracking-wider">
+                  Action on Click (Choose At Most One)
+                </label>
+                <p className="text-[11px] text-slate-500">
+                  Select whether clicking this notice/event redirects to a webpage or opens an official PDF document.
+                </p>
+              </div>
+
+              {/* 3-way Segmented Control */}
+              <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActionType('none');
+                    setApplyLink('');
+                    setPdfFile(null);
+                  }}
+                  className={`py-2 px-3 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    actionType === 'none'
+                      ? 'bg-white text-slate-900 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  None (Text Only)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActionType('link');
+                    setPdfFile(null);
+                  }}
+                  className={`py-2 px-3 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    actionType === 'link'
+                      ? 'bg-white text-oxford shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <ExternalLink className="w-3.5 h-3.5 text-oxford" />
+                  <span>Webpage Link</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActionType('pdf');
+                    setApplyLink('');
+                  }}
+                  className={`py-2 px-3 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    actionType === 'pdf'
+                      ? 'bg-white text-rose-700 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <FileText className="w-3.5 h-3.5 text-rose-600" />
+                  <span>PDF Document</span>
+                </button>
+              </div>
+
+              {/* Option: Webpage Link */}
+              {actionType === 'link' && (
+                <div className="space-y-1.5 p-3.5 bg-blue-50/50 border border-blue-100 rounded-xl">
+                  <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                    <ExternalLink className="w-3.5 h-3.5 text-oxford" />
+                    <span>Action / Registration Webpage Link *</span>
+                  </label>
+                  <Input
+                    type="url"
+                    placeholder={
+                      isEventSelected
+                        ? 'e.g. Google Form, registration portal, or external link'
+                        : 'https://...'
+                    }
+                    value={applyLink}
+                    onChange={(e) => setApplyLink(e.target.value)}
+                    className="w-full text-xs font-mono bg-white"
+                    required
+                  />
+                </div>
+              )}
+
+              {/* Option: PDF Document */}
+              {actionType === 'pdf' && (
+                <div className="space-y-2.5 p-3.5 bg-rose-50/40 border border-rose-100 rounded-xl">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                      <FileText className="w-3.5 h-3.5 text-rose-600" />
+                      <span>Upload Notice / Brochure PDF Document (.pdf) *</span>
+                    </label>
+                    {pdfFile && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPdfFile(null);
+                        }}
+                        className="text-[11px] text-rose-600 hover:text-rose-700 font-medium flex items-center gap-1 cursor-pointer"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                        Remove PDF
+                      </button>
+                    )}
+                  </div>
+
+                  <input
+                    type="file"
+                    accept="application/pdf,.pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setPdfFile(file);
+                        setApplyLink('');
+                      }
+                    }}
+                    className="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-oxford/90 cursor-pointer"
+                    required={!pdfFile}
+                  />
+
+                  {pdfFile && (
+                    <div className="p-2.5 bg-white border border-rose-200 rounded-xl flex items-center justify-between text-xs text-slate-800 shadow-xs">
+                      <div className="flex items-center gap-2 truncate">
+                        <FileText className="w-4 h-4 text-rose-600 shrink-0" />
+                        <span className="truncate font-semibold text-slate-800">
+                          {pdfFile.name} ({(pdfFile.size / 1024).toFixed(0)} KB)
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setPdfFile(null);
+                        }}
+                        className="text-rose-600 hover:text-rose-800 font-bold ml-2 shrink-0 cursor-pointer"
+                      >
+                        Remove PDF
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* Cover Image (if News or Events is selected) */}
-            {(isNewsSelected || isEventSelected) && (
+            {/* Cover Image (if News, Events, or TV Display is selected) */}
+            {(isNewsSelected || isEventSelected || isTvSelected) && (
               <div className="space-y-2 pt-2 border-t border-slate-100">
                 <label className="text-xs font-bold text-slate-700 block">
                   Cover Image (File Upload or Image URL) *
@@ -474,7 +637,7 @@ export default function MultiChannelBroadcastModal({
               disabled={submitting || selectedTargets.length === 0}
               className="bg-oxford hover:bg-oxford/90 text-white font-semibold rounded-xl px-6 py-2.5 shadow-md flex items-center gap-2 cursor-pointer"
             >
-              <Sparkles className="w-4 h-4 text-cyan-accent" />
+              <Send className="w-4 h-4 text-white" />
               <span>
                 {submitting
                   ? 'Broadcasting...'

@@ -14,7 +14,7 @@ export default function LayoutWrapper({
   initialProgrammes?: ProgrammeNavItem[];
 }) {
   const pathname = usePathname();
-  const isPortalRoute = pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin') || pathname?.startsWith('/faculty') || pathname === '/login';
+  const isPortalRoute = pathname?.startsWith('/dashboard') || pathname?.startsWith('/admin') || pathname?.startsWith('/faculty') || pathname === '/login' || pathname?.startsWith('/display') || pathname?.startsWith('/tv');
 
   // Ensure window always starts at the top when navigating between routes
   useEffect(() => {

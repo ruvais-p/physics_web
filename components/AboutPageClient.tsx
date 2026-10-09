@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import React from 'react';
-import { ExternalLink, FlaskConical, Users, Calendar, ArrowRight, Sparkles } from 'lucide-react';
+import { ExternalLink, ArrowRight } from 'lucide-react';
 import Hero from '@/components/Hero';
 import { sanitizeWebUrl } from '@/lib/url-security';
 

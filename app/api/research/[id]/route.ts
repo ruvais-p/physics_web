@@ -7,7 +7,6 @@ import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 import { sanitizeWebUrl } from '@/lib/url-security';
 import { revalidatePublicPages } from '@/lib/public-cache';
 
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
 const LAB_IMAGES_DIR = path.join(process.cwd(), 'public', 'uploads', 'research-labs');
 
@@ -41,6 +40,19 @@ export async function GET(
             documents: {
               select: {
                 image: true,
+              },
+            },
+          },
+        },
+        students: {
+          select: {
+            uid: true,
+            name: true,
+            description: true,
+            image: true,
+            faculty: {
+              select: {
+                name: true,
               },
             },
           },
@@ -86,6 +98,7 @@ export async function PUT(
     const imageUrlInput = formData.get('imageUrl') as string | null;
     const imageFile = formData.get('image') as File | null;
     const facultyIdsStr = formData.get('facultyIds') as string | null;
+    const studentIdsStr = formData.get('studentIds') as string | null;
 
     let newImagePath = existingLab.image;
 
@@ -132,6 +145,16 @@ export async function PUT(
       };
     }
 
+    let studentConnectDisconnect: any = {};
+    if (studentIdsStr !== null) {
+      const studentIds: string[] = JSON.parse(studentIdsStr);
+      studentConnectDisconnect = {
+        students: {
+          set: studentIds.map((sId) => ({ uid: sId })),
+        },
+      };
+    }
+
     const updatedLab = await prisma.researchLab.update({
       where: { id },
       data: {
@@ -140,6 +163,7 @@ export async function PUT(
         description: description ? description.trim() : existingLab.description,
         image: newImagePath,
         ...facultyConnectDisconnect,
+        ...studentConnectDisconnect,
       },
       include: {
         faculties: {
@@ -149,6 +173,15 @@ export async function PUT(
             email: true,
             designation: true,
             documents: { select: { image: true } },
+          },
+        },
+        students: {
+          select: {
+            uid: true,
+            name: true,
+            description: true,
+            image: true,
+            faculty: { select: { name: true } },
           },
         },
       },

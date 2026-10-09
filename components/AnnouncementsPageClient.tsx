@@ -1,13 +1,13 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
 import { 
   Bell, 
   ExternalLink, 
   Calendar, 
   Tag, 
-  ArrowUpRight 
+  ArrowUpRight,
+  FileText
 } from 'lucide-react';
 import Hero from '@/components/Hero';
 
@@ -17,6 +17,7 @@ export interface AnnouncementItem {
   content?: string | null;
   category: string;
   link: string;
+  pdfUrl?: string | null;
   date: string;
   rawDate?: string;
 }
@@ -46,21 +47,30 @@ export default function AnnouncementsPageClient({
           {announcements.length > 0 ? (
             <div className="space-y-4">
               {announcements.map((item, index) => {
-                const hasValidLink = item.link && item.link !== '#' && item.link.trim() !== '';
-                const isExternal = hasValidLink && (item.link.startsWith('http://') || item.link.startsWith('https://'));
+                const isPdf = Boolean(item.pdfUrl || item.link?.toLowerCase().endsWith('.pdf'));
+                const hasValidLink = (item.link && item.link !== '#' && item.link.trim() !== '') || Boolean(item.pdfUrl);
+                const targetUrl = item.pdfUrl || item.link;
+                const isExternal = isPdf || (hasValidLink && (targetUrl.startsWith('http://') || targetUrl.startsWith('https://')));
 
                 return (
                   <div
                     key={item.id || index}
-                    className="bg-white border border-slate-200/80 hover:border-cyan-accent/50 rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group"
+                    className="bg-white border border-slate-200/80 hover:border-oxford/40 rounded-2xl p-5 sm:p-6 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group"
                   >
                     <div className="space-y-2 flex-1">
-                      {/* Meta Tags (Category & Date) */}
+                      {/* Meta Tags (Category, PDF & Date) */}
                       <div className="flex flex-wrap items-center gap-2 text-xs font-semibold">
-                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-cyan-50 border border-cyan-200/70 text-cyan-800 uppercase tracking-wider text-[11px] font-bold">
-                          <Tag className="w-3 h-3 text-cyan-accent" />
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-800 uppercase tracking-wider text-[11px] font-bold">
+                          <Tag className="w-3 h-3 text-oxford" />
                           <span>{item.category || 'General'}</span>
                         </span>
+
+                        {isPdf && (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-[11px] font-bold">
+                            <FileText className="w-3 h-3 text-rose-600" />
+                            <span>PDF Document</span>
+                          </span>
+                        )}
 
                         <span className="inline-flex items-center gap-1.5 text-slate-500 font-mono text-[12px]">
                           <Calendar className="w-3.5 h-3.5 text-slate-400" />
@@ -69,7 +79,7 @@ export default function AnnouncementsPageClient({
                       </div>
 
                       {/* Title */}
-                      <h3 className="text-base sm:text-lg font-bold text-oxford group-hover:text-cyan-accent transition-colors leading-snug">
+                      <h3 className="text-base sm:text-lg font-bold text-oxford group-hover:text-oxford/80 transition-colors leading-snug">
                         {item.title}
                       </h3>
 
@@ -85,16 +95,25 @@ export default function AnnouncementsPageClient({
                     <div className="shrink-0 w-full sm:w-auto pt-2 sm:pt-0">
                       {hasValidLink ? (
                         <a
-                          href={item.link}
+                          href={targetUrl}
                           target={isExternal ? '_blank' : '_self'}
                           rel={isExternal ? 'noopener noreferrer' : undefined}
-                          className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2.5 rounded-xl bg-oxford hover:bg-cyan-accent text-white text-xs font-bold transition-all duration-200 shadow-xs group-hover:shadow-md cursor-pointer"
+                          className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2.5 rounded-xl bg-oxford hover:bg-oxford/90 text-white text-xs font-bold transition-all duration-200 shadow-xs group-hover:shadow-md cursor-pointer"
                         >
-                          <span>View Notice</span>
-                          {isExternal ? (
-                            <ExternalLink className="w-3.5 h-3.5" />
+                          {isPdf ? (
+                            <>
+                              <FileText className="w-3.5 h-3.5 text-rose-300" />
+                              <span>View PDF Notice</span>
+                            </>
                           ) : (
-                            <ArrowUpRight className="w-3.5 h-3.5" />
+                            <>
+                              <span>View Notice</span>
+                              {isExternal ? (
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              ) : (
+                                <ArrowUpRight className="w-3.5 h-3.5" />
+                              )}
+                            </>
                           )}
                         </a>
                       ) : (

@@ -7,7 +7,6 @@ import {
   Edit,
   Trash2,
   FileText,
-  Upload,
   ExternalLink,
   CheckCircle2,
   AlertCircle,

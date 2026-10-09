@@ -108,7 +108,7 @@ export async function PUT(
     }
 
     // Update main faculty record
-    const updatedFaculty = await prisma.faculty.update({
+    await prisma.faculty.update({
       where: { id },
       data: updateData,
     });
