@@ -151,24 +151,41 @@ export async function POST(request: Request) {
 
     // 1. Publish to Events if targeted
     if (willPublishEvent) {
-      const eventRows = await prisma.$queryRaw<any[]>`
-        INSERT INTO events (title, description, image, start_date, end_date, venue, apply_link, brochure, broadcast_id, broadcast_to_tv, tv_duration, created_at, updated_at)
-        VALUES (${title}, ${description}, ${imagePath || '/eventssss.jpg'}, ${eventStartDate}, ${eventEndDate}, ${venue}, ${applyLink}, ${pdfPath}, ${broadcastId}, ${willPublishTv}, ${tvDuration}, NOW(), NOW())
-        RETURNING id
-      `;
-      if (eventRows.length > 0) {
-        createdSummary.eventId = eventRows[0].id;
-      }
+      const newEvent = await prisma.event.create({
+        data: {
+          title,
+          description,
+          image: imagePath || '/eventssss.jpg',
+          startDate: eventStartDate,
+          endDate: eventEndDate,
+          venue,
+          apply_link: applyLink,
+          brochure: pdfPath,
+          broadcastId,
+          broadcastToTv: willPublishTv,
+          tvDuration,
+        },
+        select: { id: true },
+      });
+      createdSummary.eventId = newEvent.id;
     }
 
     // 2. Publish to News if targeted
     if (willPublishNews) {
       const newsId = randomUUID();
-      await prisma.$queryRaw`
-        INSERT INTO "News" (id, title, description, image, date, link, "broadcastId", "createdAt", "updatedAt")
-        VALUES (${newsId}, ${title}, ${description}, ${imagePath || null}, ${eventStartDate}, ${applyLink || pdfPath}, ${broadcastId}, NOW(), NOW())
-      `;
-      createdSummary.newsId = newsId;
+      const newNews = await prisma.news.create({
+        data: {
+          id: newsId,
+          title,
+          description,
+          image: imagePath || null,
+          date: eventStartDate,
+          link: applyLink || pdfPath,
+          broadcastId,
+        },
+        select: { id: true },
+      });
+      createdSummary.newsId = newNews.id;
     }
 
     // 3. Publish to Notifications if targeted
@@ -194,11 +211,21 @@ export async function POST(request: Request) {
 
       const notifCategory = notificationCategory || (willPublishEvent ? 'Event' : willPublishNews ? 'News' : 'Notice');
 
-      await prisma.$queryRaw`
-        INSERT INTO "Notification" (id, title, content, category, link, "pdfUrl", "isActive", "broadcastId", date, "createdAt", "updatedAt")
-        VALUES (${notifId}, ${title}, ${description || null}, ${notifCategory}, ${notifLink}, ${pdfPath}, true, ${broadcastId}, ${eventStartDate}, NOW(), NOW())
-      `;
-      createdSummary.notificationId = notifId;
+      const newNotification = await prisma.notification.create({
+        data: {
+          id: notifId,
+          title,
+          content: description || null,
+          category: notifCategory,
+          link: notifLink,
+          pdfUrl: pdfPath,
+          isActive: true,
+          broadcastId,
+          date: eventStartDate,
+        },
+        select: { id: true },
+      });
+      createdSummary.notificationId = newNotification.id;
     }
 
     revalidatePublicPages();
@@ -209,10 +236,10 @@ export async function POST(request: Request) {
       broadcastId,
       targets: createdSummary,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in multi-target broadcast publish:', error);
     return NextResponse.json(
-      { error: error?.message || 'Failed to publish broadcast.' },
+      { error: error instanceof Error ? error.message : 'Failed to publish broadcast.' },
       { status: 500 }
     );
   }

@@ -1,4 +1,3 @@
-import React from 'react';
 import { RESEARCH_DOMAINS, ResearchDomain } from '@/lib/data';
 
 interface ResearchDomainsSectionProps {

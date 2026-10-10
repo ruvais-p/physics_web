@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import { Bell } from 'lucide-react';
 
@@ -29,8 +28,8 @@ export default function NotificationsTicker({
     <section className="w-full relative z-20">
       <div className="w-full bg-white border-y border-slate-200/80 shadow-md px-6 sm:px-12 lg:px-16 py-3.5 sm:py-4 flex items-center gap-4 overflow-hidden">
         {/* Badge */}
-        <div className="flex items-center space-x-2 shrink-0 bg-heritage-red border border-heritage-red px-3.5 py-2 rounded-lg text-white z-10 shadow-md animate-pulse">
-          <Bell className="w-4 h-4 text-white fill-white/20 animate-bounce" />
+        <div className="flex items-center space-x-2 shrink-0 bg-heritage-red border border-heritage-red px-3.5 py-2 rounded-lg text-white z-10 shadow-sm transition-transform duration-200 hover:-translate-y-0.5">
+          <Bell className="w-4 h-4 text-white fill-white/20" />
           <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider whitespace-nowrap font-sans">
             Announcements
           </span>

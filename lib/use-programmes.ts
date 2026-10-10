@@ -1,12 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type MouseEvent } from 'react';
 import {
   DEFAULT_PROGRAMME_ITEMS,
   formatCourseToNavItem,
   getCourseOrderFallback,
   type ProgrammeNavItem,
 } from './nav-programmes';
+
+interface ProgrammeSortableItem {
+  id: string;
+  sortOrder?: number | null;
+  level?: string | null;
+  title?: string | null;
+  code?: string | null;
+}
 
 export function useProgrammes(initial?: ProgrammeNavItem[]): ProgrammeNavItem[] {
   const [programmes, setProgrammes] = useState<ProgrammeNavItem[]>(
@@ -22,7 +30,7 @@ export function useProgrammes(initial?: ProgrammeNavItem[]): ProgrammeNavItem[] 
         const data = await res.json();
         const list = Array.isArray(data) ? data : data?.courses;
         if (Array.isArray(list) && list.length > 0) {
-          const sorted = [...list].sort((a: any, b: any) => {
+          const sorted = [...list].sort((a: ProgrammeSortableItem, b: ProgrammeSortableItem) => {
             if ((a.sortOrder ?? 0) !== (b.sortOrder ?? 0)) {
               return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
             }
@@ -55,7 +63,7 @@ export function useProgrammes(initial?: ProgrammeNavItem[]): ProgrammeNavItem[] 
 }
 
 export function handleInPageNav(
-  e: React.MouseEvent<HTMLAnchorElement>,
+  e: MouseEvent<HTMLAnchorElement>,
   href: string,
   pathname: string,
   onAfterNav?: () => void

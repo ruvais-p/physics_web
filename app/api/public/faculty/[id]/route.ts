@@ -4,7 +4,7 @@ import { sanitizeWebUrl } from '@/lib/url-security';
 
 // GET /api/public/faculty/[id] - Fetch single faculty member or scholar
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

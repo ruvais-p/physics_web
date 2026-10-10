@@ -99,17 +99,17 @@ export async function PUT(request: Request, context: RouteContext) {
     revalidatePublicPages();
 
     return NextResponse.json(updated);
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Failed to update staff member ${id}:`, error);
     return NextResponse.json(
-      { error: error.message || 'Failed to update staff member.' },
+      { error: error instanceof Error ? error.message : 'Failed to update staff member.' },
       { status: 500 }
     );
   }
 }
 
 // DELETE /api/admin/staff/[id] - Remove staff member
-export async function DELETE(request: Request, context: RouteContext) {
+export async function DELETE(_request: Request, context: RouteContext) {
   const { id } = await context.params;
   const admin = await getAdminSession();
   if (!admin) {
@@ -127,10 +127,10 @@ export async function DELETE(request: Request, context: RouteContext) {
     revalidatePublicPages();
 
     return NextResponse.json({ success: true, message: 'Staff member removed successfully.' });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Failed to delete staff member ${id}:`, error);
     return NextResponse.json(
-      { error: error.message || 'Failed to delete staff member.' },
+      { error: error instanceof Error ? error.message : 'Failed to delete staff member.' },
       { status: 500 }
     );
   }

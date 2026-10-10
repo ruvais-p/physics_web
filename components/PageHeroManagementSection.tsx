@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ChangeEvent } from 'react';
 import Image from 'next/image';
 import { 
   Upload, 
@@ -47,7 +47,7 @@ const INITIAL_PAGE_HEROES: PageHeroItem[] = Object.values(DEFAULT_PAGE_HEROES).m
 
 export default function PageHeroManagementSection() {
   const [pageHeroes, setPageHeroes] = useState<PageHeroItem[]>(INITIAL_PAGE_HEROES);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [editingHero, setEditingHero] = useState<PageHeroItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -65,7 +65,6 @@ export default function PageHeroManagementSection() {
 
   const fetchPageHeroes = async () => {
     try {
-      setLoading(true);
       const res = await fetch('/api/cms/page-heroes', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
@@ -78,6 +77,11 @@ export default function PageHeroManagementSection() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    await fetchPageHeroes();
   };
 
   useEffect(() => {
@@ -96,7 +100,7 @@ export default function PageHeroManagementSection() {
     setIsModalOpen(true);
   };
 
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -148,8 +152,8 @@ export default function PageHeroManagementSection() {
       setTimeout(() => {
         setIsModalOpen(false);
       }, 1200);
-    } catch (err: any) {
-      setFormError(err.message || 'An error occurred while saving.');
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : 'An error occurred while saving.');
     } finally {
       setSaving(false);
     }
@@ -172,7 +176,7 @@ export default function PageHeroManagementSection() {
         <Button
           type="button"
           variant="outline"
-          onClick={fetchPageHeroes}
+          onClick={handleRefresh}
           className="flex items-center gap-2 border-slate-300 text-slate-700 hover:bg-slate-100 self-start sm:self-auto"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -352,25 +356,26 @@ export default function PageHeroManagementSection() {
                 </p>
               </div>
 
-              {/* Or image URL input */}
-              <div className="pt-2">
-                <label htmlFor="hero-image-url" className="text-[11px] font-semibold text-slate-500 block mb-1">
-                  Or Image Web URL / Path:
-                </label>
-                <Input
-                  id="hero-image-url"
-                  value={imageUrl}
-                  onChange={(e) => {
-                    setImageUrl(e.target.value);
-                    if (e.target.value.trim()) {
-                      setImagePreview(e.target.value.trim());
+              {imageFile && (
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-xs text-emerald-700 font-medium truncate max-w-[260px]">
+                    New image selected: {imageFile.name}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
                       setImageFile(null);
-                    }
-                  }}
-                  placeholder="https://images.unsplash.com/... or /campus.jpg"
-                  className="rounded-xl border-slate-200 text-xs mt-1"
-                />
-              </div>
+                      setImagePreview(editingHero?.image || null);
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
+                    className="text-xs text-rose-600 hover:text-rose-700 font-semibold rounded-xl h-7 px-2 cursor-pointer"
+                  >
+                    Remove Selection
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Error / Success Feedback */}

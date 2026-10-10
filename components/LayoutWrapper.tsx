@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -10,7 +10,7 @@ export default function LayoutWrapper({
   children,
   initialProgrammes,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
   initialProgrammes?: ProgrammeNavItem[];
 }) {
   const pathname = usePathname();

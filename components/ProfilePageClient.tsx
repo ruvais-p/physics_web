@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo, Fragment, type ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import FacultyCard from '@/components/FacultyCard';
@@ -75,7 +75,7 @@ function renderMarkdown(md: string) {
   }
 
   const lines = md.split('\n');
-  const elements: React.ReactNode[] = [];
+  const elements: ReactNode[] = [];
   let currentList: { type: 'ul' | 'ol'; items: string[] } | null = null;
 
   const flushList = () => {
@@ -170,8 +170,8 @@ function renderMarkdown(md: string) {
   return <div className="space-y-1">{elements}</div>;
 }
 
-function parseInlineMarkdown(text: string): React.ReactNode {
-  const parts: React.ReactNode[] = [];
+function parseInlineMarkdown(text: string): ReactNode {
+  const parts: ReactNode[] = [];
   let remaining = text;
   let keyIdx = 0;
 
@@ -197,8 +197,8 @@ function parseInlineMarkdown(text: string): React.ReactNode {
   return parts;
 }
 
-function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
-  const elements: React.ReactNode[] = [];
+function parseFormatting(text: string, keyPrefix: number): ReactNode {
+  const elements: ReactNode[] = [];
   const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -223,7 +223,7 @@ function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
     elements.push(text.substring(lastIndex));
   }
 
-  return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
+  return elements.length === 1 ? elements[0] : <Fragment key={keyPrefix}>{elements}</Fragment>;
 }
 
 export default function ProfilePageClient({ person }: { person: ProfilePerson | null }) {

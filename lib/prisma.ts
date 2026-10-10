@@ -49,6 +49,7 @@ function createClient(): PrismaClient {
         delete require.cache[key];
       }
     }
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const FreshClient = require('@prisma/client').PrismaClient;
     return new FreshClient({ log: ['error'] });
   }

@@ -111,10 +111,10 @@ export async function POST(request: Request) {
     revalidatePublicPages();
 
     return NextResponse.json(newStaff, { status: 201 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Failed to create staff member:', error);
     return NextResponse.json(
-      { error: error.message || 'Failed to create staff member.' },
+      { error: error instanceof Error ? error.message : 'Failed to create staff member.' },
       { status: 500 }
     );
   }

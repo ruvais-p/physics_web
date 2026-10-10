@@ -13,7 +13,7 @@ interface Params {
 }
 
 // GET /api/events/[id] - Fetch single event by ID
-export async function GET(request: Request, { params }: Params) {
+export async function GET(_request: Request, { params }: Params) {
   try {
     const resolvedParams = await params;
     const eventId = parseInt(resolvedParams.id, 10);
@@ -35,7 +35,7 @@ export async function GET(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
-    const images = await (prisma as any).eventImage.findMany({
+    const images = await prisma.eventImage.findMany({
       where: { eventId },
       orderBy: { sortOrder: 'asc' },
     }).catch(async () => {
@@ -270,7 +270,7 @@ export async function PATCH(request: Request, { params }: Params) {
 }
 
 // DELETE /api/events/[id] - Delete event by ID (Admin only)
-export async function DELETE(request: Request, { params }: Params) {
+export async function DELETE(_request: Request, { params }: Params) {
   const user = await getAdminSession();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });

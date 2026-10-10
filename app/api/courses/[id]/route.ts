@@ -9,7 +9,7 @@ async function verifyAuthorizedUser() {
 
 // GET /api/courses/[id] - Fetch specific course details
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -83,7 +83,7 @@ export async function PUT(
 
 // DELETE /api/courses/[id] - Delete a course (Admin only)
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

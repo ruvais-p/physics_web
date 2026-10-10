@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
@@ -9,7 +8,6 @@ import {
   Phone, 
   ExternalLink, 
   ChevronRight, 
-  Sparkles,
   ArrowUpRight 
 } from 'lucide-react';
 import { type ProgrammeNavItem } from '@/lib/nav-programmes';
@@ -34,10 +32,10 @@ export default function Footer({ initialProgrammes }: FooterProps = {}) {
 
       {/* Main Content Grid Container */}
       <div className="w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-16 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 lg:gap-12 mb-14">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8 xl:gap-12 mb-14">
 
-          {/* Column 1: Brand, Emblem & Accreditation (5 cols) */}
-          <div className="lg:col-span-4 space-y-6">
+          {/* Column 1: Brand, Emblem & Accreditation */}
+          <div className="space-y-6">
             <div className="space-y-4">
               {/* DOP Atom Logo */}
               <Link
@@ -76,13 +74,12 @@ export default function Footer({ initialProgrammes }: FooterProps = {}) {
 
             {/* Accreditation & Recognition Badges */}
             <div className="space-y-2">
-              <span className="text-[12px] font-bold uppercase tracking-widest text-slate-300 block">
+              <span className="text-xs font-bold uppercase tracking-widest text-sky-300 block">
                 Accreditations &amp; Support
               </span>
               <div className="flex flex-wrap gap-2 text-[13px]">
-                <span className="px-2.5 py-1 rounded-lg bg-sky-500/15 border border-sky-400/30 text-sky-200 font-semibold flex items-center gap-1.5 shadow-xs">
-                  <Sparkles className="w-3 h-3" />
-                  <span>NAAC A+</span>
+                <span className="px-2.5 py-1 rounded-lg bg-sky-500/15 border border-sky-400/30 text-sky-200 font-semibold shadow-xs">
+                  NAAC A+
                 </span>
                 <span className="px-2.5 py-1 rounded-lg bg-white/10 border border-white/15 text-slate-200 font-medium">
                   NIRF Top 40
@@ -97,12 +94,12 @@ export default function Footer({ initialProgrammes }: FooterProps = {}) {
             </div>
           </div>
 
-          {/* Column 2: Quick Links (2.5 cols) */}
-          <div className="lg:col-span-2 space-y-4">
-            <h4 className="text-[13px] font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1.5">
+          {/* Column 2: Quick Links */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1.5">
               <span>Quick Links</span>
             </h4>
-            <ul className="space-y-2.5 text-[15px]">
+            <ul className="space-y-2.5 text-sm">
               {[
                 { label: 'About Department', href: '/about' },
                 { label: 'Faculty & Scholars', href: '/people' },
@@ -128,13 +125,13 @@ export default function Footer({ initialProgrammes }: FooterProps = {}) {
             </ul>
           </div>
 
-          {/* Column 3: Academic Programmes (2.5 cols) */}
-          <div className="lg:col-span-3 space-y-4">
+          {/* Column 3: Academic Programmes */}
+          <div className="space-y-4">
             <h4 className="text-xs font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1.5">
               <span>Academic Programmes</span>
             </h4>
             <ul className="space-y-2.5 text-sm">
-              {programmes.slice(0, 5).map((prog) => (
+              {programmes.map((prog) => (
                 <li key={`footer-${prog.name}-${prog.href}`}>
                   <Link 
                     href={prog.href}
@@ -172,9 +169,9 @@ export default function Footer({ initialProgrammes }: FooterProps = {}) {
             </ul>
           </div>
 
-          {/* Column 4: Department Reach & Contact (3 cols) */}
-          <div className="lg:col-span-3 space-y-4">
-            <h4 className="text-[13px] font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1.5">
+          {/* Column 4: Department Reach & Contact */}
+          <div className="space-y-4">
+            <h4 className="text-xs font-bold uppercase tracking-widest text-sky-300 flex items-center gap-1.5">
               <span>Contact &amp; Location</span>
             </h4>
             <ul className="space-y-3.5 text-[13px] text-slate-200">

@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import EventDetailPageClient, { type EventDetailItem } from '@/components/EventDetailPageClient';
 import { prisma } from '@/lib/prisma';
 import { sanitizeWebUrl } from '@/lib/url-security';
@@ -67,6 +68,10 @@ export default async function EventDetailPage({ params }: PageProps) {
     } catch (error) {
       console.error('Failed to fetch event details:', error);
     }
+  }
+
+  if (!liveEvent) {
+    notFound();
   }
 
   return <EventDetailPageClient liveEvent={liveEvent} />;

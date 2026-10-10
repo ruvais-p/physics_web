@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   BookOpen,
   Plus,
@@ -16,6 +16,7 @@ import {
   FileCheck2,
   ArrowUpDown,
   GripVertical,
+  Upload,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -98,6 +99,7 @@ export default function CurriculumManagementSection() {
     pdfUrl: '',
     sortOrder: 1,
   });
+  const schemePdfInputRef = useRef<HTMLInputElement>(null);
   const [savingScheme, setSavingScheme] = useState(false);
   const [schemeError, setSchemeError] = useState<string | null>(null);
 
@@ -358,6 +360,7 @@ export default function CurriculumManagementSection() {
       pdfUrl: '',
       sortOrder: existingCount + 1,
     });
+    if (schemePdfInputRef.current) schemePdfInputRef.current.value = '';
     setIsSchemeModalOpen(true);
   };
 
@@ -371,6 +374,7 @@ export default function CurriculumManagementSection() {
       pdfUrl: schemeItem.pdfUrl || '',
       sortOrder: schemeItem.sortOrder || 1,
     });
+    if (schemePdfInputRef.current) schemePdfInputRef.current.value = '';
     setIsSchemeModalOpen(true);
   };
 
@@ -898,30 +902,77 @@ export default function CurriculumManagementSection() {
               />
             </div>
 
-            {/* PDF File Upload or URL */}
-            <div className="space-y-2 pt-1 border-t border-slate-100">
-              <label className="text-xs font-bold text-slate-700">Upload Syllabus PDF File (Max 15MB)</label>
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setSchemeFormData({ ...schemeFormData, pdfFile: file, pdfUrl: '' });
-                  }
-                }}
-                className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-cyan-600 transition-all cursor-pointer"
-              />
+            {/* Syllabus PDF Document Upload */}
+            <div className="pt-2 border-t border-slate-100">
+              <label className="text-xs font-bold text-slate-700 block mb-2">
+                Syllabus PDF Document (Optional)
+              </label>
+              <div className="flex items-center gap-4">
+                <div className={`relative w-20 h-20 rounded-2xl overflow-hidden shrink-0 flex flex-col items-center justify-center transition-all ${
+                  schemeFormData.pdfFile || schemeFormData.pdfUrl
+                    ? 'bg-rose-50 border border-rose-200 text-rose-600 shadow-xs'
+                    : 'bg-slate-100 border border-slate-200 text-slate-400'
+                }`}>
+                  <FileText className={`w-7 h-7 mb-0.5 ${
+                    schemeFormData.pdfFile || schemeFormData.pdfUrl ? 'text-rose-600' : 'text-slate-400 opacity-60'
+                  }`} />
+                  <span className={`text-[10px] font-bold tracking-wider uppercase ${
+                    schemeFormData.pdfFile || schemeFormData.pdfUrl ? 'text-rose-700 font-mono' : 'text-slate-400 font-medium'
+                  }`}>
+                    {schemeFormData.pdfFile || schemeFormData.pdfUrl ? 'PDF FILE' : 'NO PDF'}
+                  </span>
+                </div>
 
-              <div className="text-center text-[10px] text-slate-400 uppercase tracking-widest font-mono">OR External PDF URL</div>
+                <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+                  {(schemeFormData.pdfFile || schemeFormData.pdfUrl) && (
+                    <div className="text-xs font-semibold text-slate-800 truncate" title={schemeFormData.pdfFile?.name || schemeFormData.pdfUrl}>
+                      {schemeFormData.pdfFile ? schemeFormData.pdfFile.name : schemeFormData.pdfUrl.split('/').pop()}
+                    </div>
+                  )}
 
-              <Input
-                type="text"
-                placeholder="https://... or /cvs/syllabus.pdf"
-                value={schemeFormData.pdfUrl}
-                onChange={(e) => setSchemeFormData({ ...schemeFormData, pdfUrl: e.target.value, pdfFile: null })}
-                className="text-xs font-mono"
-              />
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => schemePdfInputRef.current?.click()}
+                      className="text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{schemeFormData.pdfFile || schemeFormData.pdfUrl ? 'Change PDF' : 'Upload PDF'}</span>
+                    </Button>
+
+                    {(schemeFormData.pdfFile || schemeFormData.pdfUrl) && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSchemeFormData({ ...schemeFormData, pdfFile: null, pdfUrl: '' });
+                          if (schemePdfInputRef.current) schemePdfInputRef.current.value = '';
+                        }}
+                        className="text-xs text-rose-600 hover:text-rose-700 font-semibold rounded-xl cursor-pointer"
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+
+                  <input
+                    ref={schemePdfInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (file) {
+                        setSchemeFormData({ ...schemeFormData, pdfFile: file, pdfUrl: '' });
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <p className="text-[11px] text-slate-500">Supports PDF format (Max 15MB).</p>
+                </div>
+              </div>
             </div>
 
             <DialogFooter className="border-t border-slate-100 pt-4 gap-2">

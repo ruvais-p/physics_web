@@ -1,5 +1,6 @@
-import React from 'react';
 import Link from 'next/link';
+import { Fragment, type ReactNode } from 'react';
+import { notFound } from 'next/navigation';
 import Hero from '@/components/Hero';
 import FacultyCard from '@/components/FacultyCard';
 import {
@@ -70,7 +71,7 @@ function renderMarkdown(md: string) {
   }
 
   const lines = md.split('\n');
-  const elements: React.ReactNode[] = [];
+  const elements: ReactNode[] = [];
   let currentList: { type: 'ul' | 'ol'; items: string[] } | null = null;
 
   const flushList = () => {
@@ -174,8 +175,8 @@ function renderMarkdown(md: string) {
   return <div className="space-y-3 font-sans">{elements}</div>;
 }
 
-function parseInlineMarkdown(text: string): React.ReactNode {
-  const parts: React.ReactNode[] = [];
+function parseInlineMarkdown(text: string): ReactNode {
+  const parts: ReactNode[] = [];
   let remaining = text;
   let keyIdx = 0;
 
@@ -201,8 +202,8 @@ function parseInlineMarkdown(text: string): React.ReactNode {
   return parts;
 }
 
-function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
-  const elements: React.ReactNode[] = [];
+function parseFormatting(text: string, keyPrefix: number): ReactNode {
+  const elements: ReactNode[] = [];
   const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -227,7 +228,7 @@ function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
     elements.push(text.substring(lastIndex));
   }
 
-  return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
+  return elements.length === 1 ? elements[0] : <Fragment key={keyPrefix}>{elements}</Fragment>;
 }
 
 export default async function FacilityDetailPage({ params }: PageProps) {
@@ -276,19 +277,7 @@ export default async function FacilityDetailPage({ params }: PageProps) {
   }
 
   if (!facility) {
-    return (
-      <div className="max-w-4xl mx-auto px-6 py-24 text-center space-y-4 font-sans">
-        <Wrench className="w-16 h-16 text-slate-400 mx-auto" />
-        <h1 className="text-3xl font-bold font-serif text-oxford">Facility Not Found</h1>
-        <p className="text-slate-600 text-sm">The department facility you requested could not be found.</p>
-        <Link
-          href="/facilities"
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-oxford text-white font-semibold text-xs uppercase tracking-wider hover:bg-cyan-900 transition-colors shadow-md"
-        >
-          <ArrowLeft className="w-4 h-4" /> Back to Facilities
-        </Link>
-      </div>
-    );
+    notFound();
   }
 
   const faculties = facility.faculties || [];

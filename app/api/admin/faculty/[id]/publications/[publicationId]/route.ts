@@ -63,7 +63,7 @@ export async function PUT(
 
 // DELETE /api/admin/faculty/[id]/publications/[publicationId] - Delete publication
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string; publicationId: string }> }
 ) {
   const admin = await authenticateAdmin();

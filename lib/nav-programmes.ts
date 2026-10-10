@@ -4,12 +4,20 @@ export interface ProgrammeNavItem {
 }
 
 export const DEFAULT_PROGRAMME_ITEMS: ProgrammeNavItem[] = [
+  { name: 'Ph.D. Programme', href: '/courses#phd' },
   { name: 'Integrated M.Sc.', href: '/courses#integrated' },
   { name: 'M.Sc. Physics', href: '/courses#msc' },
-  { name: 'Ph.D. Programme', href: '/courses#phd' },
   { name: 'M.Tech. Materials', href: '/courses#mtech' },
   { name: 'PG Diploma', href: '/courses#diploma' },
 ];
+
+export function slugifyTitle(title: string): string {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
 
 export function getCourseOrderFallback(course: {
   id: string;
@@ -17,13 +25,19 @@ export function getCourseOrderFallback(course: {
   title?: string | null;
   code?: string | null;
 }): number {
+  if (course.id === 'c2') return 1;
+  if (course.id === 'c3') return 2;
+  if (course.id === 'c1') return 3;
+  if (course.id === 'c4') return 4;
+  if (course.id === 'c5') return 5;
+
   const text = `${course.id} ${course.level || ''} ${course.title || ''} ${course.code || ''}`.toLowerCase();
-  if (text.includes('integrated') || text.includes('int') || course.id === 'c3') return 1;
-  if (text.includes('msc') || text.includes('m.sc') || text.includes('master') || course.id === 'c1') return 2;
-  if (text.includes('phd') || text.includes('ph.d') || text.includes('doctor') || course.id === 'c2') return 3;
-  if (text.includes('mtech') || text.includes('m.tech') || course.id === 'c4') return 4;
-  if (text.includes('diploma') || course.id === 'c5') return 5;
-  return 6;
+  if (text.includes('phd') || text.includes('ph.d') || text.includes('doctor')) return 1;
+  if (text.includes('integrated') || text.includes('int')) return 2;
+  if (text.includes('msc') || text.includes('m.sc') || text.includes('master')) return 3;
+  if (text.includes('mtech') || text.includes('m.tech')) return 4;
+  if (text.includes('diploma')) return 5;
+  return 10;
 }
 
 export function getCourseNavInfo(course: {
@@ -32,27 +46,27 @@ export function getCourseNavInfo(course: {
   level?: string | null;
   code?: string | null;
 }): { name: string; href: string; hash: string } {
-  const text = `${course.id} ${course.level || ''} ${course.title || ''} ${course.code || ''}`.toLowerCase();
-
-  let name = course.title || 'Academic Programme';
-  let hash = course.id;
-
-  if (text.includes('integrated') || course.id === 'c3') {
-    name = course.id === 'c3' ? 'Integrated M.Sc.' : name;
-    hash = 'integrated';
-  } else if (text.includes('phd') || text.includes('ph.d') || course.id === 'c2') {
-    name = course.id === 'c2' ? 'Ph.D. Programme' : name;
-    hash = 'phd';
-  } else if (text.includes('msc') || text.includes('m.sc') || course.id === 'c1') {
-    name = course.id === 'c1' ? 'M.Sc. Physics' : name;
-    hash = 'msc';
-  } else if (text.includes('mtech') || text.includes('m.tech') || course.id === 'c4') {
-    name = course.id === 'c4' ? 'M.Tech. Materials' : name;
-    hash = 'mtech';
-  } else if (text.includes('diploma') || course.id === 'c5') {
-    name = course.id === 'c5' ? 'PG Diploma' : name;
-    hash = 'diploma';
+  // 1. Explicit core course mappings by fixed ID
+  if (course.id === 'c2') {
+    return { name: 'Ph.D. Programme', href: '/courses#phd', hash: 'phd' };
   }
+  if (course.id === 'c3') {
+    return { name: 'Integrated M.Sc.', href: '/courses#integrated', hash: 'integrated' };
+  }
+  if (course.id === 'c1') {
+    return { name: 'M.Sc. Physics', href: '/courses#msc', hash: 'msc' };
+  }
+  if (course.id === 'c4') {
+    return { name: 'M.Tech. Materials', href: '/courses#mtech', hash: 'mtech' };
+  }
+  if (course.id === 'c5') {
+    return { name: 'PG Diploma', href: '/courses#diploma', hash: 'diploma' };
+  }
+
+  // 2. Dynamic / CMS-created courses: use clean unique slug from title, fallback to course ID
+  const name = course.title || 'Academic Programme';
+  const slug = slugifyTitle(course.title || '') || course.id.toLowerCase();
+  const hash = slug;
 
   return { name, href: `/courses#${hash}`, hash };
 }

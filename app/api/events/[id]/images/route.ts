@@ -10,7 +10,7 @@ interface Params {
 }
 
 // GET /api/events/[id]/images - Fetch all gallery images for an event
-export async function GET(request: Request, { params }: Params) {
+export async function GET(_request: Request, { params }: Params) {
   try {
     const resolvedParams = await params;
     const eventId = parseInt(resolvedParams.id, 10);
@@ -19,7 +19,7 @@ export async function GET(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'Invalid event ID' }, { status: 400 });
     }
 
-    const images = await (prisma as any).eventImage.findMany({
+    const images = await prisma.eventImage.findMany({
       where: { eventId },
       orderBy: { sortOrder: 'asc' },
     });
@@ -47,7 +47,7 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     // 1. Verify Event existence
-    const existingEvent = await (prisma as any).event.findUnique({
+    const existingEvent = await prisma.event.findUnique({
       where: { id: eventId },
       include: { images: true },
     });
@@ -161,17 +161,17 @@ export async function POST(request: Request, { params }: Params) {
     }
 
     // Get highest current sortOrder
-    const lastImage = await (prisma as any).eventImage.findFirst({
+    const lastImage = await prisma.eventImage.findFirst({
       where: { eventId },
       orderBy: { sortOrder: 'desc' },
     });
 
-    let startOrder = lastImage ? lastImage.sortOrder + 1 : 1;
+    const startOrder = lastImage ? lastImage.sortOrder + 1 : 1;
 
     // Create EventImage database records
-    const createdRecords = await (prisma as any).$transaction(
+    const createdRecords = await prisma.$transaction(
       itemsToCreate.map((item, index) =>
-        (prisma as any).eventImage.create({
+        prisma.eventImage.create({
           data: {
             eventId,
             imagePath: item.imagePath,

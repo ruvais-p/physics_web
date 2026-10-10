@@ -98,17 +98,30 @@ export default function CourseCard({ course, heroImage }: CourseCardProps) {
 
   const displayTitle =
     course.title ||
-    (isMsc
+    (course.id === 'c1'
+      ? 'Master of Science (M.Sc.) in Physics'
+      : course.id === 'c2'
+      ? 'Doctor of Philosophy (Ph.D.) in Physics'
+      : course.id === 'c3'
+      ? 'Integrated M.Sc. in Physics'
+      : isMsc
       ? 'Master of Science (M.Sc.) in Physics'
       : isPhd
       ? 'Doctor of Philosophy (Ph.D.) in Physics'
-      : 'Integrated M.Sc. in Physics');
+      : 'Academic Programme');
 
-  const programLevelLabel = isPhd
-    ? 'Doctoral (Ph.D.)'
-    : isMsc
-    ? 'Postgraduate (M.Sc.)'
-    : 'Undergraduate & Postgraduate (Integrated M.Sc.)';
+  const programLevelLabel =
+    course.id === 'c2'
+      ? 'Doctoral (Ph.D.)'
+      : course.id === 'c1'
+      ? 'Postgraduate (M.Sc.)'
+      : course.id === 'c3'
+      ? 'Undergraduate & Postgraduate (Integrated M.Sc.)'
+      : course.id === 'c4'
+      ? 'Postgraduate (M.Tech.)'
+      : course.id === 'c5'
+      ? 'Postgraduate Diploma'
+      : course.level || (isPhd ? 'Doctoral (Ph.D.)' : isMsc ? 'Postgraduate (M.Sc.)' : 'Academic Programme');
 
   const photoSrc = heroImage || '/campus.jpg';
 
@@ -171,55 +184,61 @@ export default function CourseCard({ course, heroImage }: CourseCardProps) {
           </h2>
         </div>
 
-        <div
-          className={`grid grid-cols-1 ${
-            schemes.length === 2 ? 'md:grid-cols-2' : schemes.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'
-          } gap-6`}
-        >
-          {schemes.map((item, idx) => {
-            const displayYear = item.year.replace('Years 2 - 5', 'Years 2-5');
-            const description = getStageDescription(item.year, idx, course.id);
+        {schemes.length > 0 ? (
+          <div
+            className={`grid grid-cols-1 ${
+              schemes.length === 2 ? 'md:grid-cols-2' : schemes.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-2'
+            } gap-6`}
+          >
+            {schemes.map((item, idx) => {
+              const displayYear = item.year.replace('Years 2 - 5', 'Years 2-5');
+              const description = getStageDescription(item.year, idx, course.id);
 
-            return (
-              <div
-                key={item.id || idx}
-                className="bg-white border border-gray-200 rounded-lg p-6 sm:p-7 flex flex-col justify-between space-y-6 hover:shadow-xs transition-shadow duration-200"
-              >
-                <div className="space-y-2">
-                  {/* Small gray label at the top */}
-                  <span className="text-xs font-medium uppercase tracking-wider text-gray-500 block">
-                    Stage {idx + 1}
-                  </span>
+              return (
+                <div
+                  key={item.id || idx}
+                  className="bg-white border border-gray-200 rounded-lg p-6 sm:p-7 flex flex-col justify-between space-y-6 hover:shadow-xs transition-shadow duration-200"
+                >
+                  <div className="space-y-2">
+                    {/* Small gray label at the top */}
+                    <span className="text-xs font-medium uppercase tracking-wider text-gray-500 block">
+                      Stage {idx + 1}
+                    </span>
 
-                  {/* Title */}
-                  <h3 className="font-serif text-lg sm:text-xl text-gray-900 font-normal">
-                    {displayYear}
-                  </h3>
+                    {/* Title */}
+                    <h3 className="font-serif text-lg sm:text-xl text-gray-900 font-normal">
+                      {displayYear}
+                    </h3>
 
-                  {/* One line of description if available */}
-                  {description && (
-                    <p className="text-sm text-gray-600 leading-relaxed pt-1">
-                      {description}
-                    </p>
-                  )}
+                    {/* One line of description if available */}
+                    {description && (
+                      <p className="text-sm text-gray-600 leading-relaxed pt-1">
+                        {description}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Regulation Link as simple outlined button */}
+                  <div className="pt-2">
+                    <a
+                      href={item.pdfUrl || '/cvs/cv_placeholder.pdf'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-medium text-[#002147] border border-[#002147] rounded-lg hover:bg-[#002147] hover:text-white transition-colors duration-150 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#002147] focus-visible:ring-offset-2"
+                    >
+                      <FileText className="w-4 h-4 shrink-0" aria-hidden="true" />
+                      <span>{item.scheme || '2024 PhD Regulations'}</span>
+                    </a>
+                  </div>
                 </div>
-
-                {/* Regulation Link as simple outlined button */}
-                <div className="pt-2">
-                  <a
-                    href={item.pdfUrl || '/cvs/cv_placeholder.pdf'}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-medium text-[#002147] border border-[#002147] rounded-lg hover:bg-[#002147] hover:text-white transition-colors duration-150 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#002147] focus-visible:ring-offset-2"
-                  >
-                    <FileText className="w-4 h-4 shrink-0" aria-hidden="true" />
-                    <span>{item.scheme || '2024 PhD Regulations'}</span>
-                  </a>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="bg-white border border-gray-200 rounded-lg p-6 text-gray-500 text-sm">
+            Curriculum structure details will be published soon.
+          </div>
+        )}
       </section>
     </article>
   );

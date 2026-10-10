@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   X,
   User,
@@ -649,21 +649,6 @@ export default function AdminFacultyFullManageModal({
     }
   };
 
-  const handleDeleteStudent = async (studentId: string) => {
-    if (!confirm('Are you sure you want to delete this student record?')) return;
-    try {
-      const res = await fetch(`/api/admin/faculty/${facultyId}/students/${studentId}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) {
-        await fetchFacultyFullData();
-        onFacultyUpdated();
-      }
-    } catch {
-      console.error('Failed to delete student.');
-    }
-  };
-
   // Research Projects Modal & Actions
   const openProjectModal = (project?: ProjectItem) => {
     setProjectError(null);
@@ -759,21 +744,6 @@ export default function AdminFacultyFullManageModal({
     }
   };
 
-  const handleDeleteProject = async (projectId: string) => {
-    if (!confirm('Are you sure you want to delete this research project?')) return;
-    try {
-      const res = await fetch(`/api/admin/faculty/${facultyId}/projects/${projectId}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) {
-        await fetchFacultyFullData();
-        onFacultyUpdated();
-      }
-    } catch {
-      console.error('Failed to delete research project.');
-    }
-  };
-
   const openAddPublicationModal = () => {
     setEditingPublication(null);
     setPublicationTitle('');
@@ -849,21 +819,6 @@ export default function AdminFacultyFullManageModal({
       setPublicationError(err.message || 'Failed to save publication.');
     } finally {
       setSavingPublication(false);
-    }
-  };
-
-  const handleDeletePublication = async (pubId: string) => {
-    if (!confirm('Are you sure you want to delete this publication?')) return;
-    try {
-      const res = await fetch(`/api/admin/faculty/${facultyId}/publications/${pubId}`, {
-        method: 'DELETE',
-      });
-      if (res.ok) {
-        await fetchFacultyFullData();
-        onFacultyUpdated();
-      }
-    } catch {
-      console.error('Failed to delete publication.');
     }
   };
 

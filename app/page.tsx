@@ -1,11 +1,11 @@
-import React from 'react';
 import Link from 'next/link';
+import { Fragment, type ReactNode } from 'react';
 import Image from 'next/image';
 import Hero, { type Slide } from '@/components/Hero';
 import NotificationsTicker, { type NotificationItem } from '@/components/NotificationsTicker';
 import HomeEvents, { type HomeEventItem } from '@/components/HomeEvents';
 import JournalCard from '@/components/JournalCard';
-import { RESEARCH_LABS, type Publication } from '@/lib/data';
+import type { Publication } from '@/lib/data';
 import { prisma } from '@/lib/prisma';
 import { sanitizeWebUrl } from '@/lib/url-security';
 import { ChevronRight, ArrowRight } from 'lucide-react';
@@ -151,8 +151,8 @@ async function getHomeAboutData(): Promise<{ content: string; image: string | nu
   };
 }
 
-function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
-  const elements: React.ReactNode[] = [];
+function parseFormatting(text: string, keyPrefix: number): ReactNode {
+  const elements: ReactNode[] = [];
   const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
@@ -177,13 +177,13 @@ function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
     elements.push(text.substring(lastIndex));
   }
 
-  return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
+  return elements.length === 1 ? elements[0] : <Fragment key={keyPrefix}>{elements}</Fragment>;
 }
 
-function parseMarkdownText(text: string): React.ReactNode[] {
+function parseMarkdownText(text: string): ReactNode[] {
   let remaining = text;
   let keyIdx = 0;
-  const parts: React.ReactNode[] = [];
+  const parts: ReactNode[] = [];
 
   while (remaining) {
     const linkMatch = remaining.match(/^([\s\S]*?)\[([^\]]+)\]\(([^)]+)\)([\s\S]*)$/);
@@ -206,8 +206,32 @@ function parseMarkdownText(text: string): React.ReactNode[] {
   return parts;
 }
 
-function LabCard({ lab, className = "h-64" }: { lab: typeof RESEARCH_LABS[0]; className?: string }) {
+interface HomeLabItem {
+  id: string;
+  name: string;
+  image: string | null;
+}
+
+async function getHomeLabs(): Promise<HomeLabItem[]> {
+  try {
+    return await prisma.researchLab.findMany({
+      select: {
+        id: true,
+        name: true,
+        image: true,
+      },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+      take: 3,
+    });
+  } catch (error) {
+    console.error('Failed to fetch home page research labs:', error);
+    return [];
+  }
+}
+
+function LabCard({ lab, className = "h-64" }: { lab: HomeLabItem; className?: string }) {
   const isLogo = lab.image === '/dop-logo.svg';
+  const displayImage = lab.image || 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80';
 
   return (
     <Link
@@ -234,7 +258,7 @@ function LabCard({ lab, className = "h-64" }: { lab: typeof RESEARCH_LABS[0]; cl
         </div>
       ) : (
         <Image
-          src={lab.image}
+          src={displayImage}
           alt={lab.name}
           fill
           sizes="(max-width: 768px) 100vw, 40vw"
@@ -246,12 +270,13 @@ function LabCard({ lab, className = "h-64" }: { lab: typeof RESEARCH_LABS[0]; cl
 }
 
 export default async function HomePage() {
-  const [heroSlides, notifications, homeEvents, homePublications, aboutData] = await Promise.all([
+  const [heroSlides, notifications, homeEvents, homePublications, aboutData, homeLabs] = await Promise.all([
     getHomeHeroSlides(),
     getHomeNotifications(),
     getHomeEvents(),
     getHomePublications(),
     getHomeAboutData(),
+    getHomeLabs(),
   ]);
 
   return (
@@ -367,23 +392,22 @@ export default async function HomePage() {
             </div>
 
             {/* Right side: Asymmetric Flippable Grid */}
-            <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-12 gap-6 h-full items-stretch">
+            {homeLabs.length > 0 && (
+              <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-12 gap-6 h-full items-stretch">
+                {/* Stacked Left Column (Up to 2 Small Cards) */}
+                <div className="md:col-span-7 flex flex-col gap-6 justify-between">
+                  {homeLabs[0] && <LabCard lab={homeLabs[0]} className="h-[220px]" />}
+                  {homeLabs[1] && <LabCard lab={homeLabs[1]} className="h-[220px]" />}
+                </div>
 
-              {/* Stacked Left Column (2 Small Cards) */}
-              <div className="md:col-span-7 flex flex-col gap-6 justify-between">
-                {/* Lab 1 */}
-                <LabCard lab={RESEARCH_LABS[2]} className="h-[220px]" />
-
-                {/* Lab 2 */}
-                <LabCard lab={RESEARCH_LABS[5]} className="h-[220px]" />
+                {/* Tall Right Column (1 Tall Card) */}
+                {homeLabs[2] && (
+                  <div className="md:col-span-5 grid grid-cols-1 items-stretch">
+                    <LabCard lab={homeLabs[2]} className="h-full min-h-[320px]" />
+                  </div>
+                )}
               </div>
-
-              {/* Tall Right Column (1 Tall Card) */}
-              <div className="md:col-span-5 grid grid-cols-1 items-stretch">
-                <LabCard lab={RESEARCH_LABS[1]} className="h-full min-h-[320px]" />
-              </div>
-
-            </div>
+            )}
 
           </div>
 

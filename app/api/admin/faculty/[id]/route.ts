@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { revalidatePublicPages } from '@/lib/public-cache';
 import { verifyAdminToken, hashPassword } from '@/lib/auth';
@@ -13,7 +14,7 @@ async function authenticateAdmin() {
 
 // GET /api/admin/faculty/[id] - Fetch full faculty details including profile, docs, description, and students
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const admin = await authenticateAdmin();
@@ -82,7 +83,7 @@ export async function PUT(
       description,
     } = body;
 
-    const updateData: any = {};
+    const updateData: Prisma.FacultyUpdateInput = {};
 
     if (name !== undefined) updateData.name = name.trim();
     if (email !== undefined) updateData.email = email.trim().toLowerCase();
@@ -169,7 +170,7 @@ export async function PUT(
 
 // DELETE /api/admin/faculty/[id]
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const admin = await authenticateAdmin();

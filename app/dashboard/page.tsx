@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { sanitizeWebUrl } from '@/lib/url-security';
@@ -51,7 +51,6 @@ import {
   Radio,
   Briefcase,
   Tv,
-  Copy,
 } from 'lucide-react';
 const AdminStaffManagementSection = dynamic(
   () => import('@/components/AdminStaffManagementSection'),
@@ -752,6 +751,7 @@ export default function UnifiedDashboardPage() {
   const [aboutImageUrl, setAboutImageUrl] = useState('');
   const [aboutImageFile, setAboutImageFile] = useState<File | null>(null);
   const [aboutImagePreview, setAboutImagePreview] = useState<string | null>(null);
+  const aboutFileInputRef = useRef<HTMLInputElement>(null);
   const [aboutActiveTab, setAboutActiveTab] = useState<'write' | 'preview'>('write');
   const [loadingAbout, setLoadingAbout] = useState(false);
   const [savingAbout, setSavingAbout] = useState(false);
@@ -873,6 +873,8 @@ export default function UnifiedDashboardPage() {
   const [heroSaving, setHeroSaving] = useState(false);
   const [heroFormError, setHeroFormError] = useState<string | null>(null);
   const [heroImagePreview, setHeroImagePreview] = useState<string | null>(null);
+  const heroFileInputRef = useRef<HTMLInputElement>(null);
+  const heroFileInputRef2 = useRef<HTMLInputElement>(null);
 
   const fetchHeroSlides = async () => {
     setLoadingHero(true);
@@ -920,6 +922,8 @@ export default function UnifiedDashboardPage() {
     setEditingHeroSlide(null);
     setHeroImagePreview(null);
     setHeroFormError(null);
+    if (heroFileInputRef.current) heroFileInputRef.current.value = '';
+    if (heroFileInputRef2.current) heroFileInputRef2.current.value = '';
   };
 
   const handleHeroSave = async (e: React.FormEvent) => {
@@ -942,7 +946,7 @@ export default function UnifiedDashboardPage() {
     }
 
     if (!editingHeroSlide && !heroFormData.imageFile && !heroFormData.imageUrl.trim()) {
-      setHeroFormError('Please provide an image file or image URL');
+      setHeroFormError('Please upload an image photo for this hero slide');
       return;
     }
 
@@ -1422,6 +1426,123 @@ export default function UnifiedDashboardPage() {
   };
 
   // -------------------------------------------------------------
+  // DATA FETCH FUNCTIONS
+  // -------------------------------------------------------------
+  const fetchNotifications = async () => {
+    setLoadingNotifs(true);
+    try {
+      const res = await fetch('/api/admin/notifications');
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err);
+    } finally {
+      setLoadingNotifs(false);
+    }
+  };
+
+  const fetchFaculty = async () => {
+    setLoadingFaculty(true);
+    try {
+      const res = await fetch('/api/admin/faculty');
+      if (res.ok) {
+        const data = await res.json();
+        setFacultyList(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch faculty:', err);
+    } finally {
+      setLoadingFaculty(false);
+    }
+  };
+
+  const fetchFacultySelfData = async (userData?: any) => {
+    try {
+      const [profileRes, docRes, descRes, studentsRes, projectsRes, publicationsRes, allFacultyRes] = await Promise.all([
+        fetch('/api/faculty/profile'),
+        fetch('/api/faculty/documents'),
+        fetch('/api/faculty/description'),
+        fetch('/api/faculty/students'),
+        fetch('/api/faculty/projects'),
+        fetch('/api/faculty/publications'),
+        fetch('/api/public/faculty'),
+      ]);
+
+      if (userData?.mustChangePassword) {
+        setShowPasswordModal(true);
+      }
+
+      if (profileRes.ok) {
+        const pData = await profileRes.json();
+        setPhone(pData.phone || userData?.phone || '');
+        setQualification(pData.qualification || userData?.qualification || '');
+        setRoom(pData.room || userData?.room || '');
+
+        const profs = pData.profiles || {};
+        const sel = new Set<string>();
+        const urls: Record<string, string> = {};
+
+        PREDEFINED_PLATFORMS.forEach((p) => {
+          if (profs[p.key]) {
+            sel.add(p.key);
+            urls[p.key] = profs[p.key];
+          }
+        });
+
+        setSelectedPlatforms(sel);
+        setPlatformUrls(urls);
+
+        if (Array.isArray(profs.other)) {
+          setOtherProfiles(
+            profs.other.map((item: any, idx: number) => ({
+              id: `custom_${idx}_${Date.now()}`,
+              name: item.name || '',
+              url: item.url || '',
+            }))
+          );
+        } else {
+          setOtherProfiles([]);
+        }
+      }
+
+      if (docRes.ok) {
+        const dData = await docRes.json();
+        setImagePath(dData.image || null);
+        setCvPath(dData.cv || null);
+      }
+
+      if (descRes.ok) {
+        const descData = await descRes.json();
+        setMarkdownContent(descData.description || '');
+      }
+
+      if (studentsRes.ok) {
+        const stData = await studentsRes.json();
+        setStudentsList(stData);
+      }
+
+      if (projectsRes.ok) {
+        const prData = await projectsRes.json();
+        setProjectsList(prData);
+      }
+
+      if (publicationsRes.ok) {
+        const pubData = await publicationsRes.json();
+        setPublicationsList(pubData);
+      }
+
+      if (allFacultyRes.ok) {
+        const afData = await allFacultyRes.json();
+        setAllDbFaculty(afData.map((f: any) => ({ id: f.id, name: f.name, designation: f.designation })));
+      }
+    } catch (err) {
+      console.error('Failed to load faculty self data:', err);
+    }
+  };
+
+  // -------------------------------------------------------------
   // INITIAL SESSION FETCH
   // -------------------------------------------------------------
   useEffect(() => {
@@ -1461,44 +1582,15 @@ export default function UnifiedDashboardPage() {
     setLoggingOut(true);
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      window.location.href = '/login';
+      router.replace('/login');
     } catch {
       setLoggingOut(false);
     }
   };
 
   // -------------------------------------------------------------
-  // ADMIN FETCH & HANDLERS
+  // ADMIN HANDLERS
   // -------------------------------------------------------------
-  const fetchNotifications = async () => {
-    setLoadingNotifs(true);
-    try {
-      const res = await fetch('/api/admin/notifications');
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch notifications:', err);
-    } finally {
-      setLoadingNotifs(false);
-    }
-  };
-
-  const fetchFaculty = async () => {
-    setLoadingFaculty(true);
-    try {
-      const res = await fetch('/api/admin/faculty');
-      if (res.ok) {
-        const data = await res.json();
-        setFacultyList(data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch faculty:', err);
-    } finally {
-      setLoadingFaculty(false);
-    }
-  };
 
   const openModal = (notif?: NotificationItem) => {
     setFormError(null);
@@ -1887,91 +1979,8 @@ export default function UnifiedDashboardPage() {
   };
 
   // -------------------------------------------------------------
-  // FACULTY FETCH & HANDLERS
+  // FACULTY HANDLERS
   // -------------------------------------------------------------
-  const fetchFacultySelfData = async (userData?: any) => {
-    try {
-      const [profileRes, docRes, descRes, studentsRes, projectsRes, publicationsRes, allFacultyRes] = await Promise.all([
-        fetch('/api/faculty/profile'),
-        fetch('/api/faculty/documents'),
-        fetch('/api/faculty/description'),
-        fetch('/api/faculty/students'),
-        fetch('/api/faculty/projects'),
-        fetch('/api/faculty/publications'),
-        fetch('/api/public/faculty'),
-      ]);
-
-      if (userData?.mustChangePassword) {
-        setShowPasswordModal(true);
-      }
-
-      if (profileRes.ok) {
-        const pData = await profileRes.json();
-        setPhone(pData.phone || userData?.phone || '');
-        setQualification(pData.qualification || userData?.qualification || '');
-        setRoom(pData.room || userData?.room || '');
-
-        const profs = pData.profiles || {};
-        const sel = new Set<string>();
-        const urls: Record<string, string> = {};
-
-        PREDEFINED_PLATFORMS.forEach((p) => {
-          if (profs[p.key]) {
-            sel.add(p.key);
-            urls[p.key] = profs[p.key];
-          }
-        });
-
-        setSelectedPlatforms(sel);
-        setPlatformUrls(urls);
-
-        if (Array.isArray(profs.other)) {
-          setOtherProfiles(
-            profs.other.map((item: any, idx: number) => ({
-              id: `custom_${idx}_${Date.now()}`,
-              name: item.name || '',
-              url: item.url || '',
-            }))
-          );
-        } else {
-          setOtherProfiles([]);
-        }
-      }
-
-      if (docRes.ok) {
-        const dData = await docRes.json();
-        setImagePath(dData.image || null);
-        setCvPath(dData.cv || null);
-      }
-
-      if (descRes.ok) {
-        const descData = await descRes.json();
-        setMarkdownContent(descData.description || '');
-      }
-
-      if (studentsRes.ok) {
-        const stData = await studentsRes.json();
-        setStudentsList(stData);
-      }
-
-      if (projectsRes.ok) {
-        const prData = await projectsRes.json();
-        setProjectsList(prData);
-      }
-
-      if (publicationsRes.ok) {
-        const pubData = await publicationsRes.json();
-        setPublicationsList(pubData);
-      }
-
-      if (allFacultyRes.ok) {
-        const afData = await allFacultyRes.json();
-        setAllDbFaculty(afData.map((f: any) => ({ id: f.id, name: f.name, designation: f.designation })));
-      }
-    } catch (err) {
-      console.error('Failed to load faculty self data:', err);
-    }
-  };
 
   const handlePasswordChangeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -3044,39 +3053,55 @@ export default function UnifiedDashboardPage() {
 
                 <div className="md:col-span-7 space-y-4 font-sans text-sm">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Upload New Photo (PNG, JPG, WebP)
+                    <label className="text-xs font-bold text-slate-700 block mb-2">
+                      Department Photo
                     </label>
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setAboutImageFile(file);
-                          setAboutImagePreview(URL.createObjectURL(file));
-                        }
-                      }}
-                      className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-oxford file:text-white hover:file:bg-oxford/90 cursor-pointer"
-                    />
-                  </div>
+                    <div className="flex flex-col gap-2.5">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => aboutFileInputRef.current?.click()}
+                          className="text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{aboutImagePreview ? 'Change Photo' : 'Upload Photo'}</span>
+                        </Button>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Or Image URL / Path
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="/building-black-and-white.webp or https://..."
-                      value={aboutImageUrl}
-                      onChange={(e) => {
-                        setAboutImageUrl(e.target.value);
-                        if (!aboutImageFile) {
-                          setAboutImagePreview(e.target.value || null);
-                        }
-                      }}
-                      className="font-sans text-xs"
-                    />
+                        {aboutImagePreview && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setAboutImageFile(null);
+                              setAboutImageUrl('');
+                              setAboutImagePreview(null);
+                              if (aboutFileInputRef.current) aboutFileInputRef.current.value = '';
+                            }}
+                            className="text-xs text-rose-600 hover:text-rose-700 font-semibold rounded-xl cursor-pointer"
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                      <input
+                        ref={aboutFileInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setAboutImageFile(file);
+                            setAboutImageUrl('');
+                            setAboutImagePreview(URL.createObjectURL(file));
+                          }
+                        }}
+                        className="hidden"
+                      />
+                      <p className="text-[11px] text-slate-500">Supports JPG, PNG, or WebP. Auto-optimized to WebP.</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -4867,39 +4892,71 @@ export default function UnifiedDashboardPage() {
               </div>
 
               {/* Image Input */}
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Upload Image File OR Image URL *</label>
-                <div className="space-y-2">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setHeroFormData({ ...heroFormData, imageFile: file });
-                        setHeroImagePreview(URL.createObjectURL(file));
-                      }
-                    }}
-                    className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
-                  />
-                  <div className="text-xs text-slate-400 text-center font-bold font-sans">OR</div>
-                  <Input
-                    type="text"
-                    placeholder="https://images.unsplash.com/... or /uploads/..."
-                    value={heroFormData.imageUrl}
-                    onChange={(e) => {
-                      setHeroFormData({ ...heroFormData, imageUrl: e.target.value, imageFile: null });
-                      setHeroImagePreview(e.target.value);
-                    }}
-                    className="w-full text-xs font-mono"
-                  />
-                </div>
-
-                {heroImagePreview && (
-                  <div className="mt-2 w-full h-24 rounded-xl border border-slate-200 overflow-hidden relative">
-                    <img src={heroImagePreview} alt="Preview" className="w-full h-full object-cover" />
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-2">
+                  Slide Photo <span className="text-rose-500">*</span>
+                </label>
+                <div className="flex items-center gap-4">
+                  <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                    {heroImagePreview ? (
+                      <img
+                        src={heroImagePreview}
+                        alt="Hero Slide Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                        <ImageIcon className="w-6 h-6 mb-1 opacity-50" />
+                        <span className="text-[10px] font-medium">No photo</span>
+                      </div>
+                    )}
                   </div>
-                )}
+
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => heroFileInputRef.current?.click()}
+                        className="text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{heroImagePreview ? 'Change Photo' : 'Upload Photo'}</span>
+                      </Button>
+
+                      {heroImagePreview && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setHeroFormData({ ...heroFormData, imageFile: null, imageUrl: '' });
+                            setHeroImagePreview(null);
+                            if (heroFileInputRef.current) heroFileInputRef.current.value = '';
+                          }}
+                          className="text-xs text-rose-600 hover:text-rose-700 font-semibold rounded-xl cursor-pointer"
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                    <input
+                      ref={heroFileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        if (file) {
+                          setHeroFormData({ ...heroFormData, imageFile: file, imageUrl: '' });
+                          setHeroImagePreview(URL.createObjectURL(file));
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <p className="text-[11px] text-slate-500">Supports JPG, PNG, or WebP. Auto-optimized to WebP.</p>
+                  </div>
+                </div>
               </div>
 
               {/* Visibility Status Switch */}
@@ -7542,39 +7599,71 @@ export default function UnifiedDashboardPage() {
             </div>
 
             {/* Image Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Upload Image File OR Image URL / Local Path *</label>
-              <div className="space-y-2">
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setHeroFormData({ ...heroFormData, imageFile: file });
-                      setHeroImagePreview(URL.createObjectURL(file));
-                    }
-                  }}
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
-                />
-                <div className="text-xs text-slate-400 text-center font-bold font-sans">OR</div>
-                <Input
-                  type="text"
-                  placeholder="https://images.unsplash.com/... or /uploads/..."
-                  value={heroFormData.imageUrl}
-                  onChange={(e) => {
-                    setHeroFormData({ ...heroFormData, imageUrl: e.target.value, imageFile: null });
-                    setHeroImagePreview(e.target.value);
-                  }}
-                  className="w-full text-xs font-mono"
-                />
-              </div>
-
-              {heroImagePreview && (
-                <div className="mt-2 w-full h-28 rounded-xl border border-slate-200 overflow-hidden relative bg-slate-100">
-                  <img src={heroImagePreview} alt="Preview" className="w-full h-full object-cover" />
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-2">
+                Slide Photo <span className="text-rose-500">*</span>
+              </label>
+              <div className="flex items-center gap-4">
+                <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                  {heroImagePreview ? (
+                    <img
+                      src={heroImagePreview}
+                      alt="Hero Slide Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                      <ImageIcon className="w-6 h-6 mb-1 opacity-50" />
+                      <span className="text-[10px] font-medium">No photo</span>
+                    </div>
+                  )}
                 </div>
-              )}
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => heroFileInputRef2.current?.click()}
+                      className="text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{heroImagePreview ? 'Change Photo' : 'Upload Photo'}</span>
+                    </Button>
+
+                    {heroImagePreview && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setHeroFormData({ ...heroFormData, imageFile: null, imageUrl: '' });
+                          setHeroImagePreview(null);
+                          if (heroFileInputRef2.current) heroFileInputRef2.current.value = '';
+                        }}
+                        className="text-xs text-rose-600 hover:text-rose-700 font-semibold rounded-xl cursor-pointer"
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                  <input
+                    ref={heroFileInputRef2}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (file) {
+                        setHeroFormData({ ...heroFormData, imageFile: file, imageUrl: '' });
+                        setHeroImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <p className="text-[11px] text-slate-500">Supports JPG, PNG, or WebP. Auto-optimized to WebP.</p>
+                </div>
+              </div>
             </div>
 
             {/* Visibility Status Switch */}

@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import Image from 'next/image';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import type { StaffMember } from '@/lib/data';

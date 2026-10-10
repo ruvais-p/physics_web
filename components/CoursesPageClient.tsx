@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Hero from '@/components/Hero';
 import CourseCard, { CourseWithSchemes } from '@/components/CourseCard';
 import { COURSES } from '@/lib/data';
@@ -13,12 +13,14 @@ interface CoursesPageClientProps {
 
 export default function CoursesPageClient({ courses, heroData }: CoursesPageClientProps) {
   const rawCourses = courses.length > 0 ? courses : COURSES;
-  const dynamicCourses = [...rawCourses].sort((a, b) => {
-    if ((a.sortOrder ?? 0) !== (b.sortOrder ?? 0)) {
-      return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
-    }
-    return getCourseOrderFallback(a) - getCourseOrderFallback(b);
-  });
+  const dynamicCourses = useMemo(() => {
+    return [...rawCourses].sort((a, b) => {
+      if ((a.sortOrder ?? 0) !== (b.sortOrder ?? 0)) {
+        return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+      }
+      return getCourseOrderFallback(a) - getCourseOrderFallback(b);
+    });
+  }, [rawCourses]);
 
   const [activeCourseId, setActiveCourseId] = useState<string>(dynamicCourses[0]?.id || 'c2');
 
@@ -30,15 +32,22 @@ export default function CoursesPageClient({ courses, heroData }: CoursesPageClie
       const cleanHash = decodeURIComponent(hash.replace(/^#/, '')).trim().toLowerCase();
       if (!cleanHash) return;
 
-      const matched = dynamicCourses.find((c) => {
+      // 1. Prioritize exact match by course ID, nav hash, or course code
+      let matched = dynamicCourses.find((c) => {
         const info = getCourseNavInfo(c);
         return (
           c.id.toLowerCase() === cleanHash ||
-          c.code?.toLowerCase() === cleanHash ||
           info.hash.toLowerCase() === cleanHash ||
-          c.title.toLowerCase().includes(cleanHash)
+          (c.code && c.code.toLowerCase() === cleanHash)
         );
       });
+
+      // 2. Fallback to title substring match only if cleanHash is > 2 characters
+      if (!matched && cleanHash.length > 2) {
+        matched = dynamicCourses.find((c) =>
+          c.title.toLowerCase().includes(cleanHash)
+        );
+      }
 
       if (matched) {
         setActiveCourseId(matched.id);

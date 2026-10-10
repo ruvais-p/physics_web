@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   FlaskConical,
   Plus,
@@ -16,6 +16,8 @@ import {
   ChevronDown,
   Search,
   GraduationCap,
+  Upload,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -62,6 +64,17 @@ interface ResearchLabData {
   createdAt?: string;
 }
 
+interface ApiLabItem extends Omit<ResearchLabData, 'students'> {
+  students?: Array<{
+    uid?: string;
+    id?: string;
+    name: string;
+    faculty?: { name: string };
+    supervisor?: string;
+    description?: string | null;
+  }>;
+}
+
 export default function ResearchLabManagementSection() {
   const [labs, setLabs] = useState<ResearchLabData[]>([]);
   const [facultyList, setFacultyList] = useState<FacultyOption[]>([]);
@@ -81,6 +94,7 @@ export default function ResearchLabManagementSection() {
     selectedStudentIds: [] as string[],
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -205,10 +219,10 @@ export default function ResearchLabManagementSection() {
       if (labsRes.ok) {
         const data = await labsRes.json();
         setLabs(
-          (data || []).map((lab: any) => ({
+          (data || []).map((lab: ApiLabItem) => ({
             ...lab,
-            students: (lab.students || []).map((s: any) => ({
-              id: s.uid || s.id,
+            students: (lab.students || []).map((s) => ({
+              id: s.uid || s.id || '',
               name: s.name,
               supervisor: s.faculty?.name || s.supervisor,
               description: s.description,
@@ -218,14 +232,14 @@ export default function ResearchLabManagementSection() {
       }
 
       if (facultyRes.ok) {
-        const fData = await facultyRes.json();
-        setFacultyList(fData.map((f: any) => ({ id: f.id, name: f.name, designation: f.designation })));
+        const fData: FacultyOption[] = await facultyRes.json();
+        setFacultyList(fData.map((f) => ({ id: f.id, name: f.name, designation: f.designation })));
       }
 
       if (scholarsRes.ok) {
-        const sData = await scholarsRes.json();
+        const sData: ScholarOption[] = await scholarsRes.json();
         setScholarList(
-          (sData || []).map((s: any) => ({
+          (sData || []).map((s) => ({
             id: s.id,
             name: s.name,
             supervisor: s.supervisor,
@@ -270,7 +284,7 @@ export default function ResearchLabManagementSection() {
       imageFile: null,
       imageUrl: labItem.image || '',
       selectedFacultyIds: labItem.faculties ? labItem.faculties.map((f) => f.id) : [],
-      selectedStudentIds: labItem.students ? labItem.students.map((s: any) => s.id || s.uid) : [],
+      selectedStudentIds: labItem.students ? labItem.students.map((s) => s.id) : [],
     });
     setImagePreview(labItem.image || null);
     setIsModalOpen(true);
@@ -710,41 +724,73 @@ export default function ResearchLabManagementSection() {
             </div>
 
             {/* Cover / Hero Image Upload */}
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-800">
-                Hero Image File OR Image URL
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-2">
+                Laboratory Hero Image (Optional)
               </label>
-              <div className="space-y-2">
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null;
-                    if (file) {
-                      setFormData({ ...formData, imageFile: file, imageUrl: '' });
-                      setImagePreview(URL.createObjectURL(file));
-                    }
-                  }}
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-slate-800 cursor-pointer"
-                />
-                <div className="text-[10px] text-slate-400 text-center font-bold uppercase tracking-widest font-mono">OR Direct Image URL</div>
-                <Input
-                  type="text"
-                  placeholder="https://images.unsplash.com/..."
-                  value={formData.imageUrl}
-                  onChange={(e) => {
-                    setFormData({ ...formData, imageUrl: e.target.value, imageFile: null });
-                    setImagePreview(e.target.value);
-                  }}
-                  className="text-xs font-mono"
-                />
-              </div>
-
-              {imagePreview && (
-                <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200 mt-2">
-                  <img src={imagePreview} alt="Hero Preview" className="w-full h-full object-cover" />
+              <div className="flex items-center gap-4">
+                <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                  {imagePreview ? (
+                    <img
+                      src={imagePreview}
+                      alt="Hero Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                      <ImageIcon className="w-6 h-6 mb-1 opacity-50" />
+                      <span className="text-[10px] font-medium">No photo</span>
+                    </div>
+                  )}
                 </div>
-              )}
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{imagePreview ? 'Change Photo' : 'Upload Photo'}</span>
+                    </Button>
+
+                    {imagePreview && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setFormData({ ...formData, imageFile: null, imageUrl: '' });
+                          setImagePreview(null);
+                          if (fileInputRef.current) fileInputRef.current.value = '';
+                        }}
+                        className="text-xs text-rose-600 hover:text-rose-700 font-semibold rounded-xl cursor-pointer"
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (file) {
+                        setFormData({ ...formData, imageFile: file, imageUrl: '' });
+                        setImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <p className="text-[11px] text-slate-500">
+                    Supports JPG, PNG, or WebP. Auto-optimized to WebP.
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Markdown Description */}

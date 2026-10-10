@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import Link from 'next/link';
 import { 
   Bell, 
   ExternalLink, 
@@ -94,28 +94,34 @@ export default function AnnouncementsPageClient({
                     {/* Action Button */}
                     <div className="shrink-0 w-full sm:w-auto pt-2 sm:pt-0">
                       {hasValidLink ? (
-                        <a
-                          href={targetUrl}
-                          target={isExternal ? '_blank' : '_self'}
-                          rel={isExternal ? 'noopener noreferrer' : undefined}
-                          className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2.5 rounded-xl bg-oxford hover:bg-oxford/90 text-white text-xs font-bold transition-all duration-200 shadow-xs group-hover:shadow-md cursor-pointer"
-                        >
-                          {isPdf ? (
-                            <>
-                              <FileText className="w-3.5 h-3.5 text-rose-300" />
-                              <span>View PDF Notice</span>
-                            </>
-                          ) : (
-                            <>
-                              <span>View Notice</span>
-                              {isExternal ? (
+                        isExternal ? (
+                          <a
+                            href={targetUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2.5 rounded-xl bg-oxford hover:bg-oxford/90 text-white text-xs font-bold transition-all duration-200 shadow-xs group-hover:shadow-md cursor-pointer"
+                          >
+                            {isPdf ? (
+                              <>
+                                <FileText className="w-3.5 h-3.5 text-rose-300" />
+                                <span>View PDF Notice</span>
+                              </>
+                            ) : (
+                              <>
+                                <span>View Notice</span>
                                 <ExternalLink className="w-3.5 h-3.5" />
-                              ) : (
-                                <ArrowUpRight className="w-3.5 h-3.5" />
-                              )}
-                            </>
-                          )}
-                        </a>
+                              </>
+                            )}
+                          </a>
+                        ) : (
+                          <Link
+                            href={targetUrl}
+                            className="inline-flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2.5 rounded-xl bg-oxford hover:bg-oxford/90 text-white text-xs font-bold transition-all duration-200 shadow-xs group-hover:shadow-md cursor-pointer"
+                          >
+                            <span>View Notice</span>
+                            <ArrowUpRight className="w-3.5 h-3.5" />
+                          </Link>
+                        )
                       ) : (
                         <span className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 text-slate-500 text-xs font-semibold">
                           <span>Notice Published</span>

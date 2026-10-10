@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import ProfilePageClient, { type ProfilePerson } from '@/components/ProfilePageClient';
 import { prisma } from '@/lib/prisma';
 import { sanitizeWebUrl } from '@/lib/url-security';
@@ -163,6 +164,10 @@ export default async function ProfilePage({ params }: PageProps) {
     }
   } catch (error) {
     console.error('Failed to fetch faculty profile:', error);
+  }
+
+  if (!person) {
+    notFound();
   }
 
   return <ProfilePageClient person={person} />;

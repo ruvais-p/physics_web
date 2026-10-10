@@ -1,5 +1,3 @@
-import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import Hero from '@/components/Hero';
 import AlumniTestimonials from '@/components/AlumniTestimonials';
@@ -131,10 +129,6 @@ export default async function AlumniPage() {
         subtitle={heroData.subtitle}
         bgImage={heroData.image}
       />
-
-      {/* Editorial Overview: Two columns (left: label + title + intro, right: 4:3 department photo) */}
-
-
 
       {/* Testimonials: 3 cards in a row */}
       <AlumniTestimonials />

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,8 @@ import {
   Clock,
   Tv,
   FileText,
+  Upload,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 interface MultiChannelBroadcastModalProps {
@@ -63,6 +65,7 @@ export default function MultiChannelBroadcastModal({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imageUrl, setImageUrl] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Status
   const [submitting, setSubmitting] = useState(false);
@@ -99,6 +102,7 @@ export default function MultiChannelBroadcastModal({
     setImageFile(null);
     setImageUrl('');
     setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
     setError(null);
     setSuccessMsg(null);
   };
@@ -129,7 +133,7 @@ export default function MultiChannelBroadcastModal({
     }
 
     if ((isEventSelected || isNewsSelected || isTvSelected) && !imageFile && !imageUrl.trim()) {
-      setError('A cover image (upload or URL) is required when publishing to News, Events, or TV Display.');
+      setError('A cover image is required when publishing to News, Events, or TV Display.');
       return;
     }
 
@@ -603,56 +607,72 @@ export default function MultiChannelBroadcastModal({
 
             {/* Cover Image (if News, Events, or TV Display is selected) */}
             {(isNewsSelected || isEventSelected || isTvSelected) && (
-              <div className="space-y-2 pt-2 border-t border-slate-100">
-                <label className="text-xs font-bold text-slate-700 block">
-                  Cover Image (File Upload or Image URL) *
+              <div className="pt-2 border-t border-slate-100">
+                <label className="text-xs font-bold text-slate-700 block mb-2">
+                  Cover Photo <span className="text-rose-500">*</span>
                 </label>
-                <div className="space-y-2">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setImageFile(file);
-                        setImageUrl('');
-                        setImagePreview(URL.createObjectURL(file));
-                      }
-                    }}
-                    className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-oxford/90 cursor-pointer"
-                  />
+                <div className="flex items-center gap-4">
+                  <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                    {imagePreview ? (
+                      <img
+                        src={imagePreview}
+                        alt="Cover Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                        <ImageIcon className="w-6 h-6 mb-1 opacity-50" />
+                        <span className="text-[10px] font-medium">No photo</span>
+                      </div>
+                    )}
+                  </div>
 
-                  <div className="text-center text-[11px] text-slate-400 font-sans">OR Image URL</div>
-
-                  <Input
-                    type="text"
-                    placeholder="/eventssss.jpg or https://..."
-                    value={imageUrl}
-                    onChange={(e) => {
-                      setImageUrl(e.target.value);
-                      setImageFile(null);
-                      setImagePreview(e.target.value || null);
-                    }}
-                    className="w-full text-xs font-mono"
-                  />
-
-                  {imagePreview && (
-                    <div className="relative aspect-[16/9] w-full max-w-sm rounded-xl overflow-hidden bg-slate-900 border border-slate-200 mt-2 group">
-                      <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                      <button
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <Button
                         type="button"
-                        onClick={() => {
-                          setImageFile(null);
-                          setImageUrl('');
-                          setImagePreview(null);
-                        }}
-                        className="absolute top-2 right-2 bg-rose-600 hover:bg-rose-700 text-white p-1.5 rounded-lg text-xs font-semibold shadow-lg transition-all"
-                        title="Remove Image"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{imagePreview ? 'Change Photo' : 'Upload Photo'}</span>
+                      </Button>
+
+                      {imagePreview && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setImageFile(null);
+                            setImageUrl('');
+                            setImagePreview(null);
+                            if (fileInputRef.current) fileInputRef.current.value = '';
+                          }}
+                          className="text-xs text-rose-600 hover:text-rose-700 font-semibold rounded-xl cursor-pointer"
+                        >
+                          Remove
+                        </Button>
+                      )}
                     </div>
-                  )}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        if (file) {
+                          setImageFile(file);
+                          setImageUrl('');
+                          setImagePreview(URL.createObjectURL(file));
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <p className="text-[11px] text-slate-500">Supports JPG, PNG, or WebP. Auto-optimized to WebP.</p>
+                  </div>
                 </div>
               </div>
             )}

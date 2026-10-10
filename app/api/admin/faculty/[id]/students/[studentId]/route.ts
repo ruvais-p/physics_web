@@ -120,7 +120,7 @@ export async function PUT(
 
 // DELETE /api/admin/faculty/[id]/students/[studentId] - Delete student record
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string; studentId: string }> }
 ) {
   const admin = await authenticateAdmin();

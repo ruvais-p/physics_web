@@ -63,30 +63,7 @@ export default function GeneralSettingsSection() {
   };
 
   useEffect(() => {
-    async function loadInitialSettings() {
-      try {
-        const response = await fetch('/api/admin/settings');
-        const data = (await response.json()) as GeneralSettingsResponse;
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to load general settings.');
-        }
-
-        setDepartmentEmail(data.departmentEmail || '');
-        setHodEmail(data.hodEmail || '');
-        setHasAppPassword(Boolean(data.hasAppPassword));
-      } catch (loadError) {
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : 'Failed to load general settings.',
-        );
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    void loadInitialSettings();
+    void loadSettings();
   }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {

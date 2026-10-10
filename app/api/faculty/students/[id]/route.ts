@@ -127,7 +127,7 @@ export async function PUT(
 
 // DELETE /api/faculty/students/[id] - Delete Student Record
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

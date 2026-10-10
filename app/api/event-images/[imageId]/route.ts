@@ -27,7 +27,7 @@ export async function PUT(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'Invalid image ID' }, { status: 400 });
     }
 
-    const existingImage = await (prisma as any).eventImage.findUnique({
+    const existingImage = await prisma.eventImage.findUnique({
       where: { id: imageId },
     });
 
@@ -100,7 +100,7 @@ export async function PUT(request: Request, { params }: Params) {
     if (hasCaptionUpdate) updateData.caption = newCaption;
 
     // Update imagePath and/or caption preserving existing id, eventId, and sortOrder
-    const updatedImage = await (prisma as any).eventImage.update({
+    const updatedImage = await prisma.eventImage.update({
       where: { id: imageId },
       data: updateData,
     });
@@ -114,7 +114,7 @@ export async function PUT(request: Request, { params }: Params) {
 }
 
 // DELETE /api/event-images/[imageId] - Delete single gallery image
-export async function DELETE(request: Request, { params }: Params) {
+export async function DELETE(_request: Request, { params }: Params) {
   const user = await getAdminSession();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
@@ -129,7 +129,7 @@ export async function DELETE(request: Request, { params }: Params) {
       return NextResponse.json({ error: 'Invalid image ID' }, { status: 400 });
     }
 
-    const existingImage = await (prisma as any).eventImage.findUnique({
+    const existingImage = await prisma.eventImage.findUnique({
       where: { id: imageId },
     });
 
@@ -147,7 +147,7 @@ export async function DELETE(request: Request, { params }: Params) {
     }
 
     // Delete database record
-    await (prisma as any).eventImage.delete({
+    await prisma.eventImage.delete({
       where: { id: imageId },
     });
 
