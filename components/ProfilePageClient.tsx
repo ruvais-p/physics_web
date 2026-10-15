@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, Fragment, type ReactNode } from 'react';
+import { useState, useMemo, type ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import FacultyCard from '@/components/FacultyCard';
@@ -8,6 +8,7 @@ import { ExternalLink, Download, ChevronDown, ChevronUp } from 'lucide-react';
 import { sanitizeWebUrl } from '@/lib/url-security';
 import type { Scholar } from '@/lib/data';
 import { groupPublicationsByCategory } from '@/components/PublicationsTable';
+import { parseInlineMarkdown as parseSharedInlineMarkdown } from '@/lib/markdown';
 
 interface CustomProfile {
   name?: string;
@@ -59,6 +60,7 @@ export interface ProfilePerson {
   room: string;
   bio: string;
   image: string;
+  isRetired?: boolean;
   cvUrl?: string | null;
   supervisor?: string;
   socialLinks: Record<string, string>;
@@ -171,59 +173,12 @@ function renderMarkdown(md: string) {
 }
 
 function parseInlineMarkdown(text: string): ReactNode {
-  const parts: ReactNode[] = [];
-  let remaining = text;
-  let keyIdx = 0;
-
-  while (remaining) {
-    const linkMatch = remaining.match(/^([\s\S]*?)\[([^\]]+)\]\(([^)]+)\)([\s\S]*)$/);
-    if (linkMatch) {
-      const [, before, label, url, after] = linkMatch;
-      if (before) parts.push(parseFormatting(before, keyIdx++));
-      parts.push(
-        <a key={keyIdx++} href={sanitizeWebUrl(url) || '#'} target="_blank" rel="noopener noreferrer" className="text-cyan-dark hover:underline font-medium inline-flex items-center gap-0.5 text-base">
-          <span>{label}</span>
-          <ExternalLink className="w-3.5 h-3.5 opacity-70" />
-        </a>
-      );
-      remaining = after;
-      continue;
-    }
-
-    parts.push(parseFormatting(remaining, keyIdx++));
-    break;
-  }
-
-  return parts;
-}
-
-function parseFormatting(text: string, keyPrefix: number): ReactNode {
-  const elements: ReactNode[] = [];
-  const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      elements.push(text.substring(lastIndex, match.index));
-    }
-
-    if (match[1]) {
-      elements.push(<strong key={`${keyPrefix}_b_${match.index}`} className="font-bold text-oxford">{match[2]}</strong>);
-    } else if (match[3]) {
-      elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-800">{match[4]}</em>);
-    } else if (match[5]) {
-      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-100 text-oxford px-1.5 py-0.5 rounded font-mono text-[13px]">{match[6]}</code>);
-    }
-
-    lastIndex = regex.lastIndex;
-  }
-
-  if (lastIndex < text.length) {
-    elements.push(text.substring(lastIndex));
-  }
-
-  return elements.length === 1 ? elements[0] : <Fragment key={keyPrefix}>{elements}</Fragment>;
+  return parseSharedInlineMarkdown(text, {
+    linkClassName: 'text-cyan-dark hover:underline font-medium inline-flex items-center gap-0.5 text-base',
+    strongClassName: 'font-bold text-oxford',
+    emClassName: 'italic text-slate-800',
+    codeClassName: 'bg-slate-100 text-oxford px-1.5 py-0.5 rounded font-mono text-[13px]',
+  });
 }
 
 export default function ProfilePageClient({ person }: { person: ProfilePerson | null }) {
@@ -299,9 +254,16 @@ export default function ProfilePageClient({ person }: { person: ProfilePerson | 
             <h1 className="text-4xl sm:text-5xl font-extrabold text-oxford leading-tight">
               {person.name}
             </h1>
-            <p className="text-lg sm:text-xl text-slate-600 font-semibold tracking-wide">
-              {isFaculty ? (person.designation || 'Faculty Member') : 'Ph.D. Research Scholar'}
-            </p>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <p className="text-lg sm:text-xl text-slate-600 font-semibold tracking-wide">
+                {isFaculty ? (person.designation || 'Faculty Member') : 'Ph.D. Research Scholar'}
+              </p>
+              {person.isRetired && (
+                <span className="inline-flex items-center text-xs font-semibold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300">
+                  Retired Faculty
+                </span>
+              )}
+            </div>
 
             <div className="h-px bg-slate-200 w-full my-2" />
 

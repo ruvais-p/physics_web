@@ -923,6 +923,85 @@ The department has pioneered research in magnetic nanocomposites, quantum optics
       }
       console.log('[SEED] Journal publications seeded successfully.');
     }
+
+    const profileCount = await prisma.facultyProfile.count();
+    if (profileCount === 0) {
+      console.log('[SEED] Seeding faculty profile links...');
+      await prisma.facultyProfile.create({
+        data: {
+          facultyId: defaultFaculty.id,
+          phone: '+91 484 2577404',
+          profiles: {
+            google_scholar: 'https://scholar.google.com/citations?user=aldrin_antony',
+            orcid: 'https://orcid.org/0000-0002-1825-0097',
+            scopus: 'https://www.scopus.com/authid/detail.uri?authorId=57194389200',
+            linkedin: 'https://www.linkedin.com/in/aldrin-antony-cusat',
+            personal_website: 'https://cusat.ac.in/faculty/aldrin',
+          },
+        },
+      });
+      console.log('[SEED] Faculty profile links seeded successfully.');
+    }
+
+    const descCount = await prisma.facultyDescription.count();
+    if (descCount === 0) {
+      console.log('[SEED] Seeding faculty extended research description...');
+      await prisma.facultyDescription.create({
+        data: {
+          facultyId: defaultFaculty.id,
+          description: `### Research Focus & Academic Background
+
+Prof. (Dr.) Aldrin Antony is Professor and Head of the Department of Physics at Cochin University of Science and Technology (CUSAT). His research domain centers on advanced thin-film solar photovoltaics, transparent conducting oxides (TCOs), flexible optoelectronic interfaces, and halide perovskite heterostructures.
+
+#### Key Contributions:
+- **Photovoltaic Thin Films**: High-efficiency silicon heterojunction (SHJ) and CZTS/CIGS solar cells with optimized surface passivation layers.
+- **Nanostructured Transparent Conductors**: Chemically sprayed and sputtered doped zinc oxide and indium oxide nanostructures for optoelectronic devices.
+- **National Space & Energy Projects**: Principal Investigator on sponsored research grants funded by ISRO (RESPOND) and DST-SERB investigating radiation-hard photovoltaics for space satellite payloads.`,
+        },
+      });
+      console.log('[SEED] Faculty extended research description seeded successfully.');
+    }
+
+    const docCount = await prisma.facultyDocument.count();
+    if (docCount === 0) {
+      console.log('[SEED] Seeding faculty documents & CV...');
+      await prisma.facultyDocument.create({
+        data: {
+          facultyId: defaultFaculty.id,
+          image: '/faculty.png',
+          cv: '/cvs/cv_placeholder.pdf',
+        },
+      });
+      console.log('[SEED] Faculty documents seeded successfully.');
+    }
+
+    const studentCount = await prisma.facultyStudent.count();
+    if (studentCount === 0) {
+      console.log('[SEED] Seeding faculty research scholars / Ph.D. students...');
+      await prisma.facultyStudent.createMany({
+        data: [
+          {
+            facultyId: defaultFaculty.id,
+            name: 'Ananya S. Pillai',
+            description: 'Senior Research Fellow (CSIR-SRF) · Perovskite-Silicon Tandem Photovoltaics',
+            image: '/alumni/priya.webp',
+          },
+          {
+            facultyId: defaultFaculty.id,
+            name: 'K. V. Rahul',
+            description: 'Ph.D. Scholar (UGC-JRF) · Magneto-transport and Spintronics in 2D Heterostructures',
+            image: '/alumni/anandhu.webp',
+          },
+          {
+            facultyId: defaultFaculty.id,
+            name: 'Meera Nambiar',
+            description: 'Doctoral Scholar (INSPIRE Fellow) · Femtosecond Nonlinear Optical Spectroscopy',
+            image: '/alumni/lakshmi.webp',
+          },
+        ],
+      });
+      console.log('[SEED] Faculty research scholars seeded successfully.');
+    }
   }
 }
 

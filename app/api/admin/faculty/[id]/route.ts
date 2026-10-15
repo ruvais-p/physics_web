@@ -1,16 +1,9 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { revalidatePublicPages } from '@/lib/public-cache';
-import { verifyAdminToken, hashPassword } from '@/lib/auth';
-
-async function authenticateAdmin() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token')?.value;
-  if (!token) return null;
-  return verifyAdminToken(token);
-}
+import { hashPassword } from '@/lib/auth';
+import { authenticateAdmin } from '@/lib/api-auth';
 
 // GET /api/admin/faculty/[id] - Fetch full faculty details including profile, docs, description, and students
 export async function GET(
@@ -78,6 +71,7 @@ export async function PUT(
       phone,
       bio,
       isActive,
+      isRetired,
       newPredefinedPassword,
       profiles,
       description,
@@ -94,6 +88,7 @@ export async function PUT(
     if (phone !== undefined) updateData.phone = phone.trim();
     if (bio !== undefined) updateData.bio = bio.trim();
     if (isActive !== undefined) updateData.isActive = Boolean(isActive);
+    if (isRetired !== undefined) updateData.isRetired = Boolean(isRetired);
 
     // Reset password if requested by Admin
     if (newPredefinedPassword !== undefined) {

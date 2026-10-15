@@ -24,6 +24,7 @@ async function getPeople(): Promise<{
         qualification: true,
         room: true,
         bio: true,
+        isRetired: true,
         documents: {
           select: { image: true },
         },
@@ -54,6 +55,7 @@ async function getPeople(): Promise<{
       publicationsCount: 0,
       citations: 0,
       image: record.documents?.image || '/faculty.png',
+      isRetired: record.isRetired,
       type: 'faculty',
     }));
 
@@ -129,14 +131,18 @@ export default async function PeoplePage() {
   ]);
 
   const hodList = faculty.filter((f) => {
+    if (f.isRetired) return false;
     const des = (f.designation || '').toLowerCase();
     return des.includes('head') || des.includes('hod');
   });
 
   const otherFacultyList = faculty.filter((f) => {
+    if (f.isRetired) return false;
     const des = (f.designation || '').toLowerCase();
     return !des.includes('head') && !des.includes('hod');
   });
+
+  const retiredFacultyList = faculty.filter((f) => Boolean(f.isRetired));
 
   return (
     <div className="pb-20 relative">
@@ -177,6 +183,24 @@ export default async function PeoplePage() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 sm:gap-12 lg:gap-14 font-sans">
               {otherFacultyList.map((person) => (
+                <Link key={person.id} href={`/people/${person.id}`} className="block h-full">
+                  <FacultyCard person={person} />
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* 3. Retired Faculty Section */}
+        {retiredFacultyList.length > 0 && (
+          <section className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-16 space-y-8">
+            <div className="text-center">
+              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight">
+                Retired Faculty
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 sm:gap-12 lg:gap-14 font-sans">
+              {retiredFacultyList.map((person) => (
                 <Link key={person.id} href={`/people/${person.id}`} className="block h-full">
                   <FacultyCard person={person} />
                 </Link>

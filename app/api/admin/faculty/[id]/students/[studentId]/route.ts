@@ -1,21 +1,13 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import path from 'path';
 import { prisma } from '@/lib/prisma';
 import { revalidatePublicPages } from '@/lib/public-cache';
-import { verifyAdminToken } from '@/lib/auth';
+import { authenticateAdmin } from '@/lib/api-auth';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 import { deleteUploadedFile } from '@/lib/file-security';
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB
 const STUDENTS_DIR = path.join(process.cwd(), 'public', 'uploads', 'faculty', 'students');
-
-async function authenticateAdmin() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token')?.value;
-  if (!token) return null;
-  return verifyAdminToken(token);
-}
 
 async function deletePhysicalFile(relativeWebPath: string | null) {
   if (!relativeWebPath || relativeWebPath.includes('faculty.png')) return;

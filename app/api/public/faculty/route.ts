@@ -44,6 +44,7 @@ export async function GET() {
         bio: f.descriptionRecord?.description || f.bio || 'Faculty member in the Department of Physics.',
         image: f.documents?.image || '/faculty.png',
         cvUrl: f.documents?.cv || null,
+        isRetired: Boolean(f.isRetired),
         socialLinks,
         customProfiles,
         type: 'faculty' as const,

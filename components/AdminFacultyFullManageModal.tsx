@@ -212,6 +212,7 @@ export default function AdminFacultyFullManageModal({
   const [room, setRoom] = useState('');
   const [phone, setPhone] = useState('');
   const [isActive, setIsActive] = useState(true);
+  const [isRetired, setIsRetired] = useState(false);
   const [newPredefinedPassword, setNewPredefinedPassword] = useState('');
   const [savingAccount, setSavingAccount] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
@@ -339,6 +340,7 @@ export default function AdminFacultyFullManageModal({
       setRoom(data.room || '');
       setPhone(data.phone || data.profile?.phone || '');
       setIsActive(data.isActive);
+      setIsRetired(Boolean(data.isRetired));
       setNewPredefinedPassword('');
 
       // Profiles
@@ -433,6 +435,7 @@ export default function AdminFacultyFullManageModal({
           room,
           phone,
           isActive,
+          isRetired,
           newPredefinedPassword: newPredefinedPassword.trim() || undefined,
         }),
       });
@@ -1065,6 +1068,26 @@ export default function AdminFacultyFullManageModal({
                           <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                           <span className="ml-3 text-xs font-medium text-slate-700">
                             {isActive ? 'Active Login Access' : 'Account Deactivated'}
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                        Faculty Status
+                      </label>
+                      <div className="flex items-center h-10">
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={isRetired}
+                            onChange={(e) => setIsRetired(e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+                          <span className="ml-3 text-xs font-medium text-slate-700">
+                            {isRetired ? 'Retired Faculty' : 'Serving Faculty'}
                           </span>
                         </label>
                       </div>

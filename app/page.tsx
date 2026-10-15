@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Fragment, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import Image from 'next/image';
 import Hero, { type Slide } from '@/components/Hero';
 import NotificationsTicker, { type NotificationItem } from '@/components/NotificationsTicker';
@@ -9,6 +9,7 @@ import type { Publication } from '@/lib/data';
 import { prisma } from '@/lib/prisma';
 import { sanitizeWebUrl } from '@/lib/url-security';
 import { ChevronRight, ArrowRight } from 'lucide-react';
+import { parseInlineMarkdown } from '@/lib/markdown';
 
 export const revalidate = 300;
 
@@ -151,59 +152,8 @@ async function getHomeAboutData(): Promise<{ content: string; image: string | nu
   };
 }
 
-function parseFormatting(text: string, keyPrefix: number): ReactNode {
-  const elements: ReactNode[] = [];
-  const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      elements.push(text.substring(lastIndex, match.index));
-    }
-
-    if (match[1]) {
-      elements.push(<strong key={`${keyPrefix}_b_${match.index}`} className="font-bold text-slate-900">{match[2]}</strong>);
-    } else if (match[3]) {
-      elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-800">{match[4]}</em>);
-    } else if (match[5]) {
-      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-100 text-oxford px-1.5 py-0.5 rounded font-mono text-sm">{match[6]}</code>);
-    }
-
-    lastIndex = regex.lastIndex;
-  }
-
-  if (lastIndex < text.length) {
-    elements.push(text.substring(lastIndex));
-  }
-
-  return elements.length === 1 ? elements[0] : <Fragment key={keyPrefix}>{elements}</Fragment>;
-}
-
-function parseMarkdownText(text: string): ReactNode[] {
-  let remaining = text;
-  let keyIdx = 0;
-  const parts: ReactNode[] = [];
-
-  while (remaining) {
-    const linkMatch = remaining.match(/^([\s\S]*?)\[([^\]]+)\]\(([^)]+)\)([\s\S]*)$/);
-    if (linkMatch) {
-      const [, before, label, url, after] = linkMatch;
-      if (before) parts.push(parseFormatting(before, keyIdx++));
-      parts.push(
-        <a key={keyIdx++} href={sanitizeWebUrl(url) || '#'} target="_blank" rel="noopener noreferrer" className="text-cyan-accent hover:underline font-semibold inline-flex items-center gap-0.5">
-          <span>{label}</span>
-        </a>
-      );
-      remaining = after;
-      continue;
-    }
-
-    parts.push(parseFormatting(remaining, keyIdx++));
-    break;
-  }
-
-  return parts;
+function parseMarkdownText(text: string): ReactNode {
+  return parseInlineMarkdown(text, { showExternalIcon: false });
 }
 
 interface HomeLabItem {
@@ -229,7 +179,7 @@ async function getHomeLabs(): Promise<HomeLabItem[]> {
   }
 }
 
-function LabCard({ lab, className = "h-64" }: { lab: HomeLabItem; className?: string }) {
+function HomeLabCard({ lab, className = "h-64" }: { lab: HomeLabItem; className?: string }) {
   const isLogo = lab.image === '/dop-logo.svg';
   const displayImage = lab.image || 'https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&q=80';
 
@@ -396,14 +346,14 @@ export default async function HomePage() {
               <div className="lg:col-span-7 grid grid-cols-1 md:grid-cols-12 gap-6 h-full items-stretch">
                 {/* Stacked Left Column (Up to 2 Small Cards) */}
                 <div className="md:col-span-7 flex flex-col gap-6 justify-between">
-                  {homeLabs[0] && <LabCard lab={homeLabs[0]} className="h-[220px]" />}
-                  {homeLabs[1] && <LabCard lab={homeLabs[1]} className="h-[220px]" />}
+                  {homeLabs[0] && <HomeLabCard lab={homeLabs[0]} className="h-[220px]" />}
+                  {homeLabs[1] && <HomeLabCard lab={homeLabs[1]} className="h-[220px]" />}
                 </div>
 
                 {/* Tall Right Column (1 Tall Card) */}
                 {homeLabs[2] && (
                   <div className="md:col-span-5 grid grid-cols-1 items-stretch">
-                    <LabCard lab={homeLabs[2]} className="h-full min-h-[320px]" />
+                    <HomeLabCard lab={homeLabs[2]} className="h-full min-h-[320px]" />
                   </div>
                 )}
               </div>

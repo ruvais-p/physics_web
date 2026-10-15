@@ -12,6 +12,7 @@ export interface FacultyMember {
   citations: number;
   image: string;
   type: 'faculty';
+  isRetired?: boolean;
   cvUrl?: string;
   socialLinks?: {
     scholar?: string;
@@ -62,33 +63,6 @@ export interface Course {
   sortOrder?: number;
 }
 
-export interface ResearchLab {
-  id: string;
-  name: string;
-  director: string;
-  category: string;
-  shortDesc: string;
-  description: string;
-  equipment: string[];
-  focusAreas: string[];
-  image: string;
-  activeProjects: number;
-}
-
-export interface Facility {
-  id: string;
-  name: string;
-  model: string;
-  make: string;
-  category: string;
-  description: string;
-  specifications: string[];
-  inCharge: string;
-  bookingStatus: 'Available' | 'Maintenance' | 'High Demand';
-  image: string;
-  chargeInternal: string;
-  chargeExternal: string;
-}
 
 export interface Publication {
   id: string;

@@ -83,6 +83,7 @@ model Faculty {
   phone              String?
   bio                String?
   isActive           Boolean              @default(true)
+  isRetired          Boolean              @default(false)
   sortOrder          Int                  @default(0)
   profile            FacultyProfile?
   documents          FacultyDocument?
@@ -95,7 +96,7 @@ model Faculty {
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
 
-  @@index([isActive, sortOrder, createdAt])
+  @@index([isActive, isRetired, sortOrder, createdAt])
 }
 
 model FacultyProject {

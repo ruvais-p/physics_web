@@ -154,15 +154,6 @@
   animation-play-state: paused;
 }
 
-/* Continuous Running Laboratories Marquee */
-@keyframes marquee-labs {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
-}
 
 /* Continuous Horizontal Auto-Scrolling Executive Marquee */
 @keyframes horizontal-marquee {
@@ -211,11 +202,6 @@
     transform: none;
     will-change: auto;
   }
-}
-
-.animate-marquee-labs {
-  display: inline-flex;
-  animation: marquee-labs 35s linear infinite;
 }
 
 

@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { sanitizeWebUrl } from '@/lib/url-security';
+import { parseInlineMarkdown as parseSharedInlineMarkdown } from '@/lib/markdown';
 import {
   ShieldCheck,
   LogOut,
@@ -146,6 +147,7 @@ interface FacultyItem {
   room?: string | null;
   mustChangePassword: boolean;
   isActive: boolean;
+  isRetired?: boolean;
   sortOrder?: number;
   createdAt: string;
   updatedAt: string;
@@ -384,59 +386,12 @@ function renderMarkdown(md: string) {
 }
 
 function parseInlineMarkdown(text: string): React.ReactNode {
-  const parts: React.ReactNode[] = [];
-  let remaining = text;
-  let keyIdx = 0;
-
-  while (remaining) {
-    const linkMatch = remaining.match(/^([\s\S]*?)\[([^\]]+)\]\(([^)]+)\)([\s\S]*)$/);
-    if (linkMatch) {
-      const [, before, label, url, after] = linkMatch;
-      if (before) parts.push(parseFormatting(before, keyIdx++));
-      parts.push(
-        <a key={keyIdx++} href={sanitizeWebUrl(url) || '#'} target="_blank" rel="noopener noreferrer" className="text-oxford hover:text-cyan-700 underline font-semibold inline-flex items-center gap-1">
-          <span>{label}</span>
-          <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-        </a>
-      );
-      remaining = after;
-      continue;
-    }
-
-    parts.push(parseFormatting(remaining, keyIdx++));
-    break;
-  }
-
-  return parts;
-}
-
-function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
-  const elements: React.ReactNode[] = [];
-  const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      elements.push(text.substring(lastIndex, match.index));
-    }
-
-    if (match[1]) {
-      elements.push(<strong key={`${keyPrefix}_b_${match.index}`} className="font-bold text-slate-900">{match[2]}</strong>);
-    } else if (match[3]) {
-      elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-700">{match[4]}</em>);
-    } else if (match[5]) {
-      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-200 text-oxford px-1.5 py-0.5 rounded font-mono text-xs font-semibold">{match[6]}</code>);
-    }
-
-    lastIndex = regex.lastIndex;
-  }
-
-  if (lastIndex < text.length) {
-    elements.push(text.substring(lastIndex));
-  }
-
-  return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
+  return parseSharedInlineMarkdown(text, {
+    linkClassName: 'text-oxford hover:text-cyan-700 underline font-semibold inline-flex items-center gap-1',
+    strongClassName: 'font-bold text-slate-900',
+    emClassName: 'italic text-slate-700',
+    codeClassName: 'bg-slate-200 text-oxford px-1.5 py-0.5 rounded font-mono text-xs font-semibold',
+  });
 }
 
 interface HeroSlideItem {
@@ -1087,6 +1042,7 @@ export default function UnifiedDashboardPage() {
     qualification: 'Ph.D. in Physics',
     room: 'Department Building',
     isActive: true,
+    isRetired: false,
     newPredefinedPassword: '',
   });
   const [facultySaving, setFacultySaving] = useState(false);
@@ -1751,6 +1707,7 @@ export default function UnifiedDashboardPage() {
         qualification: faculty.qualification || 'Ph.D. in Physics',
         room: faculty.room || 'Department Building',
         isActive: faculty.isActive,
+        isRetired: Boolean(faculty.isRetired),
         newPredefinedPassword: '',
       });
     } else {
@@ -1764,6 +1721,7 @@ export default function UnifiedDashboardPage() {
         qualification: 'Ph.D. in Physics',
         room: 'Department Building',
         isActive: true,
+        isRetired: false,
         newPredefinedPassword: '',
       });
     }
@@ -1810,6 +1768,7 @@ export default function UnifiedDashboardPage() {
         qualification: facultyFormData.qualification,
         room: facultyFormData.room,
         isActive: facultyFormData.isActive,
+        isRetired: facultyFormData.isRetired,
       };
 
       if (!editingFaculty) {
@@ -1857,6 +1816,29 @@ export default function UnifiedDashboardPage() {
       }
     } catch (err) {
       console.error('Failed to toggle faculty active status:', err);
+    }
+  };
+
+  const toggleFacultyRetired = async (faculty: FacultyItem) => {
+    try {
+      const nextRetired = !faculty.isRetired;
+      const res = await fetch(`/api/admin/faculty/${faculty.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isRetired: nextRetired,
+        }),
+      });
+
+      if (res.ok) {
+        setFacultyList((prev) =>
+          prev.map((item) =>
+            item.id === faculty.id ? { ...item, isRetired: nextRetired } : item
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Failed to toggle faculty retired status:', err);
     }
   };
 
@@ -3734,7 +3716,25 @@ export default function UnifiedDashboardPage() {
                           </TableCell>
 
                           <TableCell className="py-4">
-                            <div className="font-bold text-slate-900">{faculty.name}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-slate-900">{faculty.name}</span>
+                              <button
+                                type="button"
+                                onClick={() => toggleFacultyRetired(faculty)}
+                                className="cursor-pointer"
+                                title="Click to toggle Serving / Retired status"
+                              >
+                                {faculty.isRetired ? (
+                                  <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 text-[10px] px-1.5 py-0 font-medium hover:bg-amber-100 transition-colors">
+                                    Retired
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 text-[10px] px-1.5 py-0 font-medium hover:bg-blue-100 transition-colors">
+                                    Serving
+                                  </Badge>
+                                )}
+                              </button>
+                            </div>
                             <div className="text-sm text-slate-500 font-sans">{faculty.designation || 'Faculty Member'}</div>
                           </TableCell>
 
@@ -4864,6 +4864,17 @@ export default function UnifiedDashboardPage() {
                 <Switch
                   checked={facultyFormData.isActive}
                   onCheckedChange={(checked) => setFacultyFormData({ ...facultyFormData, isActive: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div>
+                  <span className="text-sm font-bold text-slate-900 block">Retired Faculty</span>
+                  <span className="text-xs text-slate-500">Place in Retired Faculty section on website</span>
+                </div>
+                <Switch
+                  checked={facultyFormData.isRetired}
+                  onCheckedChange={(checked) => setFacultyFormData({ ...facultyFormData, isRetired: checked })}
                 />
               </div>
 

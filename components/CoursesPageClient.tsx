@@ -21,13 +21,8 @@ export default function CoursesPageClient({ courses, heroData }: CoursesPageClie
     });
   }, [courses]);
 
-  const [activeCourseId, setActiveCourseId] = useState<string>(dynamicCourses[0]?.id || '');
-
-  useEffect(() => {
-    if (!activeCourseId && dynamicCourses.length > 0) {
-      setActiveCourseId(dynamicCourses[0].id);
-    }
-  }, [dynamicCourses, activeCourseId]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string>('');
+  const activeCourseId = selectedCourseId || dynamicCourses[0]?.id || '';
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -55,7 +50,7 @@ export default function CoursesPageClient({ courses, heroData }: CoursesPageClie
       }
 
       if (matched) {
-        setActiveCourseId(matched.id);
+        setSelectedCourseId(matched.id);
       }
     };
 
@@ -101,7 +96,7 @@ export default function CoursesPageClient({ courses, heroData }: CoursesPageClie
                     key={course.id}
                     type="button"
                     onClick={() => {
-                      setActiveCourseId(course.id);
+                      setSelectedCourseId(course.id);
                       window.history.pushState(null, '', `#${navInfo.hash}`);
                     }}
                     className={`px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 cursor-pointer focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-cyan-accent ${
