@@ -329,3 +329,52 @@ model Staff {
   @@index([isActive, sortOrder, createdAt])
   @@map("staff")
 }
+
+model AlumniExecutive {
+  id        String   @id @default(uuid())
+  name      String
+  role      String
+  batch     String?
+  image     String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder, createdAt])
+  @@map("alumni_executives")
+}
+
+model AlumniAchievement {
+  id        String   @id @default(uuid())
+  awardName String
+  recipient String
+  batch     String?
+  date      String
+  photo     String?
+  desc      String   @db.Text
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder, createdAt(sort: Desc)])
+  @@map("alumni_achievements")
+}
+
+model AlumniSponsoredProgram {
+  id          String   @id @default(uuid())
+  programName String
+  nature      String   @default("Award") // "Award" | "Donation"
+  date        String
+  photo       String?
+  sponsor     String?
+  desc        String   @db.Text
+  proofUrl    String?  // Uploaded proof document/brochure/letter (PDF or image)
+  isRecurring Boolean  @default(false) // Whether program recurs annually
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([nature, isRecurring, sortOrder, createdAt(sort: Desc)])
+  @@map("alumni_sponsored_programs")
+}

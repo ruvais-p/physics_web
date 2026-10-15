@@ -62,7 +62,7 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
-    name: 'Career',
+    name: 'Alumni',
     href: '/alumni',
     iconType: 'chevron',
   },

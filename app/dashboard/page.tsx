@@ -55,6 +55,9 @@ import {
 const AdminStaffManagementSection = dynamic(
   () => import('@/components/AdminStaffManagementSection'),
 );
+const AdminAlumniManagementSection = dynamic(
+  () => import('@/components/AdminAlumniManagementSection'),
+);
 const AdminFacultyFullManageModal = dynamic(
   () => import('@/components/AdminFacultyFullManageModal'),
 );
@@ -458,7 +461,7 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // ADMIN DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'page-heroes' | 'events' | 'tv' | 'notifications' | 'news-awards' | 'faculty' | 'staff' | 'curriculum' | 'labs' | 'facilities' | 'settings'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'page-heroes' | 'events' | 'tv' | 'notifications' | 'news-awards' | 'faculty' | 'staff' | 'alumni' | 'curriculum' | 'labs' | 'facilities' | 'settings'>('dashboard');
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
@@ -2597,6 +2600,16 @@ export default function UnifiedDashboardPage() {
               </TabsTrigger>
 
               <TabsTrigger
+                value="alumni"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <GraduationCap className="w-4 h-4" />
+                  <span>Alumni Management</span>
+                </div>
+              </TabsTrigger>
+
+              <TabsTrigger
                 value="curriculum"
                 className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
               >
@@ -2899,6 +2912,29 @@ export default function UnifiedDashboardPage() {
                 >
                   <Briefcase className="w-4 h-4" />
                   <span>Office Staff</span>
+                </Button>
+              </Card>
+
+              {/* Module 10: Alumni Management */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <GraduationCap className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Alumni Network</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Manage executive committee officers, alumni honors, and sponsored research endowments.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('alumni')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  <span>Alumni Management</span>
                 </Button>
               </Card>
 
@@ -3790,6 +3826,11 @@ export default function UnifiedDashboardPage() {
           {/* OFFICE STAFF MANAGEMENT TAB */}
           <TabsContent value="staff" className="space-y-10 animate-fadeIn mt-0">
             <AdminStaffManagementSection />
+          </TabsContent>
+
+          {/* ALUMNI MANAGEMENT TAB */}
+          <TabsContent value="alumni" className="space-y-10 animate-fadeIn mt-0">
+            <AdminAlumniManagementSection />
           </TabsContent>
 
           {/* EVENTS MANAGEMENT TAB */}
