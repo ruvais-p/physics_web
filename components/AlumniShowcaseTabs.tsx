@@ -31,115 +31,23 @@ export interface AlumniSponsoredProgram {
   isRecurring: boolean;
 }
 
-export const ALUMNI_ACHIEVEMENTS: AlumniAchievement[] = [
-  {
-    id: 'ach-1',
-    awardName: 'Shanti Swarup Bhatnagar Prize in Physical Sciences',
-    recipient: 'Dr. S. Prasanth',
-    batch: 'Class of 1998 · M.Sc. & Ph.D.',
-    date: '26 September 2025',
-    photo: '/alumni/award_bhatnagar.jpg',
-    desc: 'Conferred India’s highest scientific distinction in recognition of breakthrough discoveries in magnetic nanocomposites, high-entropy alloys, and phase transitions in quantum materials.',
-  },
-  {
-    id: 'ach-2',
-    awardName: 'ISRO Outstanding Space Scientist Achievement Award',
-    recipient: 'Dr. Priya S. Warrier',
-    batch: 'Class of 2015 · M.Sc. Physics',
-    date: '14 January 2025',
-    photo: '/alumni/award_isro.jpg',
-    desc: 'Honored for outstanding technical leadership in engineering multi-spectral optical thin-film sensors and spectrometers successfully deployed on India’s deep-space planetary payloads.',
-  },
-  {
-    id: 'ach-3',
-    awardName: 'Alexander von Humboldt International Research Fellowship',
-    recipient: 'Dr. Anandhu R. Nair',
-    batch: 'Class of 2018 · Ph.D.',
-    date: '18 May 2024',
-    photo: '/alumni/award_humboldt.jpg',
-    desc: 'Awarded the renowned German postdoctoral research fellowship for pioneering experimental investigations into ultrafast femtosecond laser dynamics and quantum light-matter entanglement.',
-  },
-  {
-    id: 'ach-4',
-    awardName: 'INSA Medal for Young Scientists in Physics',
-    recipient: 'Prof. Rajesh K. Menon',
-    batch: 'Class of 2012 · Ph.D.',
-    date: '22 November 2023',
-    photo: '/alumni/rajesh.jpg',
-    desc: 'Recognized by the Indian National Science Academy (INSA) for foundational contributions to spintronic transport mechanisms and low-temperature magnetic heterostructures.',
-  },
-];
-
-export const ALUMNI_SPONSORED_PROGRAMS: AlumniSponsoredProgram[] = [
-  {
-    id: 'prog-1',
-    programName: 'Prof. M. Sabir Memorial Student Excellence Endowment',
-    nature: 'Award',
-    date: 'Instituted 2024 · Annual',
-    photo: '/alumni/program_endowment.jpg',
-    sponsor: 'Instituted by Physics Alumni Batch of 1985–1995',
-    desc: 'An annual student merit endowment featuring a gold medal and cash fellowship awarded to the postgraduate scholar achieving the highest distinction in Mathematical Physics and Quantum Mechanics coursework.',
-    proofUrl: null,
-    isRecurring: true,
-  },
-  {
-    id: 'prog-2',
-    programName: 'PhyCA Advanced Optics & Laser Instrumentation Facility',
-    nature: 'Donation',
-    date: 'August 2025',
-    photo: '/alumni/program_laser_lab.jpg',
-    sponsor: 'Donated by Global Physics Alumni Association (PhyCA)',
-    desc: 'A flagship infrastructural donation contributing state-of-the-art optical vibration isolation breadboards, multi-wavelength diode lasers, and precision spectroscopic detectors for departmental M.Sc. and doctoral research laboratories.',
-    proofUrl: null,
-    isRecurring: false,
-  },
-  {
-    id: 'prog-3',
-    programName: 'Dr. Ramesh Babu Theoretical Physics Research Fellowship',
-    nature: 'Award',
-    date: 'Instituted 2023 · Annual',
-    photo: '/alumni/anantharaman.jpg',
-    sponsor: 'Alumni Doctoral Research Foundation',
-    desc: 'A competitive annual research stipend supporting promising Ph.D. scholars conducting high-impact theoretical investigations in Classical Electrodynamics, Gravitation, and Statistical Mechanics.',
-    proofUrl: null,
-    isRecurring: true,
-  },
-  {
-    id: 'prog-4',
-    programName: 'High-Performance Computing (HPC) Quantum Simulation Cluster',
-    nature: 'Donation',
-    date: 'February 2025',
-    photo: '/alumni/program_hpc.jpg',
-    sponsor: 'Sponsored by International Alumni Fraternity (US & Europe)',
-    desc: 'Comprehensive computational hardware and server rack donation providing a dedicated 64-core multi-GPU computing node configured specifically for quantum Monte Carlo simulations and theoretical condensed matter calculations.',
-    proofUrl: null,
-    isRecurring: false,
-  },
-];
-
 interface AlumniShowcaseTabsProps {
   initialAchievements?: AlumniAchievement[];
   initialPrograms?: AlumniSponsoredProgram[];
 }
 
 export default function AlumniShowcaseTabs({
-  initialAchievements,
-  initialPrograms,
+  initialAchievements = [],
+  initialPrograms = [],
 }: AlumniShowcaseTabsProps = {}) {
   const [activeTab, setActiveTab] = useState<'achievements' | 'programs'>('achievements');
   const [programFilter, setProgramFilter] = useState<'All' | 'Award' | 'Donation'>('All');
 
-  const achievementsList =
-    initialAchievements && initialAchievements.length > 0
-      ? initialAchievements
-      : ALUMNI_ACHIEVEMENTS;
+  if (initialAchievements.length === 0 && initialPrograms.length === 0) {
+    return null;
+  }
 
-  const programsList =
-    initialPrograms && initialPrograms.length > 0
-      ? initialPrograms
-      : ALUMNI_SPONSORED_PROGRAMS;
-
-  const filteredPrograms = programsList.filter((prog) => {
+  const filteredPrograms = initialPrograms.filter((prog) => {
     if (programFilter === 'All') return true;
     return prog.nature === programFilter;
   });
@@ -190,7 +98,7 @@ export default function AlumniShowcaseTabs({
                     : 'bg-stone-200 text-stone-700'
                 }`}
               >
-                {achievementsList.length}
+                {initialAchievements.length}
               </span>
             </button>
 
@@ -220,7 +128,7 @@ export default function AlumniShowcaseTabs({
                     : 'bg-stone-200 text-stone-700'
                 }`}
               >
-                {programsList.length}
+                {initialPrograms.length}
               </span>
             </button>
           </div>
@@ -255,7 +163,7 @@ export default function AlumniShowcaseTabs({
             className="animate-in fade-in duration-300"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-              {achievementsList.map((item) => (
+              {initialAchievements.map((item) => (
                 <article
                   key={item.id}
                   className="group bg-white rounded-2xl border border-stone-200/90 hover:border-[#0284C7]/50 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden"

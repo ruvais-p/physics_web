@@ -9,11 +9,6 @@ export interface AlumniExecutiveMember {
   role: string;
   batch?: string | null;
   image: string | null;
-  badgeColor?: {
-    bg: string;
-    text: string;
-    border: string;
-  };
 }
 
 export function getRoleBadgeStyle(role: string) {
@@ -67,100 +62,24 @@ export function getRoleBadgeStyle(role: string) {
   };
 }
 
-export const ALUMNI_EXECUTIVE_MEMBERS: AlumniExecutiveMember[] = [
-  {
-    id: 'exec-1',
-    name: 'Prof. (Dr.) M. R. Anantharaman',
-    role: 'Patron & Chief Advisor',
-    batch: 'Distinguished Faculty & Former HoD',
-    image: '/alumni/anantharaman.jpg',
-    badgeColor: {
-      bg: 'bg-amber-100/95',
-      text: 'text-amber-950',
-      border: 'border-amber-300',
-    },
-  },
-  {
-    id: 'exec-2',
-    name: 'Dr. S. Prasanth',
-    role: 'President',
-    batch: 'Class of 1998 · M.Sc. & Ph.D.',
-    image: '/alumni/prasanth.jpg',
-    badgeColor: {
-      bg: 'bg-[#002147]/95',
-      text: 'text-white',
-      border: 'border-cyan-400/40',
-    },
-  },
-  {
-    id: 'exec-3',
-    name: 'Dr. Lakshmi K. Menon',
-    role: 'Vice President',
-    batch: 'Class of 2004 · M.Sc. Physics',
-    image: '/alumni/lakshmi.jpg',
-    badgeColor: {
-      bg: 'bg-teal-100/95',
-      text: 'text-teal-950',
-      border: 'border-teal-300',
-    },
-  },
-  {
-    id: 'exec-4',
-    name: 'Dr. Anandhu R. Nair',
-    role: 'General Secretary',
-    batch: 'Class of 2018 · Ph.D.',
-    image: '/alumni/anandhu.jpg',
-    badgeColor: {
-      bg: 'bg-sky-100/95',
-      text: 'text-sky-950',
-      border: 'border-sky-300',
-    },
-  },
-  {
-    id: 'exec-5',
-    name: 'Dr. Priya S. Warrier',
-    role: 'Joint Secretary',
-    batch: 'Class of 2015 · M.Sc. Physics',
-    image: '/alumni/priya.jpg',
-    badgeColor: {
-      bg: 'bg-indigo-100/95',
-      text: 'text-indigo-950',
-      border: 'border-indigo-300',
-    },
-  },
-  {
-    id: 'exec-6',
-    name: 'Prof. Rajesh K. Menon',
-    role: 'Treasurer',
-    batch: 'Class of 2012 · Ph.D.',
-    image: '/alumni/rajesh.jpg',
-    badgeColor: {
-      bg: 'bg-emerald-100/95',
-      text: 'text-emerald-950',
-      border: 'border-emerald-300',
-    },
-  },
-];
-
 interface AlumniExecutiveStreamProps {
   initialExecutives?: AlumniExecutiveMember[];
 }
 
 export default function AlumniExecutiveStream({
-  initialExecutives,
+  initialExecutives = [],
 }: AlumniExecutiveStreamProps = {}) {
   const [isPaused, setIsPaused] = useState(false);
 
-  const membersList =
-    initialExecutives && initialExecutives.length > 0
-      ? initialExecutives
-      : ALUMNI_EXECUTIVE_MEMBERS;
+  if (!initialExecutives || initialExecutives.length === 0) {
+    return null;
+  }
 
   // Duplicate items for a seamless, gap-free infinite horizontal scroll
   const duplicatedMembers = [
-    ...membersList,
-    ...membersList,
-    ...membersList,
+    ...initialExecutives,
+    ...initialExecutives,
+    ...initialExecutives,
   ];
 
   return (
@@ -205,7 +124,7 @@ export default function AlumniExecutiveStream({
             }}
           >
             {duplicatedMembers.map((member, idx) => {
-              const badge = member.badgeColor || getRoleBadgeStyle(member.role);
+              const badge = getRoleBadgeStyle(member.role);
               const photoSrc = member.image || '/avatar-placeholder.png';
               return (
                 <article

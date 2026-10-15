@@ -24,105 +24,36 @@ interface CourseCardProps {
   heroImage?: string;
 }
 
-const DEFAULT_COURSE_SCHEMES: Record<string, CourseSchemeItem[]> = {
-  c1: [
-    { year: 'First Year (Semesters 1 & 2)', scheme: '2024 CBCS Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
-    { year: 'Second Year (Semesters 3 & 4)', scheme: '2024 CBCS Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
-  ],
-  c2: [
-    { year: 'Year 1 (Coursework)', scheme: '2024 PhD Regulations', pdfUrl: '/cvs/cv_placeholder.pdf' },
-    { year: 'Years 2 - 5 (Research)', scheme: '2024 PhD Regulations', pdfUrl: '/cvs/cv_placeholder.pdf' },
-  ],
-  c3: [
-    { year: 'Years 1 & 2 (Foundational)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
-    { year: 'Year 3 (B.Sc. Honours Exit Option)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
-    { year: 'Years 4 & 5 (M.Sc. Advanced)', scheme: '2024 Integrated Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
-  ],
-  c4: [
-    { year: 'First Year (Semesters 1 & 2)', scheme: '2024 AICTE Model Curriculum', pdfUrl: '/cvs/cv_placeholder.pdf' },
-    { year: 'Second Year (Industrial Project & Thesis)', scheme: '2024 M.Tech Regulations', pdfUrl: '/cvs/cv_placeholder.pdf' },
-  ],
-  c5: [
-    { year: 'Full Academic Year (Modules 1 - 4)', scheme: '2024 Industry-Aligned Diploma Scheme', pdfUrl: '/cvs/cv_placeholder.pdf' },
-  ],
-};
-
-function getStageDescription(yearTitle: string, index: number, courseId: string): string | null {
-  const normalized = `${yearTitle} ${courseId}`.toLowerCase();
-  if (courseId === 'c2' || normalized.includes('phd') || normalized.includes('doctor')) {
+function getStageDescription(yearTitle: string, index: number, courseLevel?: string): string | null {
+  const normalized = `${yearTitle} ${courseLevel || ''}`.toLowerCase();
+  if (normalized.includes('phd') || normalized.includes('doctor')) {
     if (index === 0 || normalized.includes('coursework') || normalized.includes('year 1')) {
       return 'Foundational coursework in research methodology, advanced experimental techniques, and domain literature review.';
     }
-    if (index === 1 || normalized.includes('research') || normalized.includes('2-5') || normalized.includes('2 - 5')) {
-      return 'Independent doctoral research, quarterly progress seminars before the Departmental Research Committee, and thesis submission.';
-    }
+    return 'Independent doctoral research, quarterly progress seminars before the Departmental Research Committee, and thesis submission.';
   }
-  if (courseId === 'c1' || normalized.includes('msc')) {
+  if (normalized.includes('msc') || normalized.includes('master')) {
     if (index === 0 || normalized.includes('first')) {
       return 'Core theoretical foundation covering classical mechanics, quantum theory, electrodynamics, and hands-on laboratory sessions.';
     }
-    if (index === 1 || normalized.includes('second')) {
-      return 'Advanced domain electives, computational physics training, and mandatory master research dissertation project.';
-    }
+    return 'Advanced domain electives, computational physics training, and mandatory master research dissertation project.';
   }
-  if (courseId === 'c3' || normalized.includes('integrated')) {
+  if (normalized.includes('integrated')) {
     if (index === 0 || normalized.includes('foundational')) {
       return 'Foundational curricula across physics, calculus, chemistry, and scientific computing.';
     }
     if (index === 1 || normalized.includes('exit')) {
       return 'Core undergraduate physics courses with an optional B.Sc. (Honours) degree exit path.';
     }
-    if (index === 2 || normalized.includes('advanced')) {
-      return 'Master-level theoretical physics modules, specialized electives, and capstone research dissertation.';
-    }
+    return 'Master-level theoretical physics modules, specialized electives, and capstone research dissertation.';
   }
   return null;
 }
 
 export default function CourseCard({ course, heroImage }: CourseCardProps) {
-  const schemes =
-    course.schemes && course.schemes.length > 0
-      ? course.schemes
-      : DEFAULT_COURSE_SCHEMES[course.id] || [];
-
-  const isPhd =
-    course.id === 'c2' ||
-    course.level?.toLowerCase().includes('phd') ||
-    course.title?.toLowerCase().includes('ph.d');
-
-  const isMsc =
-    !isPhd &&
-    (course.id === 'c1' ||
-      course.level?.toLowerCase().includes('msc') ||
-      course.title?.toLowerCase().includes('m.sc'));
-
-  const displayTitle =
-    course.title ||
-    (course.id === 'c1'
-      ? 'Master of Science (M.Sc.) in Physics'
-      : course.id === 'c2'
-      ? 'Doctor of Philosophy (Ph.D.) in Physics'
-      : course.id === 'c3'
-      ? 'Integrated M.Sc. in Physics'
-      : isMsc
-      ? 'Master of Science (M.Sc.) in Physics'
-      : isPhd
-      ? 'Doctor of Philosophy (Ph.D.) in Physics'
-      : 'Academic Programme');
-
-  const programLevelLabel =
-    course.id === 'c2'
-      ? 'Doctoral (Ph.D.)'
-      : course.id === 'c1'
-      ? 'Postgraduate (M.Sc.)'
-      : course.id === 'c3'
-      ? 'Undergraduate & Postgraduate (Integrated M.Sc.)'
-      : course.id === 'c4'
-      ? 'Postgraduate (M.Tech.)'
-      : course.id === 'c5'
-      ? 'Postgraduate Diploma'
-      : course.level || (isPhd ? 'Doctoral (Ph.D.)' : isMsc ? 'Postgraduate (M.Sc.)' : 'Academic Programme');
-
+  const schemes = course.schemes || [];
+  const displayTitle = course.title || 'Academic Programme';
+  const programLevelLabel = course.level || 'Academic Programme';
   const photoSrc = heroImage || '/campus.jpg';
 
   return (
@@ -192,7 +123,7 @@ export default function CourseCard({ course, heroImage }: CourseCardProps) {
           >
             {schemes.map((item, idx) => {
               const displayYear = item.year.replace('Years 2 - 5', 'Years 2-5');
-              const description = getStageDescription(item.year, idx, course.id);
+              const description = getStageDescription(item.year, idx, `${course.level || ''} ${course.title || ''} ${course.id || ''}`);
 
               return (
                 <div
@@ -221,13 +152,13 @@ export default function CourseCard({ course, heroImage }: CourseCardProps) {
                   {/* Regulation Link as simple outlined button */}
                   <div className="pt-2">
                     <a
-                      href={item.pdfUrl || '/cvs/cv_placeholder.pdf'}
+                      href={item.pdfUrl || '#'}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-2 px-3.5 py-2 text-xs sm:text-sm font-medium text-[#002147] border border-[#002147] rounded-lg hover:bg-[#002147] hover:text-white transition-colors duration-150 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-[#002147] focus-visible:ring-offset-2"
                     >
                       <FileText className="w-4 h-4 shrink-0" aria-hidden="true" />
-                      <span>{item.scheme || '2024 PhD Regulations'}</span>
+                      <span>{item.scheme || 'View Syllabus'}</span>
                     </a>
                   </div>
                 </div>

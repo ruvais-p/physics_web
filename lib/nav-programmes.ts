@@ -25,12 +25,6 @@ export function getCourseOrderFallback(course: {
   title?: string | null;
   code?: string | null;
 }): number {
-  if (course.id === 'c2') return 1;
-  if (course.id === 'c3') return 2;
-  if (course.id === 'c1') return 3;
-  if (course.id === 'c4') return 4;
-  if (course.id === 'c5') return 5;
-
   const text = `${course.id} ${course.level || ''} ${course.title || ''} ${course.code || ''}`.toLowerCase();
   if (text.includes('phd') || text.includes('ph.d') || text.includes('doctor')) return 1;
   if (text.includes('integrated') || text.includes('int')) return 2;
@@ -46,27 +40,27 @@ export function getCourseNavInfo(course: {
   level?: string | null;
   code?: string | null;
 }): { name: string; href: string; hash: string } {
-  // 1. Explicit core course mappings by fixed ID
-  if (course.id === 'c2') {
-    return { name: 'Ph.D. Programme', href: '/courses#phd', hash: 'phd' };
-  }
-  if (course.id === 'c3') {
-    return { name: 'Integrated M.Sc.', href: '/courses#integrated', hash: 'integrated' };
-  }
-  if (course.id === 'c1') {
-    return { name: 'M.Sc. Physics', href: '/courses#msc', hash: 'msc' };
-  }
-  if (course.id === 'c4') {
-    return { name: 'M.Tech. Materials', href: '/courses#mtech', hash: 'mtech' };
-  }
-  if (course.id === 'c5') {
-    return { name: 'PG Diploma', href: '/courses#diploma', hash: 'diploma' };
-  }
+  const text = `${course.level || ''} ${course.title || ''} ${course.code || ''}`.toLowerCase();
 
-  // 2. Dynamic / CMS-created courses: use clean unique slug from title, fallback to course ID
-  const name = course.title || 'Academic Programme';
-  const slug = slugifyTitle(course.title || '') || course.id.toLowerCase();
-  const hash = slug;
+  let hash = slugifyTitle(course.title || '') || course.id.toLowerCase();
+  let name = course.title || 'Academic Programme';
+
+  if (text.includes('phd') || text.includes('ph.d') || text.includes('doctor')) {
+    hash = 'phd';
+    name = course.title || 'Ph.D. Programme';
+  } else if (text.includes('integrated') || text.includes('int')) {
+    hash = 'integrated';
+    name = course.title || 'Integrated M.Sc.';
+  } else if (text.includes('msc') || text.includes('m.sc') || text.includes('master')) {
+    hash = 'msc';
+    name = course.title || 'M.Sc. Physics';
+  } else if (text.includes('mtech') || text.includes('m.tech')) {
+    hash = 'mtech';
+    name = course.title || 'M.Tech. Materials';
+  } else if (text.includes('diploma')) {
+    hash = 'diploma';
+    name = course.title || 'PG Diploma';
+  }
 
   return { name, href: `/courses#${hash}`, hash };
 }

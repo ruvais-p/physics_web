@@ -45,162 +45,7 @@ export interface EventItem {
 
 const EVENTS_PER_PAGE = 3;
 
-const CURRENT_EVENTS: EventItem[] = [
-  {
-    id: 'e1',
-    title: '15th Department Endowment & Memorial Oration Lecture',
-    category: 'Seminar',
-    date: '19 Jul 2026',
-    day: '19',
-    month: 'Jul',
-    year: '2026',
-    time: '10:00 AM - 01:00 PM',
-    venue: 'Department Auditorium (Main Block)',
-    image: '/eventssss.jpg',
-    speaker: 'Prof. K. S. Rajan',
-    speakerTitle: 'Senior Fellow, National Institute of Quantum Physics',
-    desc: 'Distinguished national physicists will speak on breakthroughs in low-temperature magnetics and topological insulators, followed by an interactive research panel.',
-    fullDetails: 'This prestigious annual memorial lecture brings together leading experimentalists and theorists in solid-state physics. The session will cover emerging magnetic phase transitions, topological quantum materials, and candidate systems for room-temperature spintronics.',
-    agenda: [
-      '10:00 AM - Welcome Address by Head of Department',
-      '10:30 AM - Keynote Oration: Topological Insulators & Quantum Transport',
-      '11:45 AM - Interactive Q&A & Research Poster Showcase',
-      '12:30 PM - Felicitation & Concluding Remarks'
-    ],
-    isFeatured: true,
-  },
-  {
-    id: 'e2',
-    title: 'Hands-On Workshop on FE-SEM & micro-Raman Spectroscopy',
-    category: 'Workshop',
-    date: '06 Jul 2026',
-    day: '06',
-    month: 'Jul',
-    year: '2026',
-    time: '09:30 AM - 04:30 PM',
-    venue: 'Central Instrumentation Facility (CIF), CUSAT',
-    image: '/innovation-microscope.png',
-    speaker: 'Dr. Anita Varghese',
-    speakerTitle: 'Chief Scientist, STIC CUSAT',
-    desc: 'A focused session on equipment slot bookings and instrumentation data analysis for regional researchers. Participants will receive hands-on training on sample preparation.',
-    fullDetails: 'Designed for Ph.D. scholars and postgraduate students in physical and chemical sciences. Learn advanced characterization techniques using Field Emission Scanning Electron Microscopy (FE-SEM) and high-resolution micro-Raman spectroscopy.',
-    agenda: [
-      '09:30 AM - Fundamentals of Scanning Electron Optics',
-      '11:00 AM - Live Demonstration: Sample Mounting & Vacuum Coating',
-      '01:30 PM - Micro-Raman Laser Alignment & Peak Fitting Workshop',
-      '03:30 PM - Slot Allocation Protocols & Data Processing Lab'
-    ],
-  },
-  {
-    id: 'e3',
-    title: 'National Seminar on Cosmology & Quantum Gravity (CQG-2026)',
-    category: 'Conference',
-    date: '30 Jun 2026',
-    day: '30',
-    month: 'Jun',
-    year: '2026',
-    time: '09:00 AM - 05:00 PM',
-    venue: 'Seminar Hall, Department of Physics',
-    image: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80',
-    speaker: 'Prof. M. V. N. Murthy & Guest Panelists',
-    speakerTitle: 'Theoretical Physics Division, CUSAT',
-    desc: 'Presenting recent simulations and mathematical formulations on gravitational waves and cosmic expansions. Guest lectures will be delivered by eminent scientists.',
-    fullDetails: 'CQG-2026 gathers theoretical physicists, astronomers, and computational astrophysicists across India. Paper presentations will highlight early-universe cosmology, black hole thermodynamics, and modified gravity theories.',
-    agenda: [
-      '09:00 AM - Inauguration & Keynote Address',
-      '10:30 AM - Session I: Primordial Gravitational Waves',
-      '01:30 PM - Session II: Dark Energy & Cosmological Tensions',
-      '03:30 PM - Scholar Short Presentations & Valedictory Session'
-    ],
-  },
-  {
-    id: 'e4',
-    title: 'Integrated M.Sc. Orientation & Interactive Session',
-    category: 'Orientation',
-    date: '12 Jul 2026',
-    day: '12',
-    month: 'Jul',
-    year: '2026',
-    time: '10:00 AM - 12:30 PM',
-    venue: 'Foyer, Department Entrance',
-    image: '/cusat-building.png',
-    speaker: 'Department Faculty Council',
-    speakerTitle: 'Academic Guidance & Mentorship Committee',
-    desc: 'An orientation ceremony welcoming the newly admitted students to the Integrated M.Sc. Physics program, including a campus tour and interaction with research scholars.',
-    fullDetails: 'Welcoming the incoming 5-year Integrated M.Sc. batch. Freshers will meet their faculty mentors, explore core physics laboratories, learn about academic regulations, and connect with senior scholars.',
-    agenda: [
-      '10:00 AM - Introductory Remarks & Department Tour',
-      '11:00 AM - Mentorship Allocation & Curriculum Breakdown',
-      '11:45 AM - Student Club Showcase & Open Q&A'
-    ],
-  },
-];
 
-const PAST_EVENTS: EventItem[] = [
-  {
-    id: 'e5',
-    title: 'Alumni Meet 2026: Physics Department Silver Jubilee',
-    category: 'Conference',
-    date: '05 Aug 2025',
-    day: '05',
-    month: 'Aug',
-    year: '2025',
-    time: '11:00 AM - 04:00 PM',
-    venue: 'Department Foyer & Seminar Hall',
-    image: '/phy_dept.png',
-    speaker: 'Alumni Executive Committee',
-    speakerTitle: 'CUSAT Physics Alumni Association',
-    desc: 'A grand alumni reunion celebrating the silver jubilee of the department. Alumni working in prestigious global institutions shared their journeys.',
-    fullDetails: 'Reconnecting alumni from past decades! Featuring keynote sharing by distinguished alumni in academia, industry, and scientific research labs globally.',
-    agenda: [
-      '11:00 AM - Inaugural Lamp Lighting & Welcome Speech',
-      '11:45 AM - Keynote Address: Global Opportunities in Physics',
-      '01:00 PM - Networking Lunch & Memorabilia Release'
-    ],
-  },
-  {
-    id: 'e6',
-    title: 'International Web-Symposium on Ultrafast Photonics',
-    category: 'Symposium',
-    date: '15 Mar 2026',
-    day: '15',
-    month: 'Mar',
-    year: '2026',
-    time: '02:00 PM - 06:00 PM',
-    venue: 'Virtual Auditorium (Zoom Webinar)',
-    image: 'https://images.unsplash.com/photo-1507668077129-56e32842fceb?w=800&q=80',
-    speaker: 'Prof. David Miller (Stanford)',
-    speakerTitle: 'Photonics & Quantum Electronics Group',
-    desc: 'An international virtual conference focusing on femtosecond laser pulses, non-linear optical materials, and silicon photonics integration.',
-    fullDetails: 'Exploring non-linear optics, ultrafast laser spectroscopy, and photonic integrated circuits. Over 350 international delegates joined the online sessions.',
-    agenda: [
-      '02:00 PM - Opening Keynote on Femtosecond Pulse Shaping',
-      '03:30 PM - Technical Talks on Non-Linear Optics',
-      '05:15 PM - Virtual Panel: Future of Optical Computing'
-    ],
-  },
-  {
-    id: 'e7',
-    title: 'National Workshop on Advanced Thin Film Fabrication',
-    category: 'Workshop',
-    date: '10 Jan 2026',
-    day: '10',
-    month: 'Jan',
-    year: '2026',
-    time: '09:00 AM - 04:00 PM',
-    venue: 'Thin Film Laboratory, Main Physics Block',
-    image: '/innovation-pipette.png',
-    speaker: 'Dr. R. K. Nampoori',
-    speakerTitle: 'Emeritus Professor, CUSAT',
-    desc: 'Hands-on training session covering RF Magnetron Sputtering, Sol-Gel spin coating, and X-ray diffraction analysis for thin film solar cells.',
-    fullDetails: 'Intensive single-day workshop designed for postgraduate and doctoral researchers working on thin film semiconductors and photodetectors.',
-    agenda: [
-      '09:00 AM - Vacuum Systems & Sputtering Physics',
-      '11:30 AM - Lab Practice: Substrate Cleaning & Deposition',
-      '02:30 PM - XRD Phase Analysis & Optical Bandgap Measurement'
-    ],
-  },
-];
 
 function EventGridCard({ item }: { item: EventItem }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -293,16 +138,12 @@ export default function EventsPageClient({
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const displayUpcomingEvents = dbEvents.length > 0
-    ? dbEvents
-        .filter((event) => (event.timestamp ?? 0) >= today.getTime())
-        .sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0))
-    : CURRENT_EVENTS;
-  const displayPastEvents = dbEvents.length > 0
-    ? dbEvents
-        .filter((event) => (event.timestamp ?? 0) < today.getTime())
-        .sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0))
-    : PAST_EVENTS;
+  const displayUpcomingEvents = dbEvents
+    .filter((event) => (event.timestamp ?? 0) >= today.getTime())
+    .sort((a, b) => (a.timestamp ?? 0) - (b.timestamp ?? 0));
+  const displayPastEvents = dbEvents
+    .filter((event) => (event.timestamp ?? 0) < today.getTime())
+    .sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0));
   const displayCurrentEvents = displayUpcomingEvents.length > 0
     ? displayUpcomingEvents
     : displayPastEvents;
@@ -318,7 +159,9 @@ export default function EventsPageClient({
     (pastPageIndex + 1) * EVENTS_PER_PAGE
   );
 
-  const activeCurrentEvent = displayCurrentEvents[activeTab] || displayCurrentEvents[0];
+  const activeCurrentEvent = displayCurrentEvents.length > 0
+    ? (displayCurrentEvents[activeTab] || displayCurrentEvents[0])
+    : null;
 
   return (
     <div className="pb-24 relative bg-surface">
@@ -335,97 +178,106 @@ export default function EventsPageClient({
       <section className="max-w-[1400px] mx-auto px-6 sm:px-10 lg:px-12 py-16 space-y-16">
 
         {/* ------------------------------------------------------------- */}
-        {/* 1. TOP SECTION: CURRENT EVENTS HERO BANNER                    */}
-        {/* ------------------------------------------------------------- */}
         {/* 1. TOP SECTION: HERO SHOWCASE BANNER                          */}
         {/* ------------------------------------------------------------- */}
-        <div className="space-y-6">
-          {/* Current Events Hero Showcase Container */}
-          <div className="relative w-full aspect-[21/9] min-h-[380px] sm:min-h-[460px] overflow-hidden rounded-2xl sm:rounded-3xl bg-slate-900 group shadow-2xl">
-            {/* Main Featured Hero Image */}
-            <img
-              src={activeCurrentEvent.image}
-              alt={activeCurrentEvent.title}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            />
-            
-            {/* Dark Gradient Overlay for Text Contrast */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
+        {activeCurrentEvent && (
+          <div className="space-y-6">
+            {/* Current Events Hero Showcase Container */}
+            <div className="relative w-full aspect-[21/9] min-h-[380px] sm:min-h-[460px] overflow-hidden rounded-2xl sm:rounded-3xl bg-slate-900 group shadow-2xl">
+              {/* Main Featured Hero Image */}
+              <img
+                src={activeCurrentEvent.image}
+                alt={activeCurrentEvent.title}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              
+              {/* Dark Gradient Overlay for Text Contrast */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
-            {/* Carousel Slider Arrows */}
-            <button
-              type="button"
-              onClick={() => setActiveTab((prev) => (prev > 0 ? prev - 1 : displayCurrentEvents.length - 1))}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-cyan-accent hover:text-oxford text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all z-20"
-              aria-label="Previous Event"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
+              {/* Carousel Slider Arrows */}
+              <button
+                type="button"
+                onClick={() => setActiveTab((prev) => (prev > 0 ? prev - 1 : displayCurrentEvents.length - 1))}
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-cyan-accent hover:text-oxford text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all z-20"
+                aria-label="Previous Event"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveTab((prev) => (prev < displayCurrentEvents.length - 1 ? prev + 1 : 0))}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-cyan-accent hover:text-oxford text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all z-20"
-              aria-label="Next Event"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab((prev) => (prev < displayCurrentEvents.length - 1 ? prev + 1 : 0))}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 hover:bg-cyan-accent hover:text-oxford text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all z-20"
+                aria-label="Next Event"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
 
-            {/* Bottom-Left Overlay Text & Button */}
-            <div className="absolute bottom-6 sm:bottom-10 left-6 sm:left-12 right-12 sm:right-28 text-white space-y-3 z-10">
-              {/* Event Title with LaTeX Serif Typography */}
-              <h3 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-extrabold uppercase tracking-tight text-white drop-shadow-md leading-tight max-w-4xl">
-                {activeCurrentEvent.title}
-              </h3>
+              {/* Bottom-Left Overlay Text & Button */}
+              <div className="absolute bottom-6 sm:bottom-10 left-6 sm:left-12 right-12 sm:right-28 text-white space-y-3 z-10">
+                {/* Event Title with LaTeX Serif Typography */}
+                <h3 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-extrabold uppercase tracking-tight text-white drop-shadow-md leading-tight max-w-4xl">
+                  {activeCurrentEvent.title}
+                </h3>
 
-              {/* Event Meta Line */}
-              <p className="text-slate-200 text-xs sm:text-sm font-sans font-medium drop-shadow flex flex-wrap items-center gap-2">
-                <span className="text-cyan-accent font-bold uppercase tracking-wider">{activeCurrentEvent.category}</span>
-                <span>•</span>
-                <span>{activeCurrentEvent.date}, {activeCurrentEvent.time}</span>
-                <span>•</span>
-                <span>{activeCurrentEvent.venue}</span>
-              </p>
+                {/* Event Meta Line */}
+                <p className="text-slate-200 text-xs sm:text-sm font-sans font-medium drop-shadow flex flex-wrap items-center gap-2">
+                  <span className="text-cyan-accent font-bold uppercase tracking-wider">{activeCurrentEvent.category}</span>
+                  <span>•</span>
+                  <span>{activeCurrentEvent.date}, {activeCurrentEvent.time}</span>
+                  <span>•</span>
+                  <span>{activeCurrentEvent.venue}</span>
+                </p>
 
-              {/* Action Buttons: Know More ↗ & Brochure */}
-              <div className="pt-2 flex flex-wrap items-center gap-3">
-                <Link
-                  href={`/events/${activeCurrentEvent.id}`}
-                  className="bg-cyan-accent hover:bg-white text-oxford font-extrabold text-xs sm:text-sm px-6 py-3 rounded-xl inline-flex items-center gap-2 transition-all shadow-xl uppercase tracking-wider"
-                >
-                  <span>Know more</span>
-                  <ArrowUpRight className="w-4 h-4 stroke-[3]" />
-                </Link>
-                {activeCurrentEvent.brochure && (
-                  <a
-                    href={activeCurrentEvent.brochure}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-white/20 hover:bg-white text-white hover:text-oxford backdrop-blur-md border border-white/30 font-bold text-xs sm:text-sm px-5 py-3 rounded-xl inline-flex items-center gap-2 transition-all shadow-md uppercase tracking-wider"
+                {/* Action Buttons: Know More ↗ & Brochure */}
+                <div className="pt-2 flex flex-wrap items-center gap-3">
+                  <Link
+                    href={`/events/${activeCurrentEvent.id}`}
+                    className="bg-cyan-accent hover:bg-white text-oxford font-extrabold text-xs sm:text-sm px-6 py-3 rounded-xl inline-flex items-center gap-2 transition-all shadow-xl uppercase tracking-wider"
                   >
-                    <FileText className="w-4 h-4" />
-                    <span>Brochure</span>
-                  </a>
-                )}
+                    <span>Know more</span>
+                    <ArrowUpRight className="w-4 h-4 stroke-[3]" />
+                  </Link>
+                  {activeCurrentEvent.brochure && (
+                    <a
+                      href={activeCurrentEvent.brochure}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-white/20 hover:bg-white text-white hover:text-oxford backdrop-blur-md border border-white/30 font-bold text-xs sm:text-sm px-5 py-3 rounded-xl inline-flex items-center gap-2 transition-all shadow-md uppercase tracking-wider"
+                    >
+                      <FileText className="w-4 h-4" />
+                      <span>Brochure</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              {/* Indicator Dots at Bottom Right */}
+              <div className="absolute bottom-4 right-6 flex items-center gap-2 z-20">
+                {displayCurrentEvents.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveTab(idx)}
+                    className={`h-2 transition-all ${
+                      activeTab === idx ? 'w-8 bg-cyan-accent' : 'w-2 bg-white/50 hover:bg-white'
+                    }`}
+                    aria-label={`Slide ${idx + 1}`}
+                  />
+                ))}
               </div>
             </div>
-
-            {/* Indicator Dots at Bottom Right */}
-            <div className="absolute bottom-4 right-6 flex items-center gap-2 z-20">
-              {displayCurrentEvents.map((_, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => setActiveTab(idx)}
-                  className={`h-2 transition-all ${
-                    activeTab === idx ? 'w-8 bg-cyan-accent' : 'w-2 bg-white/50 hover:bg-white'
-                  }`}
-                  aria-label={`Slide ${idx + 1}`}
-                />
-              ))}
-            </div>
           </div>
-        </div>
+        )}
+
+        {dbEvents.length === 0 && (
+          <div className="py-20 text-center space-y-3 text-slate-500 font-sans bg-white rounded-2xl border border-slate-200">
+            <Calendar className="w-10 h-10 mx-auto text-slate-400" />
+            <p className="text-base font-semibold text-slate-800">
+              No events scheduled at the moment.
+            </p>
+          </div>
+        )}
 
         {/* ------------------------------------------------------------- */}
         {/* 2. UPCOMING EVENTS                                             */}

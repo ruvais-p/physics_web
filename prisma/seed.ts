@@ -165,6 +165,59 @@ async function main() {
       },
     });
 
+    await prisma.course.create({
+      data: {
+        id: 'c4',
+        code: 'PHY-MTECH-201',
+        title: 'M.Tech. in Advanced Materials & Nanotechnology',
+        level: 'MTech',
+        duration: '2 Years (4 Semesters)',
+        intake: 18,
+        fees: '₹25,000 per semester',
+        eligibility: 'B.Tech. in Nanotechnology/Material Science or M.Sc. in Physics/Applied Physics with minimum 60% marks and valid GATE score.',
+        description: 'An interdisciplinary technological postgraduate programme designed to bridge fundamental condensed matter physics with modern semiconductor fabrication, 2D quantum materials, and industrial nanodevices.',
+        highlights: [
+          'Hands-on cleanroom semiconductor fabrication experience',
+          'Industry internships at leading semiconductor and nano-foundries',
+          'Advanced training in electron microscopy and thin-film spectroscopy',
+          'Choice of specialized electives in quantum computing hardware & photovoltaics',
+        ],
+        sortOrder: 4,
+        schemes: {
+          create: [
+            { year: 'First Year (Semesters 1 & 2)', scheme: '2024 AICTE Model Curriculum', pdfUrl: '/cvs/cv_placeholder.pdf', sortOrder: 1 },
+            { year: 'Second Year (Industrial Project & Thesis)', scheme: '2024 M.Tech Regulations', pdfUrl: '/cvs/cv_placeholder.pdf', sortOrder: 2 },
+          ],
+        },
+      },
+    });
+
+    await prisma.course.create({
+      data: {
+        id: 'c5',
+        code: 'PHY-PGD-301',
+        title: 'PG Diploma in Scientific Instrumentation & Computational Modeling',
+        level: 'Diploma',
+        duration: '1 Year (2 Semesters)',
+        intake: 15,
+        fees: '₹15,000 total',
+        eligibility: 'Graduate degree in Science or Engineering with Physics / Electronics / Mathematics as core subject with minimum 50% marks.',
+        description: 'A career-focused professional programme providing rigorous practical training in high-end analytical equipment operation (XRD, AFM, SEM), lab automation, Python data science, and computational physics simulations.',
+        highlights: [
+          'Intensive laboratory hands-on training with departmental research facilities',
+          'Automation using LabVIEW, Python, and microcontroller interfaces',
+          'Certification for laboratory scientific officer and technical manager roles',
+          'Collaborative capstone industry project',
+        ],
+        sortOrder: 5,
+        schemes: {
+          create: [
+            { year: 'Full Academic Year (Modules 1 - 4)', scheme: '2024 Industry-Aligned Diploma Scheme', pdfUrl: '/cvs/cv_placeholder.pdf', sortOrder: 1 },
+          ],
+        },
+      },
+    });
+
     console.log('[SEED] Default courses and schemes seeded successfully.');
   }
 
@@ -342,6 +395,534 @@ Characterizes magnetic properties of solids, powders, thin films, and liquid fer
     }
 
     console.log('[SEED] Facilities seeded successfully.');
+  }
+
+  // Seed default department events
+  const eventCount = await prisma.event.count();
+  if (eventCount === 0) {
+    console.log('[SEED] Seeding initial department events...');
+    const eventsData = [
+      {
+        title: '15th Department Endowment & Memorial Oration Lecture',
+        description: 'Distinguished national physicists will speak on breakthroughs in low-temperature magnetics and topological insulators, followed by an interactive research panel. This prestigious annual memorial lecture brings together leading experimentalists and theorists in solid-state physics.',
+        image: '/eventssss.jpg',
+        startDate: new Date('2026-07-19T10:00:00.000Z'),
+        venue: 'Department Auditorium (Main Block)',
+        broadcastToTv: true,
+      },
+      {
+        title: 'Hands-On Workshop on FE-SEM & micro-Raman Spectroscopy',
+        description: 'A focused session on equipment slot bookings and instrumentation data analysis for regional researchers. Participants will receive hands-on training on sample preparation.',
+        image: '/innovation-microscope.png',
+        startDate: new Date('2026-07-06T09:30:00.000Z'),
+        venue: 'Central Instrumentation Facility (CIF), CUSAT',
+        broadcastToTv: true,
+      },
+      {
+        title: 'National Seminar on Cosmology & Quantum Gravity (CQG-2026)',
+        description: 'Presenting recent simulations and mathematical formulations on gravitational waves and cosmic expansions. Guest lectures will be delivered by eminent scientists.',
+        image: '/campus.jpg',
+        startDate: new Date('2026-06-30T09:00:00.000Z'),
+        venue: 'Seminar Hall, Department of Physics',
+        broadcastToTv: true,
+      },
+      {
+        title: 'Integrated M.Sc. Orientation & Interactive Session',
+        description: 'An orientation ceremony welcoming the newly admitted students to the Integrated M.Sc. Physics program, including a campus tour and interaction with research scholars.',
+        image: '/cusat-building.png',
+        startDate: new Date('2026-07-12T10:00:00.000Z'),
+        venue: 'Foyer, Department Entrance',
+        broadcastToTv: true,
+      },
+      {
+        title: 'Alumni Meet 2025: Physics Department Silver Jubilee',
+        description: 'A grand alumni reunion celebrating the silver jubilee of the department. Alumni working in prestigious global institutions shared their journeys.',
+        image: '/phy_dept.png',
+        startDate: new Date('2025-08-05T11:00:00.000Z'),
+        venue: 'Department Foyer & Seminar Hall',
+      },
+      {
+        title: 'International Web-Symposium on Ultrafast Photonics',
+        description: 'An international virtual conference focusing on femtosecond laser pulses, non-linear optical materials, and silicon photonics integration.',
+        image: '/innovation-microscope.png',
+        startDate: new Date('2026-03-15T14:00:00.000Z'),
+        venue: 'Virtual Auditorium (Zoom Webinar)',
+      },
+      {
+        title: 'National Workshop on Advanced Thin Film Fabrication',
+        description: 'Hands-on training session covering RF Magnetron Sputtering, Sol-Gel spin coating, and X-ray diffraction analysis for thin film solar cells.',
+        image: '/innovation-pipette.png',
+        startDate: new Date('2026-01-10T09:00:00.000Z'),
+        venue: 'Thin Film Laboratory, Main Physics Block',
+      },
+      {
+        title: 'International Symposium on Quantum Materials & Nanostructures (ISQMN-2026)',
+        description: 'A three-day international symposium bringing together leading theoretical and experimental physicists to discuss emerging topological quantum states, 2D heterostructures, and room-temperature spintronic devices.',
+        image: '/eventssss.jpg',
+        startDate: new Date('2026-09-18T10:00:00.000Z'),
+        venue: 'Department Auditorium (Main Block), CUSAT',
+        apply_link: 'https://cusat.ac.in',
+        broadcastToTv: true,
+      },
+      {
+        title: 'National Hands-On Workshop on Confocal Raman & FE-SEM Characterization',
+        description: 'An intensive hands-on workshop on field emission scanning electron microscopy (FE-SEM), confocal micro-Raman spectroscopy, and thin film sample preparation protocols for research scholars.',
+        image: '/innovation-microscope.png',
+        startDate: new Date('2026-09-25T09:30:00.000Z'),
+        venue: 'Central Instrumentation Facility (CIF), CUSAT',
+        apply_link: 'https://cusat.ac.in',
+        broadcastToTv: true,
+      },
+    ];
+
+    for (const ev of eventsData) {
+      await prisma.event.create({ data: ev });
+    }
+    console.log('[SEED] Events seeded successfully.');
+  }
+
+  // Seed default news
+  const newsCount = await prisma.news.count();
+  if (newsCount === 0) {
+    console.log('[SEED] Seeding initial news...');
+    await prisma.news.createMany({
+      data: [
+        {
+          title: 'Department of Physics to Co-Develop Advanced Astro-payloads with National Space Agencies',
+          description: 'A pioneering agreement has been reached to design and build lightweight cosmic-ray detectors and semiconductor payloads. The project will run out of our thin film and electronics laboratories, providing doctoral students and M.Sc. researchers with hands-on development experience.',
+          image: '/cusat-building.png',
+          date: new Date('2026-07-16T00:00:00.000Z'),
+        },
+        {
+          title: 'Department of Physics Welcomes Incoming 2026 Batch of Postgraduates & Scholars',
+          description: 'An orientation ceremony was held at the department foyer to welcome the incoming batch of Integrated M.Sc., M.Sc., and Ph.D. scholars. The faculty introduced the research verticals and advanced instrumentation facilities available for academic endeavors.',
+          image: '/eventssss.jpg',
+          date: new Date('2026-07-12T00:00:00.000Z'),
+        },
+        {
+          title: 'Dr. Alex Thomas Awarded Prestigious National Research Fellowship',
+          description: "The Department of Physics is proud to announce that Dr. Alex Thomas has been awarded the National Research Fellowship in Material Physics. This prestigious award supports the department's pioneering research on hybrid polyaniline-graphene nanostructures for next-generation supercapacitors.",
+          image: '/faculty.png',
+          date: new Date('2026-06-25T00:00:00.000Z'),
+        },
+        {
+          title: 'Advanced Instrumentation Lab Receives FE-SEM Upgrades',
+          description: 'The Central Instrumentation Facility has successfully installed advanced software upgrades to the Field Emission Scanning Electron Microscope (FE-SEM). The upgrade will allow high-resolution surface characterization down to 1nm, accelerating thin film photovoltaic research.',
+          image: '/innovation-microscope.png',
+          date: new Date('2026-05-15T00:00:00.000Z'),
+        },
+      ],
+    });
+    console.log('[SEED] Initial news seeded successfully.');
+  }
+
+  // Seed default awards
+  const awardCount = await prisma.award.count();
+  if (awardCount === 0) {
+    console.log('[SEED] Seeding initial awards...');
+    await prisma.award.createMany({
+      data: [
+        {
+          title: 'National Material Scientist Fellowship 2026',
+          description: 'Recognized for pioneering advancements in hybrid polyaniline-graphene nanostructures for high-energy density supercapacitors and flexible energy storage.',
+          date: new Date('2026-01-01T00:00:00.000Z'),
+        },
+        {
+          title: 'INSA Young Scientist Medal in Physical Sciences',
+          description: 'Conferred for groundbreaking theoretical and computational investigations into topological phase transitions and non-Hermitian photonics.',
+          date: new Date('2025-01-01T00:00:00.000Z'),
+        },
+        {
+          title: 'Best International Research Paper Award',
+          description: 'Conferred for the high-impact publication on room-temperature multiferroic perovskite thin films grown via pulsed laser deposition.',
+          date: new Date('2025-01-01T00:00:00.000Z'),
+        },
+        {
+          title: 'State Young Scientist Award (Physical Sciences)',
+          description: 'Honored for outstanding contributions to magnetic nanocomposite fabrication and low-temperature magneto-transport characterization.',
+          date: new Date('2024-01-01T00:00:00.000Z'),
+        },
+      ],
+    });
+    console.log('[SEED] Initial awards seeded successfully.');
+  }
+
+  // Seed default alumni data
+  const execCount = await prisma.alumniExecutive.count();
+  if (execCount === 0) {
+    console.log('[SEED] Seeding alumni executives, achievements, and programs...');
+    const executives = [
+      {
+        name: 'Prof. (Dr.) M. R. Anantharaman',
+        role: 'Patron & Chief Advisor',
+        batch: 'Distinguished Faculty & Former HoD',
+        image: '/alumni/anantharaman.webp',
+        sortOrder: 1,
+        isActive: true,
+      },
+      {
+        name: 'Dr. S. Prasanth',
+        role: 'President',
+        batch: 'Class of 1998 · M.Sc. & Ph.D.',
+        image: '/alumni/prasanth.webp',
+        sortOrder: 2,
+        isActive: true,
+      },
+      {
+        name: 'Dr. Lakshmi K. Menon',
+        role: 'Vice President',
+        batch: 'Class of 2004 · M.Sc. Physics',
+        image: '/alumni/lakshmi.webp',
+        sortOrder: 3,
+        isActive: true,
+      },
+      {
+        name: 'Dr. Anandhu R. Nair',
+        role: 'General Secretary',
+        batch: 'Class of 2018 · Ph.D.',
+        image: '/alumni/anandhu.webp',
+        sortOrder: 4,
+        isActive: true,
+      },
+      {
+        name: 'Dr. Priya S. Warrier',
+        role: 'Joint Secretary',
+        batch: 'Class of 2015 · M.Sc. Physics',
+        image: '/alumni/priya.webp',
+        sortOrder: 5,
+        isActive: true,
+      },
+      {
+        name: 'Prof. Rajesh K. Menon',
+        role: 'Treasurer',
+        batch: 'Class of 2012 · Ph.D.',
+        image: '/alumni/rajesh.webp',
+        sortOrder: 6,
+        isActive: true,
+      },
+    ];
+
+    for (const exec of executives) {
+      await prisma.alumniExecutive.create({ data: exec });
+    }
+
+    const achievements = [
+      {
+        awardName: 'Shanti Swarup Bhatnagar Prize in Physical Sciences',
+        recipient: 'Dr. S. Prasanth',
+        batch: 'Class of 1998 · M.Sc. & Ph.D.',
+        date: '26 September 2025',
+        photo: '/alumni/award_bhatnagar.webp',
+        desc: 'Conferred India’s highest scientific distinction in recognition of breakthrough discoveries in magnetic nanocomposites, high-entropy alloys, and phase transitions in quantum materials.',
+        sortOrder: 1,
+      },
+      {
+        awardName: 'ISRO Outstanding Space Scientist Achievement Award',
+        recipient: 'Dr. Priya S. Warrier',
+        batch: 'Class of 2015 · M.Sc. Physics',
+        date: '14 January 2025',
+        photo: '/alumni/award_isro.webp',
+        desc: 'Honored for outstanding technical leadership in engineering multi-spectral optical thin-film sensors and spectrometers successfully deployed on India’s deep-space planetary payloads.',
+        sortOrder: 2,
+      },
+      {
+        awardName: 'Alexander von Humboldt International Research Fellowship',
+        recipient: 'Dr. Anandhu R. Nair',
+        batch: 'Class of 2018 · Ph.D.',
+        date: '18 May 2024',
+        photo: '/alumni/award_humboldt.webp',
+        desc: 'Awarded the renowned German postdoctoral research fellowship for pioneering experimental investigations into ultrafast femtosecond laser dynamics and quantum light-matter entanglement.',
+        sortOrder: 3,
+      },
+      {
+        awardName: 'INSA Medal for Young Scientists in Physics',
+        recipient: 'Prof. Rajesh K. Menon',
+        batch: 'Class of 2012 · Ph.D.',
+        date: '22 November 2023',
+        photo: '/alumni/rajesh.webp',
+        desc: 'Recognized by the Indian National Science Academy (INSA) for foundational contributions to spintronic transport mechanisms and low-temperature magnetic heterostructures.',
+        sortOrder: 4,
+      },
+    ];
+
+    for (const ach of achievements) {
+      await prisma.alumniAchievement.create({ data: ach });
+    }
+
+    const programs = [
+      {
+        programName: 'Prof. M. Sabir Memorial Student Excellence Endowment',
+        nature: 'Award',
+        date: 'Instituted 2024 · Annual',
+        photo: '/alumni/program_endowment.webp',
+        sponsor: 'Instituted by Physics Alumni Batch of 1985–1995',
+        desc: 'An annual student merit endowment featuring a gold medal and cash fellowship awarded to the postgraduate scholar achieving the highest distinction in Mathematical Physics and Quantum Mechanics coursework.',
+        isRecurring: true,
+        proofUrl: null,
+        sortOrder: 1,
+      },
+      {
+        programName: 'PhyCA Advanced Optics & Laser Instrumentation Facility',
+        nature: 'Donation',
+        date: 'August 2025',
+        photo: '/alumni/program_laser_lab.webp',
+        sponsor: 'Donated by Global Physics Alumni Association (PhyCA)',
+        desc: 'A flagship infrastructural donation contributing state-of-the-art optical vibration isolation breadboards, multi-wavelength diode lasers, and precision spectroscopic detectors for departmental M.Sc. and doctoral research laboratories.',
+        isRecurring: false,
+        proofUrl: null,
+        sortOrder: 2,
+      },
+      {
+        programName: 'Dr. Ramesh Babu Theoretical Physics Research Fellowship',
+        nature: 'Award',
+        date: 'Instituted 2023 · Annual',
+        photo: '/alumni/anantharaman.webp',
+        sponsor: 'Alumni Doctoral Research Foundation',
+        desc: 'A competitive annual research stipend supporting promising Ph.D. scholars conducting high-impact theoretical investigations in Classical Electrodynamics, Gravitation, and Statistical Mechanics.',
+        isRecurring: true,
+        proofUrl: null,
+        sortOrder: 3,
+      },
+      {
+        programName: 'High-Performance Computing (HPC) Quantum Simulation Cluster',
+        nature: 'Donation',
+        date: 'February 2025',
+        photo: '/alumni/program_hpc.webp',
+        sponsor: 'Sponsored by International Alumni Fraternity (US & Europe)',
+        desc: 'Comprehensive computational hardware and server rack donation providing a dedicated 64-core multi-GPU computing node configured specifically for quantum Monte Carlo simulations and theoretical condensed matter calculations.',
+        isRecurring: false,
+        proofUrl: null,
+        sortOrder: 4,
+      },
+    ];
+
+    for (const prog of programs) {
+      await prisma.alumniSponsoredProgram.create({ data: prog });
+    }
+
+    console.log('[SEED] Alumni data seeded successfully.');
+  }
+
+  // Seed default About Us content
+  const aboutCount = await prisma.aboutUs.count();
+  if (aboutCount === 0) {
+    console.log('[SEED] Seeding About Us content...');
+    await prisma.aboutUs.create({
+      data: {
+        content: `The Department of Physics was founded in 1963 as a department of the University of Kerala at Ernakulam, and later became a constituent department of Cochin University of Science and Technology (CUSAT) upon its establishment in 1971.
+
+Over the last six decades, the department has grown into a major hub for physical science research in South India, securing DST-FIST, UGC-SAP, and DAE-BRNS assistance. Today, our research laboratories house sophisticated analytical tools such as FE-SEM, XRD, micro-Raman, and low-temperature VSM systems.
+
+The department has pioneered research in magnetic nanocomposites, quantum optics, thin film photovoltaics, and theoretical cosmology. We have successfully completed numerous research projects sponsored by national agencies including DST, UGC, DAE, CSIR, and ISRO.`,
+        image: '/campus.jpg',
+      },
+    });
+    console.log('[SEED] About Us content seeded successfully.');
+  }
+
+  // Seed default homepage hero slides
+  const heroCount = await prisma.hero.count();
+  if (heroCount === 0) {
+    console.log('[SEED] Seeding home hero slides...');
+    await prisma.hero.createMany({
+      data: [
+        {
+          title: 'Excellence in Physical Sciences & Quantum Research',
+          description: 'Department of Physics, Cochin University of Science and Technology (CUSAT) — Pioneering fundamental breakthroughs in materials science, photonics, and cosmology since 1963.',
+          image: '/campus.jpg',
+          order: 1,
+          is_visible: true,
+        },
+        {
+          title: 'State-of-the-Art Research Laboratories & Facilities',
+          description: 'Equipped with advanced analytical instrumentation including FE-SEM, XRD, micro-Raman, and cryo-VSM supporting doctoral scholars and national sponsored projects.',
+          image: '/innovation-microscope.png',
+          order: 2,
+          is_visible: true,
+        },
+      ],
+    });
+    console.log('[SEED] Home hero slides seeded successfully.');
+  }
+
+  // Seed default office/administrative staff
+  const staffCount = await prisma.staff.count();
+  if (staffCount === 0) {
+    console.log('[SEED] Seeding administrative office staff...');
+    await prisma.staff.create({
+      data: {
+        name: 'Manoj Kumar K.',
+        designation: 'Office Superintendent',
+        email: 'physics.office@cusat.ac.in',
+        phone: '+91 484 2577404',
+        room: 'Ground Floor, Room 101',
+        sortOrder: 1,
+        isActive: true,
+      },
+    });
+    console.log('[SEED] Administrative staff seeded successfully.');
+  }
+
+  // Seed default general settings
+  const settingsCount = await prisma.generalSettings.count();
+  if (settingsCount === 0) {
+    console.log('[SEED] Seeding default general settings...');
+    await prisma.generalSettings.create({
+      data: {
+        id: 'general',
+        departmentEmail: 'physics@cusat.ac.in',
+        hodEmail: 'aldrin2005@gmail.com',
+      },
+    });
+    console.log('[SEED] General settings seeded successfully.');
+  }
+
+  // Seed sample faculty member & sponsored research projects/publications if none exist
+  const facultyCount = await prisma.faculty.count();
+  let defaultFaculty = await prisma.faculty.findFirst();
+
+  if (facultyCount === 0) {
+    console.log('[SEED] Seeding initial department faculty member...');
+    const defaultPassword = await bcrypt.hash('CusatPhysics@2026', 12);
+    defaultFaculty = await prisma.faculty.create({
+      data: {
+        name: 'Prof. (Dr.) Aldrin Antony',
+        email: 'aldrin2005@gmail.com',
+        password: defaultPassword,
+        designation: 'Professor & Head of Department',
+        department: 'Department of Physics',
+        qualification: 'Ph.D. in Materials Physics',
+        room: 'Room 204, Second Floor',
+        bio: 'Professor specializing in thin film photovoltaics, solar energy materials, transparent conducting oxides, and semiconductor nanostructures.',
+        isActive: true,
+        mustChangePassword: false,
+      },
+    });
+    console.log('[SEED] Initial faculty member seeded successfully.');
+  }
+
+  if (defaultFaculty) {
+    const projectCount = await prisma.facultyProject.count();
+    if (projectCount === 0) {
+      console.log('[SEED] Seeding sponsored research projects...');
+      const sampleProjects = [
+        {
+          title: 'Quantum Transport & Topological Phase Transitions in 2D Transition Metal Dichalcogenide Heterostructures',
+          description: 'Investigating low-temperature quantum Hall phenomena, topological edge states, and spin-orbit torque switching in atomically thin 2D layered heterostructures for next-generation quantum computing architectures.',
+          agency: 'DST - Science and Engineering Research Board (SERB)',
+          role: 'Principal Investigator',
+          funding: '₹68.5 Lakhs',
+          startDate: new Date('2024-04-01T00:00:00.000Z'),
+          endDate: new Date('2027-03-31T00:00:00.000Z'),
+          externalLink: 'https://serbonline.in',
+          otherFaculty: 'Dr. Ramesh Kumar, Dr. Aldrin Antony',
+          status: 'Ongoing',
+          facultyId: defaultFaculty.id,
+        },
+        {
+          title: 'Development of Flexible Metal-Oxide Perovskite Tandem Photovoltaics for Space Energy Harvesting',
+          description: 'Synthesizing novel halide perovskite and transparent conducting oxide thin films with high radiation hardness, tailored bandgap alignment, and environmental stability under space payload conditions.',
+          agency: 'ISRO - RESPOND Program',
+          role: 'Principal Investigator',
+          funding: '₹42.0 Lakhs',
+          startDate: new Date('2023-08-15T00:00:00.000Z'),
+          endDate: new Date('2026-08-14T00:00:00.000Z'),
+          externalLink: 'https://isro.gov.in',
+          otherFaculty: 'Dr. S. Jayalekshmi, Dr. M. Junaid Bushiri',
+          status: 'Ongoing',
+          facultyId: defaultFaculty.id,
+        },
+        {
+          title: 'Femtosecond Laser Spectroscopy and Z-Scan Nonlinear Optical Characterization of Rare-Earth Doped Nanocomposites',
+          description: 'Exploring ultrafast optical limiting, third-order nonlinear susceptibility, and multi-photon absorption in rare-earth titanate nanocrystals for laser protection filters and all-optical switching devices.',
+          agency: 'Council of Scientific & Industrial Research (CSIR)',
+          role: 'Principal Investigator',
+          funding: '₹35.8 Lakhs',
+          startDate: new Date('2022-06-01T00:00:00.000Z'),
+          endDate: new Date('2025-05-31T00:00:00.000Z'),
+          externalLink: 'https://csirhrdg.res.in',
+          otherFaculty: 'Dr. N. G. S. Prasad',
+          status: 'Ongoing',
+          facultyId: defaultFaculty.id,
+        },
+        {
+          title: 'Dark Energy Constraints and Thermodynamic Geometry of Modified Gravity FLRW Cosmologies',
+          description: 'Theoretical investigations into holographic dark energy models, f(R,T) gravity extensions, and cosmic microwave background polarization anisotropies using Markov Chain Monte Carlo Bayesian data fitting.',
+          agency: 'Board of Research in Nuclear Sciences (BRNS - DAE)',
+          role: 'Principal Investigator',
+          funding: '₹28.4 Lakhs',
+          startDate: new Date('2023-01-01T00:00:00.000Z'),
+          endDate: new Date('2025-12-31T00:00:00.000Z'),
+          externalLink: 'https://brns.res.in',
+          otherFaculty: 'Dr. Titus K. Mathew',
+          status: 'Ongoing',
+          facultyId: defaultFaculty.id,
+        },
+        {
+          title: 'Solid-State Polymer Electrolytes and Graphene Aerogel Electrodes for High-Energy-Density Supercapacitors',
+          description: 'Designing room-temperature ionic liquid infused polymer gel electrolytes and hierarchical porous carbon aerogel supercapacitor cells with extended voltage window and ultra-high cycle life (>50,000 cycles).',
+          agency: 'UGC - DAE Consortium for Scientific Research',
+          role: 'Principal Investigator',
+          funding: '₹45.0 Lakhs',
+          startDate: new Date('2021-03-01T00:00:00.000Z'),
+          endDate: new Date('2024-02-28T00:00:00.000Z'),
+          externalLink: 'https://ugcdaecsr.res.in',
+          otherFaculty: 'Dr. M. K. Jayaraj',
+          status: 'Completed',
+          facultyId: defaultFaculty.id,
+        },
+        {
+          title: 'Nanoscale Magnetic Exchange Bias and Magnetocaloric Effect in Core-Shell Ferrite Nanoparticles for Cryocooling',
+          description: 'Investigation of interface spin freezing, superparamagnetism, and room-temperature giant magnetocaloric effect in chemically engineered cobalt-manganese spinel ferrite core-shell nanostructures.',
+          agency: 'Kerala State Council for Science, Technology and Environment (KSCSTE)',
+          role: 'Principal Investigator',
+          funding: '₹24.5 Lakhs',
+          startDate: new Date('2020-09-01T00:00:00.000Z'),
+          endDate: new Date('2023-08-31T00:00:00.000Z'),
+          externalLink: 'https://kscste.kerala.gov.in',
+          otherFaculty: 'Dr. Senoy Thomas',
+          status: 'Completed',
+          facultyId: defaultFaculty.id,
+        },
+      ];
+
+      for (const proj of sampleProjects) {
+        await prisma.facultyProject.create({ data: proj });
+      }
+      console.log('[SEED] Sponsored research projects seeded successfully.');
+    }
+
+    const pubCount = await prisma.facultyPublication.count();
+    if (pubCount === 0) {
+      console.log('[SEED] Seeding sample journal publications...');
+      const samplePublications = [
+        {
+          title: 'Room-Temperature Giant Magnetoelectric Coupling in BaTiO3-CoFe2O4 Core-Shell Nanocomposites',
+          authors: 'Aldrin Antony, Ramesh Kumar, M. R. Anantharaman',
+          journal: 'Applied Physics Letters',
+          publicationDate: new Date('2024-03-15T00:00:00.000Z'),
+          doi: '10.1063/5.0189201',
+          category: 'Journal Article',
+          description: 'Demonstrating enhanced magnetoelectric coefficient in chemically synthesized core-shell perovskite-spinel heterostructures.',
+          facultyId: defaultFaculty.id,
+        },
+        {
+          title: 'Ultrafast Third-Order Nonlinear Optical Response of Bi2Se3 Topological Insulator Nanosheets',
+          authors: 'Priya S. Warrier, David Miller, Aldrin Antony',
+          journal: 'Physical Review Letters',
+          publicationDate: new Date('2023-11-20T00:00:00.000Z'),
+          doi: '10.1103/PhysRevLett.131.206901',
+          category: 'Journal Article',
+          description: 'Z-scan measurement of nonlinear refraction and saturation absorption in 2D layered topological insulators under femtosecond laser excitation.',
+          facultyId: defaultFaculty.id,
+        },
+      ];
+
+      for (const pub of samplePublications) {
+        await prisma.facultyPublication.create({ data: pub });
+      }
+      console.log('[SEED] Journal publications seeded successfully.');
+    }
   }
 }
 
