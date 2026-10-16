@@ -11,7 +11,7 @@ interface RouteContext {
 }
 
 // GET single page hero configuration
-export async function GET(request: Request, context: RouteContext) {
+export async function GET(_request: Request, context: RouteContext) {
   const { pageKey } = await context.params;
   const admin = await getAdminSession();
   if (!admin) {

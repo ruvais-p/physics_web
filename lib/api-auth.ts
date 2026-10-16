@@ -25,3 +25,6 @@ export async function getSessionUser() {
     cookieStore.get('faculty_token')?.value;
   return token ? verifyAuthToken(token) : null;
 }
+
+export const authenticateAdmin = getAdminSession;
+export const authenticateFaculty = getFacultySession;

@@ -147,21 +147,32 @@
 .animate-marquee {
   display: inline-flex;
   width: max-content;
-  animation: marquee 28s linear infinite;
+  animation: marquee 48s linear infinite;
 }
 
 .animate-marquee:hover {
   animation-play-state: paused;
 }
 
-/* Continuous Running Laboratories Marquee */
-@keyframes marquee-labs {
+
+/* Continuous Horizontal Auto-Scrolling Executive Marquee */
+@keyframes horizontal-marquee {
   0% {
-    transform: translateX(0);
+    transform: translateX(0%);
   }
   100% {
     transform: translateX(-50%);
   }
+}
+
+.animate-horizontal-marquee {
+  display: flex;
+  width: max-content;
+  animation: horizontal-marquee 32s linear infinite;
+}
+
+.animate-horizontal-marquee:hover {
+  animation-play-state: paused;
 }
 
 @keyframes text-reveal-up {
@@ -191,11 +202,6 @@
     transform: none;
     will-change: auto;
   }
-}
-
-.animate-marquee-labs {
-  display: inline-flex;
-  animation: marquee-labs 35s linear infinite;
 }
 
 

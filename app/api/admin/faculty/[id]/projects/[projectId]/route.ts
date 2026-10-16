@@ -1,15 +1,7 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { revalidatePublicPages } from '@/lib/public-cache';
-import { verifyAdminToken } from '@/lib/auth';
-
-async function authenticateAdmin() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token')?.value;
-  if (!token) return null;
-  return verifyAdminToken(token);
-}
+import { authenticateAdmin } from '@/lib/api-auth';
 
 function calculateStatus(endDateInput: string | null | undefined): string {
   if (!endDateInput || !endDateInput.trim()) {
@@ -79,7 +71,7 @@ export async function PUT(
 
 // DELETE /api/admin/faculty/[id]/projects/[projectId] - Delete research project
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string; projectId: string }> }
 ) {
   const admin = await authenticateAdmin();

@@ -1,18 +1,14 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type ChangeEvent } from 'react';
 import Image from 'next/image';
 import { 
-  Image as ImageIcon, 
   Upload, 
   Save, 
   RefreshCw, 
-  Sparkles, 
   CheckCircle2, 
   AlertCircle,
-  ExternalLink,
   Edit3,
-  Eye,
   Layout
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -51,7 +47,7 @@ const INITIAL_PAGE_HEROES: PageHeroItem[] = Object.values(DEFAULT_PAGE_HEROES).m
 
 export default function PageHeroManagementSection() {
   const [pageHeroes, setPageHeroes] = useState<PageHeroItem[]>(INITIAL_PAGE_HEROES);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [editingHero, setEditingHero] = useState<PageHeroItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -69,7 +65,6 @@ export default function PageHeroManagementSection() {
 
   const fetchPageHeroes = async () => {
     try {
-      setLoading(true);
       const res = await fetch('/api/cms/page-heroes', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
@@ -82,6 +77,11 @@ export default function PageHeroManagementSection() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRefresh = async () => {
+    setLoading(true);
+    await fetchPageHeroes();
   };
 
   useEffect(() => {
@@ -100,7 +100,7 @@ export default function PageHeroManagementSection() {
     setIsModalOpen(true);
   };
 
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -152,8 +152,8 @@ export default function PageHeroManagementSection() {
       setTimeout(() => {
         setIsModalOpen(false);
       }, 1200);
-    } catch (err: any) {
-      setFormError(err.message || 'An error occurred while saving.');
+    } catch (err: unknown) {
+      setFormError(err instanceof Error ? err.message : 'An error occurred while saving.');
     } finally {
       setSaving(false);
     }
@@ -176,7 +176,7 @@ export default function PageHeroManagementSection() {
         <Button
           type="button"
           variant="outline"
-          onClick={fetchPageHeroes}
+          onClick={handleRefresh}
           className="flex items-center gap-2 border-slate-300 text-slate-700 hover:bg-slate-100 self-start sm:self-auto"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -187,7 +187,7 @@ export default function PageHeroManagementSection() {
       {/* Pages Grid */}
       {loading ? (
         <div className="py-16 text-center text-slate-500 space-y-3">
-          <div className="w-8 h-8 border-4 border-cyan-accent border-t-transparent rounded-full animate-spin mx-auto" />
+          <div className="w-8 h-8 border-4 border-oxford border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-sm font-medium">Loading page hero configurations...</p>
         </div>
       ) : (
@@ -195,7 +195,7 @@ export default function PageHeroManagementSection() {
           {pageHeroes.map((hero) => (
             <Card
               key={hero.pageKey}
-              className="bg-white border border-slate-200 hover:border-cyan-accent/60 rounded-3xl overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between group"
+              className="bg-white border border-slate-200 hover:border-oxford/40 rounded-3xl overflow-hidden shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col justify-between group"
             >
               <div>
                 {/* Banner Image Preview Container */}
@@ -249,7 +249,7 @@ export default function PageHeroManagementSection() {
                 <Button
                   type="button"
                   onClick={() => openEditModal(hero)}
-                  className="w-full flex items-center justify-center gap-2 bg-oxford hover:bg-cyan-accent text-white hover:text-oxford font-bold text-xs py-2.5 rounded-xl shadow-xs transition-colors cursor-pointer"
+                  className="w-full flex items-center justify-center gap-2 bg-oxford hover:bg-oxford/90 text-white font-bold text-xs py-2.5 rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
                   <Edit3 className="w-3.5 h-3.5" />
                   <span>Edit {hero.pageName} Banner</span>
@@ -338,7 +338,7 @@ export default function PageHeroManagementSection() {
               
               <div 
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-slate-300 hover:border-cyan-accent rounded-2xl p-5 text-center cursor-pointer hover:bg-slate-50 transition-all flex flex-col items-center justify-center gap-2"
+                className="border-2 border-dashed border-slate-300 hover:border-oxford rounded-2xl p-5 text-center cursor-pointer hover:bg-slate-50 transition-all flex flex-col items-center justify-center gap-2"
               >
                 <input
                   ref={fileInputRef}
@@ -356,25 +356,26 @@ export default function PageHeroManagementSection() {
                 </p>
               </div>
 
-              {/* Or image URL input */}
-              <div className="pt-2">
-                <label htmlFor="hero-image-url" className="text-[11px] font-semibold text-slate-500 block mb-1">
-                  Or Image Web URL / Path:
-                </label>
-                <Input
-                  id="hero-image-url"
-                  value={imageUrl}
-                  onChange={(e) => {
-                    setImageUrl(e.target.value);
-                    if (e.target.value.trim()) {
-                      setImagePreview(e.target.value.trim());
+              {imageFile && (
+                <div className="flex items-center justify-between pt-1">
+                  <span className="text-xs text-emerald-700 font-medium truncate max-w-[260px]">
+                    New image selected: {imageFile.name}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
                       setImageFile(null);
-                    }
-                  }}
-                  placeholder="https://images.unsplash.com/... or /campus.jpg"
-                  className="rounded-xl border-slate-200 text-xs mt-1"
-                />
-              </div>
+                      setImagePreview(editingHero?.image || null);
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
+                    className="text-xs text-rose-600 hover:text-rose-700 font-semibold rounded-xl h-7 px-2 cursor-pointer"
+                  >
+                    Remove Selection
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Error / Success Feedback */}
@@ -404,7 +405,7 @@ export default function PageHeroManagementSection() {
               <Button
                 type="submit"
                 disabled={saving}
-                className="rounded-xl bg-oxford hover:bg-cyan-dark text-white font-bold flex items-center gap-2 px-6"
+                className="rounded-xl bg-oxford hover:bg-oxford/90 text-white font-bold flex items-center gap-2 px-6"
               >
                 <Save className="w-4 h-4" />
                 <span>{saving ? 'Saving & Publishing...' : 'Save & Publish Banner'}</span>

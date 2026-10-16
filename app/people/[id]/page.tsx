@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import ProfilePageClient, { type ProfilePerson } from '@/components/ProfilePageClient';
 import { prisma } from '@/lib/prisma';
 import { sanitizeWebUrl } from '@/lib/url-security';
@@ -43,8 +44,11 @@ export default async function ProfilePage({ params }: PageProps) {
         email: true,
         designation: true,
         department: true,
+        qualification: true,
+        room: true,
         phone: true,
         bio: true,
+        isRetired: true,
         profile: { select: { phone: true, profiles: true } },
         documents: { select: { image: true, cv: true } },
         descriptionRecord: { select: { description: true } },
@@ -123,11 +127,12 @@ export default async function ProfilePage({ params }: PageProps) {
         email: faculty.email,
         designation: faculty.designation || 'Faculty Member',
         department: faculty.department || 'Department of Physics',
-        qualification: 'Ph.D. in Physics',
+        qualification: faculty.qualification || 'Ph.D. in Physics',
         phone: faculty.profile?.phone || faculty.phone || '',
-        room: 'Department Building',
+        room: faculty.room || 'Department Building',
         bio: faculty.descriptionRecord?.description || faculty.bio || 'Faculty member in the Department of Physics.',
         image: faculty.documents?.image || '/faculty.png',
+        isRetired: faculty.isRetired,
         cvUrl: sanitizeWebUrl(faculty.documents?.cv) || null,
         socialLinks,
         customProfiles: Array.isArray(profileJson.other) ? profileJson.other : [],
@@ -161,6 +166,10 @@ export default async function ProfilePage({ params }: PageProps) {
     }
   } catch (error) {
     console.error('Failed to fetch faculty profile:', error);
+  }
+
+  if (!person) {
+    notFound();
   }
 
   return <ProfilePageClient person={person} />;

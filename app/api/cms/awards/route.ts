@@ -4,16 +4,13 @@ import { getAdminSession } from '@/lib/api-auth';
 import { saveImageAsWebp } from '@/lib/image';
 import { sanitizeWebUrl } from '@/lib/url-security';
 import { revalidatePublicPages } from '@/lib/public-cache';
-import { randomUUID } from 'crypto';
 
 // GET all Award records
 export async function GET() {
   try {
-    const awards = await prisma.$queryRaw<any[]>`
-      SELECT id, title, description, image, date, link, "broadcastId", "createdAt", "updatedAt"
-      FROM "Award"
-      ORDER BY date DESC
-    `;
+    const awards = await prisma.award.findMany({
+      orderBy: { date: 'desc' },
+    });
     return NextResponse.json(awards);
   } catch (error) {
     console.error('Error fetching CMS awards:', error);
@@ -75,18 +72,23 @@ export async function POST(request: Request) {
     }
 
     const awardDate = dateStr ? new Date(dateStr) : new Date();
-    const awardId = randomUUID();
 
-    await prisma.$queryRaw`
-      INSERT INTO "Award" (id, title, description, image, date, link, "createdAt", "updatedAt")
-      VALUES (${awardId}, ${title}, ${description}, ${imagePath || null}, ${awardDate}, ${link}, NOW(), NOW())
-    `;
+    const createdAward = await prisma.award.create({
+      data: {
+        title,
+        description,
+        image: imagePath || null,
+        date: awardDate,
+        link,
+      },
+    });
 
     revalidatePublicPages();
 
-    return NextResponse.json({ success: true, id: awardId }, { status: 201 });
-  } catch (error: any) {
+    return NextResponse.json({ success: true, id: createdAward.id }, { status: 201 });
+  } catch (error: unknown) {
     console.error('Error creating award:', error);
-    return NextResponse.json({ error: error?.message || 'Failed to create award.' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to create award.';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -12,6 +12,7 @@ export async function GET() {
         content: true,
         category: true,
         link: true,
+        pdfUrl: true,
         isActive: true,
         date: true,
         createdAt: true,
@@ -24,8 +25,10 @@ export async function GET() {
       notifications.map((item: any) => ({
         id: item.id,
         title: item.title,
+        content: item.content,
         category: item.category,
-        link: sanitizeWebUrl(item.link) || '#',
+        link: item.pdfUrl || sanitizeWebUrl(item.link) || '#',
+        pdfUrl: item.pdfUrl || null,
         isActive: item.isActive,
         date: new Date(item.date).toLocaleDateString('en-US', {
           month: 'short',

@@ -1,24 +1,11 @@
-import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { verifyAdminToken } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { encryptSecret } from '@/lib/settings-crypto';
+import { authenticateAdmin } from '@/lib/api-auth';
 
 export const runtime = 'nodejs';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-async function authenticateAdmin() {
-  const cookieStore = await cookies();
-  const token =
-    cookieStore.get('auth_token')?.value ||
-    cookieStore.get('admin_token')?.value;
-
-  if (!token) return null;
-
-  const user = await verifyAdminToken(token);
-  return user?.role === 'admin' ? user : null;
-}
 
 export async function GET() {
   if (!(await authenticateAdmin())) {

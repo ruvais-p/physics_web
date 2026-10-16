@@ -1,174 +1,13 @@
 import Link from 'next/link';
-import React from 'react';
-import { ExternalLink, FlaskConical, Users, Calendar, ArrowRight, Sparkles } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Hero from '@/components/Hero';
-import { sanitizeWebUrl } from '@/lib/url-security';
+import { renderMarkdownText } from '@/lib/markdown';
 
 // Markdown Parser Helper Function
 function renderMarkdown(md: string) {
-  if (!md || !md.trim()) {
-    return <p className="text-base text-slate-500 italic">No About Us content available yet.</p>;
-  }
-
-  const lines = md.split('\n');
-  const elements: React.ReactNode[] = [];
-  let currentList: { type: 'ul' | 'ol'; items: string[] } | null = null;
-
-  const flushList = () => {
-    if (currentList) {
-      if (currentList.type === 'ul') {
-        elements.push(
-          <ul key={`ul_${elements.length}`} className="list-disc ml-6 space-y-2.5 my-4 text-base sm:text-lg lg:text-[20px] leading-relaxed text-slate-700 font-sans">
-            {currentList.items.map((item, idx) => (
-              <li key={idx}>{parseInlineMarkdown(item)}</li>
-            ))}
-          </ul>
-        );
-      } else {
-        elements.push(
-          <ol key={`ol_${elements.length}`} className="list-decimal ml-6 space-y-2.5 my-4 text-base sm:text-lg lg:text-[20px] leading-relaxed text-slate-700 font-sans">
-            {currentList.items.map((item, idx) => (
-              <li key={idx}>{parseInlineMarkdown(item)}</li>
-            ))}
-          </ol>
-        );
-      }
-      currentList = null;
-    }
-  };
-
-  lines.forEach((line, index) => {
-    const trimmed = line.trim();
-
-    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
-      const itemText = trimmed.slice(2);
-      if (!currentList || currentList.type !== 'ul') {
-        flushList();
-        currentList = { type: 'ul', items: [itemText] };
-      } else {
-        currentList.items.push(itemText);
-      }
-      return;
-    }
-
-    if (/^\d+\.\s/.test(trimmed)) {
-      const itemText = trimmed.replace(/^\d+\.\s/, '');
-      if (!currentList || currentList.type !== 'ol') {
-        flushList();
-        currentList = { type: 'ol', items: [itemText] };
-      } else {
-        currentList.items.push(itemText);
-      }
-      return;
-    }
-
-    flushList();
-
-    if (!trimmed) {
-      return;
-    }
-
-    if (trimmed.startsWith('# ')) {
-      elements.push(
-        <h2 key={index} className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-oxford font-serif mt-8 mb-4">
-          {parseInlineMarkdown(trimmed.slice(2))}
-        </h2>
-      );
-      return;
-    }
-
-    if (trimmed.startsWith('## ')) {
-      elements.push(
-        <h3 key={index} className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-800 font-serif mt-6 mb-3">
-          {parseInlineMarkdown(trimmed.slice(3))}
-        </h3>
-      );
-      return;
-    }
-
-    if (trimmed.startsWith('### ')) {
-      elements.push(
-        <h4 key={index} className="text-lg sm:text-xl lg:text-2xl font-bold text-slate-800 font-serif mt-5 mb-2">
-          {parseInlineMarkdown(trimmed.slice(4))}
-        </h4>
-      );
-      return;
-    }
-
-    if (trimmed.startsWith('> ')) {
-      elements.push(
-        <blockquote key={index} className="border-l-4 border-cyan-accent pl-5 py-3 my-5 italic text-slate-700 font-sans text-base sm:text-lg lg:text-[20px] leading-relaxed bg-slate-50/70 rounded-r-xl">
-          {parseInlineMarkdown(trimmed.slice(2))}
-        </blockquote>
-      );
-      return;
-    }
-
-    elements.push(
-      <p key={index} className="text-base sm:text-lg lg:text-[20px] text-slate-700 leading-relaxed lg:leading-[1.75] font-sans font-normal text-justify my-5">
-        {parseInlineMarkdown(trimmed)}
-      </p>
-    );
+  return renderMarkdownText(md, 'No About Us content available yet.', {
+    paragraphClassName: 'text-base sm:text-lg lg:text-[20px] text-slate-700 leading-relaxed lg:leading-[1.75] font-sans font-normal text-justify my-5',
   });
-
-  flushList();
-  return <div className="space-y-3 font-sans">{elements}</div>;
-}
-
-function parseInlineMarkdown(text: string): React.ReactNode {
-  const parts: React.ReactNode[] = [];
-  let remaining = text;
-  let keyIdx = 0;
-
-  while (remaining) {
-    const linkMatch = remaining.match(/^([\s\S]*?)\[([^\]]+)\]\(([^)]+)\)([\s\S]*)$/);
-    if (linkMatch) {
-      const [, before, label, url, after] = linkMatch;
-      if (before) parts.push(parseFormatting(before, keyIdx++));
-      parts.push(
-        <a key={keyIdx++} href={sanitizeWebUrl(url) || '#'} target="_blank" rel="noopener noreferrer" className="text-cyan-accent hover:underline font-semibold inline-flex items-center gap-0.5">
-          <span>{label}</span>
-          <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-        </a>
-      );
-      remaining = after;
-      continue;
-    }
-
-    parts.push(parseFormatting(remaining, keyIdx++));
-    break;
-  }
-
-  return parts;
-}
-
-function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
-  const elements: React.ReactNode[] = [];
-  const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      elements.push(text.substring(lastIndex, match.index));
-    }
-
-    if (match[1]) {
-      elements.push(<strong key={`${keyPrefix}_b_${match.index}`} className="font-bold text-slate-900">{match[2]}</strong>);
-    } else if (match[3]) {
-      elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-800">{match[4]}</em>);
-    } else if (match[5]) {
-      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-100 text-oxford px-1.5 py-0.5 rounded font-mono text-sm">{match[6]}</code>);
-    }
-
-    lastIndex = regex.lastIndex;
-  }
-
-  if (lastIndex < text.length) {
-    elements.push(text.substring(lastIndex));
-  }
-
-  return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
 }
 
 export default function AboutPageClient({
@@ -186,7 +25,7 @@ export default function AboutPageClient({
       <Hero
         title={heroData?.title || 'ABOUT DEPARTMENT'}
         badge="HOME > ABOUT"
-        subtitle={heroData?.subtitle || 'Advancing fundamental physics, materials science, quantum technology, and photonics since 1963.'}
+        subtitle={heroData?.subtitle || ''}
         bgImage={bannerImage}
       />
 
@@ -202,13 +41,9 @@ export default function AboutPageClient({
             {/* Quick Navigation / Discover More Section */}
             <div className="pt-16 border-t border-slate-200 mt-16 space-y-8 font-sans">
               <div className="space-y-2 text-left">
-
                 <h3 className="font-serif text-2xl sm:text-3xl font-extrabold text-oxford">
-                  Discover More at Physics CUSAT
+                  Explore Our Department
                 </h3>
-                <p className="text-sm sm:text-base text-slate-600 max-w-2xl leading-relaxed">
-                  Explore our research frontiers, meet our academic community, and stay updated with upcoming scientific lectures and workshops.
-                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">

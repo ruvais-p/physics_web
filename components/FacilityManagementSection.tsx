@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Wrench,
   Plus,
@@ -11,8 +11,15 @@ import {
   RefreshCw,
   Eye,
   Check,
+  GripVertical,
+  ChevronUp,
+  ChevronDown,
+  Search,
+  GraduationCap,
+  Upload,
+  Image as ImageIcon,
 } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -38,18 +45,28 @@ interface FacultyOption {
   designation?: string | null;
 }
 
+interface ScholarOption {
+  id: string;
+  name: string;
+  supervisor?: string;
+  description?: string | null;
+}
+
 interface FacilityData {
   id: string;
   name: string;
   description: string;
   image?: string | null;
+  sortOrder?: number;
   faculties?: FacultyOption[];
+  students?: ScholarOption[];
   createdAt?: string;
 }
 
 export default function FacilityManagementSection() {
   const [facilities, setFacilities] = useState<FacilityData[]>([]);
   const [facultyList, setFacultyList] = useState<FacultyOption[]>([]);
+  const [scholarList, setScholarList] = useState<ScholarOption[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Modal states
@@ -61,8 +78,10 @@ export default function FacilityManagementSection() {
     imageFile: null as File | null,
     imageUrl: '',
     selectedFacultyIds: [] as string[],
+    selectedStudentIds: [] as string[],
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -71,25 +90,152 @@ export default function FacilityManagementSection() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Reordering states
+  const [draggedFacilityIndex, setDraggedFacilityIndex] = useState<number | null>(null);
+  const [dragOverFacilityIndex, setDragOverFacilityIndex] = useState<number | null>(null);
+  const [isReordering, setIsReordering] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleDragStart = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+    setDraggedFacilityIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', String(index));
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLTableRowElement>, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverFacilityIndex !== index) {
+      setDragOverFacilityIndex(index);
+    }
+  };
+
+  const handleDrop = async (e: React.DragEvent<HTMLTableRowElement>, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedFacilityIndex === null || draggedFacilityIndex === targetIndex) {
+      setDraggedFacilityIndex(null);
+      setDragOverFacilityIndex(null);
+      return;
+    }
+
+    const updatedList = [...facilities];
+    const [draggedItem] = updatedList.splice(draggedFacilityIndex, 1);
+    updatedList.splice(targetIndex, 0, draggedItem);
+
+    const itemsToUpdate = updatedList.map((item, idx) => ({
+      id: item.id,
+      sortOrder: idx + 1,
+    }));
+
+    setFacilities(updatedList.map((item, idx) => ({ ...item, sortOrder: idx + 1 })));
+    setDraggedFacilityIndex(null);
+    setDragOverFacilityIndex(null);
+    setIsReordering(true);
+
+    try {
+      const res = await fetch('/api/admin/facilities/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: itemsToUpdate }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to save facility order');
+      }
+      setSuccessMsg('Facility arrangement updated successfully');
+      setTimeout(() => setSuccessMsg(null), 3000);
+    } catch (err) {
+      console.error('Failed to reorder facilities:', err);
+      fetchData();
+    } finally {
+      setIsReordering(false);
+    }
+  };
+
+  const handleDragEnd = () => {
+    setDraggedFacilityIndex(null);
+    setDragOverFacilityIndex(null);
+  };
+
+  const moveFacility = async (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= facilities.length) return;
+
+    const updatedList = [...facilities];
+    const temp = updatedList[index];
+    updatedList[index] = updatedList[targetIndex];
+    updatedList[targetIndex] = temp;
+
+    const itemsToUpdate = updatedList.map((item, idx) => ({
+      id: item.id,
+      sortOrder: idx + 1,
+    }));
+
+    setFacilities(updatedList.map((item, idx) => ({ ...item, sortOrder: idx + 1 })));
+    setIsReordering(true);
+
+    try {
+      const res = await fetch('/api/admin/facilities/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: itemsToUpdate }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to save facility order');
+      }
+      setSuccessMsg('Facility arrangement updated successfully');
+      setTimeout(() => setSuccessMsg(null), 3000);
+    } catch (err) {
+      console.error('Failed to reorder facilities:', err);
+      fetchData();
+    } finally {
+      setIsReordering(false);
+    }
+  };
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [facilitiesRes, facultyRes] = await Promise.all([
+      const [facilitiesRes, facultyRes, scholarsRes] = await Promise.all([
         fetch('/api/facilities'),
         fetch('/api/public/faculty'),
+        fetch('/api/public/scholars'),
       ]);
 
       if (facilitiesRes.ok) {
         const data = await facilitiesRes.json();
-        setFacilities(data || []);
+        setFacilities(
+          (data || []).map((fac: any) => ({
+            ...fac,
+            students: (fac.students || []).map((s: any) => ({
+              id: s.uid || s.id,
+              name: s.name,
+              supervisor: s.faculty?.name || s.supervisor,
+              description: s.description,
+            })),
+          }))
+        );
       }
 
       if (facultyRes.ok) {
         const fData = await facultyRes.json();
         setFacultyList(fData.map((f: any) => ({ id: f.id, name: f.name, designation: f.designation })));
       }
+
+      if (scholarsRes.ok) {
+        const sData = await scholarsRes.json();
+        setScholarList(
+          (sData || []).map((s: any) => ({
+            id: s.id,
+            name: s.name,
+            supervisor: s.supervisor,
+            description: s.description,
+          }))
+        );
+      }
     } catch (err) {
-      console.error('Failed to fetch facilities or faculty:', err);
+      console.error('Failed to fetch facilities, faculty, or scholars:', err);
     } finally {
       setLoading(false);
     }
@@ -108,6 +254,7 @@ export default function FacilityManagementSection() {
       imageFile: null,
       imageUrl: '',
       selectedFacultyIds: [],
+      selectedStudentIds: [],
     });
     setImagePreview(null);
     setIsModalOpen(true);
@@ -122,6 +269,7 @@ export default function FacilityManagementSection() {
       imageFile: null,
       imageUrl: facItem.image || '',
       selectedFacultyIds: facItem.faculties ? facItem.faculties.map((f) => f.id) : [],
+      selectedStudentIds: facItem.students ? facItem.students.map((s: any) => s.id || s.uid) : [],
     });
     setImagePreview(facItem.image || null);
     setIsModalOpen(true);
@@ -139,6 +287,23 @@ export default function FacilityManagementSection() {
         return {
           ...prev,
           selectedFacultyIds: [...prev.selectedFacultyIds, facultyId],
+        };
+      }
+    });
+  };
+
+  const toggleStudentSelection = (studentId: string) => {
+    setFormData((prev) => {
+      const exists = prev.selectedStudentIds.includes(studentId);
+      if (exists) {
+        return {
+          ...prev,
+          selectedStudentIds: prev.selectedStudentIds.filter((id) => id !== studentId),
+        };
+      } else {
+        return {
+          ...prev,
+          selectedStudentIds: [...prev.selectedStudentIds, studentId],
         };
       }
     });
@@ -169,6 +334,7 @@ export default function FacilityManagementSection() {
       payload.append('name', formData.name.trim());
       payload.append('description', formData.description.trim());
       payload.append('facultyIds', JSON.stringify(formData.selectedFacultyIds));
+      payload.append('studentIds', JSON.stringify(formData.selectedStudentIds));
 
       if (formData.imageFile) {
         payload.append('image', formData.imageFile);
@@ -231,7 +397,7 @@ export default function FacilityManagementSection() {
         <div>
           <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
             <Wrench className="w-7 h-7 text-oxford" />
-            <span>Central Facilities</span>
+            <span>Facilities</span>
             <Badge variant="outline" className="ml-2 font-mono text-xs border-oxford text-oxford">
               {facilities.length} Facilities
             </Badge>
@@ -260,6 +426,25 @@ export default function FacilityManagementSection() {
             <span>Add Facility</span>
           </Button>
         </div>
+      </div>
+
+      {/* Search & Drag Reorder Guidance */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div className="relative flex-1 max-w-md">
+          <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Input
+            placeholder="Search by facility name or in-charge faculty..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-11 text-base h-12 w-full"
+          />
+        </div>
+        {!searchTerm && facilities.length > 1 && (
+          <div className="flex items-center gap-2 px-3.5 py-2 bg-indigo-50 border border-indigo-200/80 rounded-xl text-indigo-800 text-xs font-sans font-medium whitespace-nowrap shadow-xs">
+            <GripVertical className="w-4 h-4 text-indigo-600 shrink-0" />
+            <span>Drag rows to reorder public ranking</span>
+          </div>
+        )}
       </div>
 
       {/* Success Notification */}
@@ -303,73 +488,168 @@ export default function FacilityManagementSection() {
             <Table className="text-sm">
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-32 text-base font-bold">Order</TableHead>
                   <TableHead className="font-bold w-24">Facility Image</TableHead>
                   <TableHead className="font-bold">Facility Name</TableHead>
-                  <TableHead className="font-bold">Faculty In-Charge / Team</TableHead>
+                  <TableHead className="font-bold">Members (Faculty & Scholars)</TableHead>
                   <TableHead className="text-right font-bold">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {facilities.map((facItem) => (
-                  <TableRow key={facItem.id} className="hover:bg-slate-50/40">
-                    <TableCell className="py-4">
-                      <div className="w-16 h-11 rounded-lg bg-slate-100 overflow-hidden border border-slate-200 relative shrink-0">
-                        <img
-                          src={facItem.image || 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&q=80'}
-                          alt={facItem.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    </TableCell>
-                    <TableCell className="py-4">
-                      <div className="font-bold text-slate-900 text-base font-serif">{facItem.name}</div>
-                    </TableCell>
-                    <TableCell className="py-4">
-                      {facItem.faculties && facItem.faculties.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5">
-                          {facItem.faculties.map((f) => (
-                            <span
-                              key={f.id}
-                              className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"
+                {facilities
+                  .filter((facItem) => {
+                    if (!searchTerm.trim()) return true;
+                    const term = searchTerm.toLowerCase();
+                    return (
+                      facItem.name.toLowerCase().includes(term) ||
+                      (facItem.faculties || []).some((f) => f.name.toLowerCase().includes(term)) ||
+                      (facItem.students || []).some((s) => s.name.toLowerCase().includes(term))
+                    );
+                  })
+                  .map((facItem, idx) => {
+                    const isDragging = draggedFacilityIndex === idx;
+                    const isDragOver = dragOverFacilityIndex === idx && draggedFacilityIndex !== idx;
+
+                    return (
+                      <TableRow
+                        key={facItem.id}
+                        draggable={!searchTerm}
+                        onDragStart={(e) => handleDragStart(e, idx)}
+                        onDragOver={(e) => handleDragOver(e, idx)}
+                        onDrop={(e) => handleDrop(e, idx)}
+                        onDragEnd={handleDragEnd}
+                        className={`transition-all duration-200 select-none ${
+                          isDragging
+                            ? 'opacity-30 bg-slate-200 scale-[0.99] border-2 border-dashed border-oxford'
+                            : isDragOver
+                            ? 'border-t-4 border-oxford bg-oxford/10 shadow-lg'
+                            : 'hover:bg-slate-50/60'
+                        }`}
+                      >
+                        {/* Drag Handle & Order Controls */}
+                        <TableCell className="py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2">
+                            {/* Grip Icon */}
+                            <div
+                              className={`p-1 rounded transition-colors ${
+                                searchTerm
+                                  ? 'opacity-30 cursor-not-allowed text-slate-300'
+                                  : 'cursor-grab active:cursor-grabbing text-slate-400 hover:text-oxford hover:bg-slate-200/60'
+                              }`}
+                              title={searchTerm ? 'Clear search filter to reorder' : 'Drag to reorder facility'}
                             >
-                              {f.name}
+                              <GripVertical className="w-4 h-4" />
+                            </div>
+
+                            {/* Order Badge */}
+                            <span className="font-mono text-xs font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md min-w-[32px] text-center shadow-2xs">
+                              #{idx + 1}
                             </span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-slate-400 italic text-xs">No faculty assigned</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
-                      <a
-                        href="/facilities"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 transition-all"
-                      >
-                        <Eye className="w-3.5 h-3.5" /> View Public Page
-                      </a>
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        onClick={() => openEditModal(facItem)}
-                        className="h-9 w-9 text-slate-600 hover:text-slate-900"
-                        title="Edit Facility"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => setDeletingId(facItem.id)}
-                        className="h-9 w-9"
-                        title="Delete Facility"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+
+                            {/* Quick Move Up/Down Buttons */}
+                            {!searchTerm && (
+                              <div className="flex flex-col -space-y-0.5 ml-1">
+                                <button
+                                  type="button"
+                                  disabled={idx === 0 || isReordering}
+                                  onClick={() => moveFacility(idx, 'up')}
+                                  className="text-slate-400 hover:text-oxford disabled:opacity-20 disabled:hover:text-slate-400 p-0.5 rounded transition-colors cursor-pointer"
+                                  aria-label={`Move ${facItem.name} up`}
+                                  title="Move Up"
+                                >
+                                  <ChevronUp className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={idx === facilities.length - 1 || isReordering}
+                                  onClick={() => moveFacility(idx, 'down')}
+                                  className="text-slate-400 hover:text-oxford disabled:opacity-20 disabled:hover:text-slate-400 p-0.5 rounded transition-colors cursor-pointer"
+                                  aria-label={`Move ${facItem.name} down`}
+                                  title="Move Down"
+                                >
+                                  <ChevronDown className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+
+                        <TableCell className="py-4">
+                          <div className="w-16 h-11 rounded-lg bg-slate-100 overflow-hidden border border-slate-200 relative shrink-0">
+                            <img
+                              src={facItem.image || 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&q=80'}
+                              alt={facItem.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="font-bold text-slate-900 text-base font-serif">{facItem.name}</div>
+                        </TableCell>
+                        <TableCell className="py-4">
+                          <div className="space-y-1.5">
+                            {facItem.faculties && facItem.faculties.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5">
+                                {facItem.faculties.map((f) => (
+                                  <span
+                                    key={f.id}
+                                    className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200"
+                                  >
+                                    {f.name}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {facItem.students && facItem.students.length > 0 && (
+                              <div className="flex flex-wrap gap-1.5">
+                                {facItem.students.map((s) => (
+                                  <span
+                                    key={s.id}
+                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200"
+                                  >
+                                    <GraduationCap className="w-3 h-3 text-emerald-600 shrink-0" />
+                                    <span>{s.name}</span>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            {(!facItem.faculties || facItem.faculties.length === 0) &&
+                              (!facItem.students || facItem.students.length === 0) && (
+                                <span className="text-slate-400 italic text-xs">No members assigned</span>
+                              )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                          <a
+                            href="/facilities"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 transition-all"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> View Public Page
+                          </a>
+                          <Button
+                            variant="secondary"
+                            size="icon"
+                            onClick={() => openEditModal(facItem)}
+                            className="h-9 w-9 text-slate-600 hover:text-slate-900"
+                            title="Edit Facility"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="icon"
+                            onClick={() => setDeletingId(facItem.id)}
+                            className="h-9 w-9"
+                            title="Delete Facility"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
               </TableBody>
             </Table>
           )}
@@ -409,41 +689,71 @@ export default function FacilityManagementSection() {
             </div>
 
             {/* Cover / Hero Image Upload */}
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-800">
-                Facility Image File OR Image URL
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-2">
+                Facility Hero Image (Optional)
               </label>
-              <div className="space-y-2">
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0] || null;
-                    if (file) {
-                      setFormData({ ...formData, imageFile: file, imageUrl: '' });
-                      setImagePreview(URL.createObjectURL(file));
-                    }
-                  }}
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-slate-800 cursor-pointer"
-                />
-                <div className="text-[10px] text-slate-400 text-center font-bold uppercase tracking-widest font-mono">OR Direct Image URL</div>
-                <Input
-                  type="text"
-                  placeholder="https://images.unsplash.com/..."
-                  value={formData.imageUrl}
-                  onChange={(e) => {
-                    setFormData({ ...formData, imageUrl: e.target.value, imageFile: null });
-                    setImagePreview(e.target.value);
-                  }}
-                  className="text-xs font-mono"
-                />
-              </div>
-
-              {imagePreview && (
-                <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-100 border border-slate-200 mt-2">
-                  <img src={imagePreview} alt="Facility Preview" className="w-full h-full object-cover" />
+              <div className="flex items-center gap-4">
+                <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                  {imagePreview ? (
+                    <img
+                      src={imagePreview}
+                      alt="Facility Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                      <ImageIcon className="w-6 h-6 mb-1 opacity-50" />
+                      <span className="text-[10px] font-medium">No photo</span>
+                    </div>
+                  )}
                 </div>
-              )}
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{imagePreview ? 'Change Photo' : 'Upload Photo'}</span>
+                    </Button>
+
+                    {imagePreview && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setFormData({ ...formData, imageFile: null, imageUrl: '' });
+                          setImagePreview(null);
+                          if (fileInputRef.current) fileInputRef.current.value = '';
+                        }}
+                        className="text-xs text-rose-600 hover:text-rose-700 font-semibold rounded-xl cursor-pointer"
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (file) {
+                        setFormData({ ...formData, imageFile: file, imageUrl: '' });
+                        setImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <p className="text-[11px] text-slate-500">Supports JPG, PNG, or WebP. Auto-optimized to WebP.</p>
+                </div>
+              </div>
             </div>
 
             {/* Markdown Description */}
@@ -461,10 +771,10 @@ export default function FacilityManagementSection() {
               />
             </div>
 
-            {/* Associated Faculty Members */}
+            {/* Faculty In-Charge */}
             <div className="space-y-1.5">
               <label className="text-sm font-bold text-slate-800">
-                Faculty In-Charge / Associated Faculty
+                Faculty In-Charge
               </label>
               <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl max-h-48 overflow-y-auto space-y-1.5">
                 {facultyList.length === 0 ? (
@@ -488,6 +798,54 @@ export default function FacilityManagementSection() {
                           <Check className="w-4 h-4 text-white" />
                         ) : (
                           <Plus className="w-3.5 h-3.5 text-slate-400" />
+                        )}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+
+            {/* Associated Research Scholars */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-800 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <GraduationCap className="w-4 h-4 text-emerald-600" />
+                  <span>Research Scholars Associated</span>
+                </span>
+                <span className="text-xs font-normal text-slate-500">
+                  {formData.selectedStudentIds.length} selected
+                </span>
+              </label>
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl max-h-48 overflow-y-auto space-y-1.5">
+                {scholarList.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic">No research scholars found in database.</p>
+                ) : (
+                  scholarList.map((sch) => {
+                    const isSelected = formData.selectedStudentIds.includes(sch.id);
+                    return (
+                      <button
+                        key={sch.id}
+                        type="button"
+                        onClick={() => toggleStudentSelection(sch.id)}
+                        className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer text-left ${
+                          isSelected
+                            ? 'bg-emerald-700 text-white border border-emerald-700 shadow-xs'
+                            : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                        }`}
+                      >
+                        <div className="flex flex-col">
+                          <span>{sch.name}</span>
+                          {sch.supervisor && (
+                            <span className={`text-[10px] font-normal ${isSelected ? 'text-emerald-100' : 'text-slate-500'}`}>
+                              Supervisor: {sch.supervisor}
+                            </span>
+                          )}
+                        </div>
+                        {isSelected ? (
+                          <Check className="w-4 h-4 text-white shrink-0 ml-2" />
+                        ) : (
+                          <Plus className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-2" />
                         )}
                       </button>
                     );

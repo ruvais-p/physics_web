@@ -1,90 +1,70 @@
-import Image from 'next/image';
-import Link from 'next/link';
 import Hero from '@/components/Hero';
+import AlumniExecutiveStream from '@/components/AlumniExecutiveStream';
+import AlumniShowcaseTabs from '@/components/AlumniShowcaseTabs';
 import { getPageHero } from '@/lib/page-hero';
+import { prisma } from '@/lib/prisma';
 
 export const metadata = {
-  title: 'Alumni | Department of Physics, CUSAT',
-  description: 'Connect with the global alumni community of the Department of Physics, CUSAT.',
+  title: 'Alumni Association | Department of Physics, CUSAT',
+  description:
+    'Executive committee members of the Physics Alumni Association (PhyCA), Department of Physics, Cochin University of Science and Technology (CUSAT).',
 };
 
-export const revalidate = 300;
+export const revalidate = 60;
 
 export default async function AlumniPage() {
-  const heroData = await getPageHero('alumni');
+  let executives: any[] = [];
+  let achievements: any[] = [];
+  let sponsoredPrograms: any[] = [];
+  let heroData: any = {};
+
+  try {
+    const results = await Promise.all([
+      prisma.alumniExecutive
+        ? prisma.alumniExecutive.findMany({
+            where: { isActive: true },
+            orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+          })
+        : [],
+      prisma.alumniAchievement
+        ? prisma.alumniAchievement.findMany({
+            orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+          })
+        : [],
+      prisma.alumniSponsoredProgram
+        ? prisma.alumniSponsoredProgram.findMany({
+            orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
+          })
+        : [],
+      getPageHero('alumni'),
+    ]);
+
+    executives = results[0] || [];
+    achievements = results[1] || [];
+    sponsoredPrograms = results[2] || [];
+    heroData = results[3] || {};
+  } catch (err) {
+    console.error('Failed to load alumni records from DB:', err);
+    heroData = await getPageHero('alumni').catch(() => ({}));
+  }
 
   return (
-    <div className="pb-24 relative bg-[#000a1e] text-white min-h-screen">
-      
-      {/* Hero Header matching main homepage design */}
+    <div id="alumni-page" className="min-h-screen bg-surface-canvas text-on-surface font-sans">
+      {/* Full-bleed Hero Header */}
       <Hero
-        title={heroData.title}
+        title={heroData.title || 'ALUMNI ASSOCIATION'}
         badge="HOME > ALUMNI"
-        subtitle={heroData.subtitle}
         bgImage={heroData.image}
       />
 
-      {/* Main Content Area */}
-      <section className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 py-16">
-        <div className="max-w-4xl space-y-8 text-left">
-          {/* Color Accent line */}
-          <div className="w-16 h-1 bg-cyan-accent rounded-full" />
-          
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white">
-            Our Global Alumni Network
-          </h2>
-          
-          <div className="space-y-6 text-base sm:text-lg lg:text-xl text-slate-300 leading-relaxed font-sans font-normal">
-            <p>
-              Since its inception in 1971, the Department of Physics at CUSAT has nurtured exceptional minds who have gone on to make significant contributions to scientific research, academia, and industry worldwide. Our alumni constitute a vibrant global community of researchers, educators, and technology leaders.
-            </p>
-            <p>
-              Our postgraduates and doctoral researchers have successfully secured faculty positions, postdoctoral fellowships, and research roles at prestigious institutions globally, including:
-            </p>
-            
-            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 text-base font-semibold text-slate-100">
-              <li className="flex items-center space-x-2">
-                <span className="text-cyan-accent">•</span>
-                <span>Max Planck Institutes, Germany</span>
-              </li>
-              <li className="flex items-center space-x-2">
-                <span className="text-cyan-accent">•</span>
-                <span>Indian Institute of Science (IISc), Bangalore</span>
-              </li>
-              <li className="flex items-center space-x-2">
-                <span className="text-cyan-accent">•</span>
-                <span>Indian Institutes of Technology (IITs)</span>
-              </li>
-              <li className="flex items-center space-x-2">
-                <span className="text-cyan-accent">•</span>
-                <span>CERN, Switzerland</span>
-              </li>
-              <li className="flex items-center space-x-2">
-                <span className="text-cyan-accent">•</span>
-                <span>Raman Research Institute (RRI), Bangalore</span>
-              </li>
-              <li className="flex items-center space-x-2">
-                <span className="text-cyan-accent">•</span>
-                <span>TIFR, Mumbai</span>
-              </li>
-            </ul>
+      {/* Alumni Association Executive Members Horizontal Stream */}
+      <AlumniExecutiveStream initialExecutives={executives} />
 
-            <p className="pt-6">
-              We encourage our alumni to stay connected, mentor current students, and collaborate on cutting-edge research initiatives. If you are a graduate of the department, please reach out to update your contact details and share your professional achievements.
-            </p>
-          </div>
-
-          <div className="pt-6">
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center bg-cyan-accent hover:bg-cyan-dark text-white font-semibold text-sm px-8 py-3.5 rounded-lg shadow-md transition-colors"
-            >
-              Contact Department Office
-            </Link>
-          </div>
-        </div>
-      </section>
-
+      {/* Alumni Achievements & Sponsored Programs Tabs */}
+      <AlumniShowcaseTabs
+        initialAchievements={achievements}
+        initialPrograms={sponsoredPrograms}
+      />
     </div>
   );
 }

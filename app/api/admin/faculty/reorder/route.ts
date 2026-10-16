@@ -1,15 +1,7 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { revalidatePublicPages } from '@/lib/public-cache';
-import { verifyAdminToken } from '@/lib/auth';
-
-async function authenticateAdmin() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token')?.value || cookieStore.get('auth_token')?.value;
-  if (!token) return null;
-  return verifyAdminToken(token);
-}
+import { authenticateAdmin } from '@/lib/api-auth';
 
 // PUT /api/admin/faculty/reorder - Reorder faculty accounts
 export async function PUT(request: Request) {

@@ -79,7 +79,7 @@ export async function PUT(
 
 // DELETE /api/faculty/projects/[id] - Delete a research project
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

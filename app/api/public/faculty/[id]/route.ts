@@ -4,7 +4,7 @@ import { sanitizeWebUrl } from '@/lib/url-security';
 
 // GET /api/public/faculty/[id] - Fetch single faculty member or scholar
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -127,9 +127,9 @@ export async function GET(
         email: faculty.email,
         designation: faculty.designation || 'Faculty Member',
         department: faculty.department || 'Department of Physics',
-        qualification: 'Ph.D. in Physics',
+        qualification: faculty.qualification || 'Ph.D. in Physics',
         phone: faculty.profile?.phone || faculty.phone || '',
-        room: 'Department Building',
+        room: faculty.room || 'Department Building',
         bio: faculty.descriptionRecord?.description || faculty.bio || 'Faculty member in the Department of Physics.',
         image: faculty.documents?.image || '/faculty.png',
         cvUrl: sanitizeWebUrl(faculty.documents?.cv) || null,

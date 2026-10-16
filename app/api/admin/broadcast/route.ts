@@ -4,7 +4,10 @@ import { getAdminSession } from '@/lib/api-auth';
 import { saveImageAsWebp } from '@/lib/image';
 import { sanitizeWebUrl } from '@/lib/url-security';
 import { revalidatePublicPages } from '@/lib/public-cache';
+import { hasPdfSignature } from '@/lib/file-security';
 import { randomUUID } from 'crypto';
+import fs from 'fs/promises';
+import path from 'path';
 
 export async function POST(request: Request) {
   const user = await getAdminSession();
@@ -20,9 +23,11 @@ export async function POST(request: Request) {
     let endDateStr = '';
     let venue: string | null = null;
     let applyLink: string | null = null;
+    let pdfPath: string | null = null;
     let notificationCategory = 'General';
     let imagePath = '';
     let targets: string[] = [];
+    let tvDuration = 12;
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
@@ -33,6 +38,14 @@ export async function POST(request: Request) {
       
       const venueInput = (formData.get('venue') as string || '').trim();
       if (venueInput) venue = venueInput;
+
+      const tvDurInput = (formData.get('tvDuration') as string || '').trim();
+      if (tvDurInput) {
+        const parsedDur = parseInt(tvDurInput, 10);
+        if (!isNaN(parsedDur) && parsedDur >= 5 && parsedDur <= 120) {
+          tvDuration = parsedDur;
+        }
+      }
 
       const applyLinkInput = (formData.get('apply_link') as string || formData.get('link') as string || '').trim();
       if (applyLinkInput) applyLink = sanitizeWebUrl(applyLinkInput, false);
@@ -61,6 +74,27 @@ export async function POST(request: Request) {
       } else if (imageUrlInput) {
         imagePath = sanitizeWebUrl(imageUrlInput) || '';
       }
+
+      const pdfFile = formData.get('pdf') as File | null;
+      const pdfUrlInput = (formData.get('pdfUrl') as string || '').trim();
+
+      if (pdfFile && pdfFile.size > 0) {
+        if (pdfFile.name.toLowerCase().endsWith('.pdf') || pdfFile.type === 'application/pdf') {
+          const bytes = await pdfFile.arrayBuffer();
+          const buffer = Buffer.from(bytes);
+          if (hasPdfSignature(buffer)) {
+            const timestamp = Date.now();
+            const sanitizedName = path.parse(pdfFile.name).name.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50);
+            const fileName = `notice_${timestamp}_${sanitizedName || 'document'}.pdf`;
+            const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'notifications');
+            await fs.mkdir(uploadDir, { recursive: true });
+            await fs.writeFile(path.join(uploadDir, fileName), buffer);
+            pdfPath = `/uploads/notifications/${fileName}`;
+          }
+        }
+      } else if (pdfUrlInput) {
+        pdfPath = sanitizeWebUrl(pdfUrlInput, true);
+      }
     } else {
       const body = await request.json();
       title = (body.title || '').trim();
@@ -68,7 +102,14 @@ export async function POST(request: Request) {
       startDateStr = (body.startDate || body.date || '').trim();
       endDateStr = (body.endDate || '').trim();
       venue = body.venue ? String(body.venue).trim() : null;
+      if (body.tvDuration) {
+        const parsedDur = parseInt(String(body.tvDuration), 10);
+        if (!isNaN(parsedDur) && parsedDur >= 5 && parsedDur <= 120) {
+          tvDuration = parsedDur;
+        }
+      }
       applyLink = body.apply_link || body.link ? sanitizeWebUrl(body.apply_link || body.link, false) : null;
+      pdfPath = body.pdfUrl ? sanitizeWebUrl(body.pdfUrl, true) : null;
       notificationCategory = body.notificationCategory || body.category || 'General';
       imagePath = sanitizeWebUrl(body.image) || '';
       targets = Array.isArray(body.targets) ? body.targets.map((t: string) => String(t).toLowerCase()) : [];
@@ -103,30 +144,48 @@ export async function POST(request: Request) {
       eventId?: number;
     } = {};
 
-    const willPublishEvent = targets.includes('events') || targets.includes('event');
+    const willPublishTv = targets.includes('display') || targets.includes('tv');
+    const willPublishEvent = targets.includes('events') || targets.includes('event') || willPublishTv;
     const willPublishNews = targets.includes('news');
     const willPublishNotification = targets.includes('notifications') || targets.includes('notification');
 
     // 1. Publish to Events if targeted
     if (willPublishEvent) {
-      const eventRows = await prisma.$queryRaw<any[]>`
-        INSERT INTO events (title, description, image, start_date, end_date, venue, apply_link, broadcast_id, created_at, updated_at)
-        VALUES (${title}, ${description}, ${imagePath || '/eventssss.jpg'}, ${eventStartDate}, ${eventEndDate}, ${venue}, ${applyLink}, ${broadcastId}, NOW(), NOW())
-        RETURNING id
-      `;
-      if (eventRows.length > 0) {
-        createdSummary.eventId = eventRows[0].id;
-      }
+      const newEvent = await prisma.event.create({
+        data: {
+          title,
+          description,
+          image: imagePath || '/eventssss.jpg',
+          startDate: eventStartDate,
+          endDate: eventEndDate,
+          venue,
+          apply_link: applyLink,
+          brochure: pdfPath,
+          broadcastId,
+          broadcastToTv: willPublishTv,
+          tvDuration,
+        },
+        select: { id: true },
+      });
+      createdSummary.eventId = newEvent.id;
     }
 
     // 2. Publish to News if targeted
     if (willPublishNews) {
       const newsId = randomUUID();
-      await prisma.$queryRaw`
-        INSERT INTO "News" (id, title, description, image, date, link, "broadcastId", "createdAt", "updatedAt")
-        VALUES (${newsId}, ${title}, ${description}, ${imagePath || null}, ${eventStartDate}, ${applyLink}, ${broadcastId}, NOW(), NOW())
-      `;
-      createdSummary.newsId = newsId;
+      const newNews = await prisma.news.create({
+        data: {
+          id: newsId,
+          title,
+          description,
+          image: imagePath || null,
+          date: eventStartDate,
+          link: applyLink || pdfPath,
+          broadcastId,
+        },
+        select: { id: true },
+      });
+      createdSummary.newsId = newNews.id;
     }
 
     // 3. Publish to Notifications if targeted
@@ -145,13 +204,28 @@ export async function POST(request: Request) {
         }
       }
 
+      // Mutually exclusive: if a PDF flyer/notice is attached, link is null for notification
+      if (pdfPath) {
+        notifLink = null;
+      }
+
       const notifCategory = notificationCategory || (willPublishEvent ? 'Event' : willPublishNews ? 'News' : 'Notice');
 
-      await prisma.$queryRaw`
-        INSERT INTO "Notification" (id, title, content, category, link, "isActive", "broadcastId", date, "createdAt", "updatedAt")
-        VALUES (${notifId}, ${title}, ${description || null}, ${notifCategory}, ${notifLink}, true, ${broadcastId}, ${eventStartDate}, NOW(), NOW())
-      `;
-      createdSummary.notificationId = notifId;
+      const newNotification = await prisma.notification.create({
+        data: {
+          id: notifId,
+          title,
+          content: description || null,
+          category: notifCategory,
+          link: notifLink,
+          pdfUrl: pdfPath,
+          isActive: true,
+          broadcastId,
+          date: eventStartDate,
+        },
+        select: { id: true },
+      });
+      createdSummary.notificationId = newNotification.id;
     }
 
     revalidatePublicPages();
@@ -162,10 +236,10 @@ export async function POST(request: Request) {
       broadcastId,
       targets: createdSummary,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error in multi-target broadcast publish:', error);
     return NextResponse.json(
-      { error: error?.message || 'Failed to publish broadcast.' },
+      { error: error instanceof Error ? error.message : 'Failed to publish broadcast.' },
       { status: 500 }
     );
   }
