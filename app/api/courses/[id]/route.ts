@@ -9,7 +9,7 @@ async function verifyAuthorizedUser() {
 
 // GET /api/courses/[id] - Fetch specific course details
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -52,7 +52,7 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { code, title, level, duration, eligibility, description, highlights } = body;
+    const { code, title, level, duration, eligibility, description, highlights, sortOrder } = body;
 
     const updatedCourse = await prisma.course.update({
       where: { id },
@@ -64,6 +64,7 @@ export async function PUT(
         eligibility: eligibility !== undefined ? eligibility.trim() : existing.eligibility,
         description: description !== undefined ? description.trim() : existing.description,
         highlights: Array.isArray(highlights) ? highlights.filter((h: string) => h && h.trim()) : existing.highlights,
+        sortOrder: sortOrder !== undefined && !isNaN(Number(sortOrder)) ? Number(sortOrder) : existing.sortOrder,
       },
       include: {
         schemes: {
@@ -82,7 +83,7 @@ export async function PUT(
 
 // DELETE /api/courses/[id] - Delete a course (Admin only)
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {

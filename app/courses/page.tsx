@@ -2,8 +2,15 @@ import CoursesPageClient from '@/components/CoursesPageClient';
 import type { CourseWithSchemes } from '@/components/CourseCard';
 import { prisma } from '@/lib/prisma';
 import { getPageHero } from '@/lib/page-hero';
+import { getCourseOrderFallback } from '@/lib/nav-programmes';
 
 export const revalidate = 300;
+
+export const metadata = {
+  title: 'Academic Programs & Curriculum | Department of Physics, CUSAT',
+  description:
+    'Explore doctoral (Ph.D.), postgraduate (M.Sc.), and integrated academic programs, curriculum regulations, and research pathways at the Department of Physics, Cochin University of Science and Technology (CUSAT).',
+};
 
 export default async function CoursesPage() {
   let courses: CourseWithSchemes[] = [];
@@ -21,12 +28,13 @@ export default async function CoursesPage() {
         eligibility: true,
         description: true,
         highlights: true,
+        sortOrder: true,
         schemes: {
           select: { id: true, year: true, scheme: true, pdfUrl: true, sortOrder: true },
           orderBy: { sortOrder: 'asc' },
         },
       },
-      orderBy: { id: 'asc' },
+      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
     }).catch((error) => {
       console.error('Failed to fetch courses:', error);
       return [];
@@ -34,13 +42,21 @@ export default async function CoursesPage() {
     getPageHero('courses'),
   ]);
 
-  courses = records.map((course) => ({
-    ...course,
-    code: course.code || '',
-    intake: course.intake || 0,
-    fees: course.fees || '',
-    eligibility: course.eligibility || '',
-  }));
+  courses = records
+    .map((course) => ({
+      ...course,
+      code: course.code || '',
+      intake: course.intake || 0,
+      fees: course.fees || '',
+      eligibility: course.eligibility || '',
+      sortOrder: course.sortOrder ?? 0,
+    }))
+    .sort((a, b) => {
+      if ((a.sortOrder ?? 0) !== (b.sortOrder ?? 0)) {
+        return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+      }
+      return getCourseOrderFallback(a) - getCourseOrderFallback(b);
+    });
 
   return <CoursesPageClient courses={courses} heroData={heroData} />;
 }

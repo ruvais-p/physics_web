@@ -1,14 +1,12 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import path from 'path';
 import fs from 'fs/promises';
 import { prisma } from '@/lib/prisma';
 import { revalidatePublicPages } from '@/lib/public-cache';
-import { verifyAdminToken } from '@/lib/auth';
+import { authenticateAdmin } from '@/lib/api-auth';
 import { saveImageAsWebp, isAllowedImageType } from '@/lib/image';
 import { deleteUploadedFile, hasPdfSignature } from '@/lib/file-security';
 
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
 
 const ALLOWED_CV_TYPES = ['application/pdf'];
@@ -16,13 +14,6 @@ const MAX_CV_SIZE = 10 * 1024 * 1024; // 10 MB
 
 const IMAGES_DIR = path.join(process.cwd(), 'public', 'uploads', 'faculty', 'images');
 const CVS_DIR = path.join(process.cwd(), 'public', 'uploads', 'faculty', 'cvs');
-
-async function authenticateAdmin() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token')?.value;
-  if (!token) return null;
-  return verifyAdminToken(token);
-}
 
 async function ensureDirectoriesExist() {
   await fs.mkdir(IMAGES_DIR, { recursive: true });

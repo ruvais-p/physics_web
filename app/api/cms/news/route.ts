@@ -4,16 +4,13 @@ import { getAdminSession } from '@/lib/api-auth';
 import { saveImageAsWebp } from '@/lib/image';
 import { sanitizeWebUrl } from '@/lib/url-security';
 import { revalidatePublicPages } from '@/lib/public-cache';
-import { randomUUID } from 'crypto';
 
 // GET all News records
 export async function GET() {
   try {
-    const news = await prisma.$queryRaw<any[]>`
-      SELECT id, title, description, image, date, link, "broadcastId", "createdAt", "updatedAt"
-      FROM "News"
-      ORDER BY date DESC
-    `;
+    const news = await prisma.news.findMany({
+      orderBy: { date: 'desc' },
+    });
     return NextResponse.json(news);
   } catch (error) {
     console.error('Error fetching CMS news:', error);
@@ -75,18 +72,23 @@ export async function POST(request: Request) {
     }
 
     const newsDate = dateStr ? new Date(dateStr) : new Date();
-    const newsId = randomUUID();
 
-    await prisma.$queryRaw`
-      INSERT INTO "News" (id, title, description, image, date, link, "createdAt", "updatedAt")
-      VALUES (${newsId}, ${title}, ${description}, ${imagePath || null}, ${newsDate}, ${link}, NOW(), NOW())
-    `;
+    const createdNews = await prisma.news.create({
+      data: {
+        title,
+        description,
+        image: imagePath || null,
+        date: newsDate,
+        link,
+      },
+    });
 
     revalidatePublicPages();
 
-    return NextResponse.json({ success: true, id: newsId }, { status: 201 });
-  } catch (error: any) {
+    return NextResponse.json({ success: true, id: createdNews.id }, { status: 201 });
+  } catch (error: unknown) {
     console.error('Error creating news:', error);
-    return NextResponse.json({ error: error?.message || 'Failed to create news.' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to create news.';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

@@ -1,21 +1,22 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   BookOpen,
   Plus,
   Edit,
   Trash2,
   FileText,
-  Upload,
   ExternalLink,
   CheckCircle2,
   AlertCircle,
   RefreshCw,
   Clock,
-  Layers,
   GraduationCap,
   FileCheck2,
+  ArrowUpDown,
+  GripVertical,
+  Upload,
 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
 
@@ -56,6 +58,7 @@ interface CourseItem {
   eligibility?: string;
   description: string;
   highlights?: string[];
+  sortOrder?: number;
   schemes: SchemeItem[];
 }
 
@@ -74,9 +77,17 @@ export default function CurriculumManagementSection() {
     duration: '',
     eligibility: '',
     description: '',
+    sortOrder: 1,
   });
   const [savingCourse, setSavingCourse] = useState(false);
   const [courseError, setCourseError] = useState<string | null>(null);
+
+  // Reorder & Drag-and-Drop state
+  const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
+  const [orderedCourses, setOrderedCourses] = useState<CourseItem[]>([]);
+  const [savingReorder, setSavingReorder] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // Scheme Modal state
   const [isSchemeModalOpen, setIsSchemeModalOpen] = useState(false);
@@ -88,6 +99,7 @@ export default function CurriculumManagementSection() {
     pdfUrl: '',
     sortOrder: 1,
   });
+  const schemePdfInputRef = useRef<HTMLInputElement>(null);
   const [savingScheme, setSavingScheme] = useState(false);
   const [schemeError, setSchemeError] = useState<string | null>(null);
 
@@ -138,6 +150,7 @@ export default function CurriculumManagementSection() {
       duration: '2 Years (4 Semesters)',
       eligibility: '',
       description: '',
+      sortOrder: courses.length + 1,
     });
     setIsCourseModalOpen(true);
   };
@@ -152,6 +165,7 @@ export default function CurriculumManagementSection() {
       duration: course.duration,
       eligibility: course.eligibility || '',
       description: course.description || '',
+      sortOrder: course.sortOrder || (courses.findIndex((c) => c.id === course.id) + 1),
     });
     setIsCourseModalOpen(true);
   };
@@ -190,6 +204,7 @@ export default function CurriculumManagementSection() {
           duration: courseFormData.duration.trim(),
           eligibility: courseFormData.eligibility.trim(),
           description: courseFormData.description.trim(),
+          sortOrder: courseFormData.sortOrder,
         }),
       });
 
@@ -202,6 +217,12 @@ export default function CurriculumManagementSection() {
 
       setSuccessMsg(isEdit ? 'Course details updated successfully!' : 'New course created successfully!');
       setIsCourseModalOpen(false);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('courses-updated'));
+        try {
+          localStorage.setItem('physics_courses_updated', Date.now().toString());
+        } catch {}
+      }
       await fetchCoursesAndSchemes();
       if (data.course?.id) {
         setSelectedCourseId(data.course.id);
@@ -215,6 +236,87 @@ export default function CurriculumManagementSection() {
     }
   };
 
+  // ------------------------------------------------------------------
+  // DRAG-AND-DROP REORDER HANDLERS (MODAL)
+  // ------------------------------------------------------------------
+  const openReorderModal = () => {
+    setOrderedCourses([...courses]);
+    setIsReorderModalOpen(true);
+  };
+
+  // Modal Drag-and-Drop
+  const handleModalDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleModalDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleModalDrop = (e: React.DragEvent, targetIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === targetIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const updatedList = [...orderedCourses];
+    const [draggedItem] = updatedList.splice(draggedIndex, 1);
+    updatedList.splice(targetIndex, 0, draggedItem);
+
+    setOrderedCourses(updatedList);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleModalDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleSaveReorder = async () => {
+    setSavingReorder(true);
+    try {
+      const itemsToUpdate = orderedCourses.map((c, idx) => ({
+        id: c.id,
+        sortOrder: idx + 1,
+      }));
+
+      const res = await fetch('/api/courses/reorder', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items: itemsToUpdate }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || 'Failed to reorder programmes');
+      }
+
+      setSuccessMsg('Programme sequence updated successfully!');
+      setIsReorderModalOpen(false);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('courses-updated'));
+        try {
+          localStorage.setItem('physics_courses_updated', Date.now().toString());
+        } catch {}
+      }
+      await fetchCoursesAndSchemes();
+      setTimeout(() => setSuccessMsg(null), 4000);
+    } catch (err: any) {
+      console.error('Error reordering courses:', err);
+      alert(err.message || 'Failed to save programme sequence.');
+    } finally {
+      setSavingReorder(false);
+    }
+  };
+
   const handleDeleteCourse = async () => {
     if (!deletingCourseId) return;
     setIsDeletingCourse(true);
@@ -225,6 +327,12 @@ export default function CurriculumManagementSection() {
       if (res.ok) {
         setSuccessMsg('Course deleted successfully.');
         setDeletingCourseId(null);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('courses-updated'));
+          try {
+            localStorage.setItem('physics_courses_updated', Date.now().toString());
+          } catch {}
+        }
         await fetchCoursesAndSchemes();
         setTimeout(() => setSuccessMsg(null), 4000);
       } else {
@@ -252,6 +360,7 @@ export default function CurriculumManagementSection() {
       pdfUrl: '',
       sortOrder: existingCount + 1,
     });
+    if (schemePdfInputRef.current) schemePdfInputRef.current.value = '';
     setIsSchemeModalOpen(true);
   };
 
@@ -265,6 +374,7 @@ export default function CurriculumManagementSection() {
       pdfUrl: schemeItem.pdfUrl || '',
       sortOrder: schemeItem.sortOrder || 1,
     });
+    if (schemePdfInputRef.current) schemePdfInputRef.current.value = '';
     setIsSchemeModalOpen(true);
   };
 
@@ -377,6 +487,15 @@ export default function CurriculumManagementSection() {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
           <Button
+            variant="outline"
+            onClick={openReorderModal}
+            className="flex items-center gap-2 py-3 px-4 font-semibold rounded-xl border-slate-300 text-slate-800 hover:bg-slate-100 transition-all text-sm cursor-pointer shadow-2xs"
+            title="Set programme sequence"
+          >
+            <ArrowUpDown className="w-4 h-4 text-cyan-600" />
+            <span>Reorder Programmes</span>
+          </Button>
+          <Button
             variant="default"
             onClick={openAddCourseModal}
             className="flex items-center gap-2 py-3 px-5 font-semibold rounded-xl shadow-xs transition-all text-base cursor-pointer"
@@ -399,19 +518,19 @@ export default function CurriculumManagementSection() {
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3 pt-1">
         {courses.map((course) => {
           const isActive = selectedCourseId === course.id;
+
           return (
             <button
               key={course.id}
               type="button"
               onClick={() => setSelectedCourseId(course.id)}
-              className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 flex items-center gap-2 cursor-pointer ${
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all duration-200 cursor-pointer border ${
                 isActive
-                  ? 'bg-oxford text-white shadow-xs'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
+                  ? 'bg-oxford text-white border-oxford shadow-xs'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200 hover:text-slate-900 border-slate-200/60'
               }`}
             >
-              <Layers className="w-4 h-4" />
-              <span>{course.title || course.id}</span>
+              {course.title || course.id}
             </button>
           );
         })}
@@ -569,7 +688,7 @@ export default function CurriculumManagementSection() {
                           href={schemeItem.pdfUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 text-cyan-accent hover:underline font-medium max-w-[200px] truncate"
+                          className="inline-flex items-center gap-1.5 text-oxford hover:underline font-medium max-w-[200px] truncate"
                           title={schemeItem.pdfUrl}
                         >
                           <FileText className="w-4 h-4 shrink-0" />
@@ -783,30 +902,77 @@ export default function CurriculumManagementSection() {
               />
             </div>
 
-            {/* PDF File Upload or URL */}
-            <div className="space-y-2 pt-1 border-t border-slate-100">
-              <label className="text-xs font-bold text-slate-700">Upload Syllabus PDF File (Max 15MB)</label>
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    setSchemeFormData({ ...schemeFormData, pdfFile: file, pdfUrl: '' });
-                  }
-                }}
-                className="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-cyan-600 transition-all cursor-pointer"
-              />
+            {/* Syllabus PDF Document Upload */}
+            <div className="pt-2 border-t border-slate-100">
+              <label className="text-xs font-bold text-slate-700 block mb-2">
+                Syllabus PDF Document (Optional)
+              </label>
+              <div className="flex items-center gap-4">
+                <div className={`relative w-20 h-20 rounded-2xl overflow-hidden shrink-0 flex flex-col items-center justify-center transition-all ${
+                  schemeFormData.pdfFile || schemeFormData.pdfUrl
+                    ? 'bg-rose-50 border border-rose-200 text-rose-600 shadow-xs'
+                    : 'bg-slate-100 border border-slate-200 text-slate-400'
+                }`}>
+                  <FileText className={`w-7 h-7 mb-0.5 ${
+                    schemeFormData.pdfFile || schemeFormData.pdfUrl ? 'text-rose-600' : 'text-slate-400 opacity-60'
+                  }`} />
+                  <span className={`text-[10px] font-bold tracking-wider uppercase ${
+                    schemeFormData.pdfFile || schemeFormData.pdfUrl ? 'text-rose-700 font-mono' : 'text-slate-400 font-medium'
+                  }`}>
+                    {schemeFormData.pdfFile || schemeFormData.pdfUrl ? 'PDF FILE' : 'NO PDF'}
+                  </span>
+                </div>
 
-              <div className="text-center text-[10px] text-slate-400 uppercase tracking-widest font-mono">OR External PDF URL</div>
+                <div className="flex flex-col gap-1.5 min-w-0 flex-1">
+                  {(schemeFormData.pdfFile || schemeFormData.pdfUrl) && (
+                    <div className="text-xs font-semibold text-slate-800 truncate" title={schemeFormData.pdfFile?.name || schemeFormData.pdfUrl}>
+                      {schemeFormData.pdfFile ? schemeFormData.pdfFile.name : schemeFormData.pdfUrl.split('/').pop()}
+                    </div>
+                  )}
 
-              <Input
-                type="text"
-                placeholder="https://... or /cvs/syllabus.pdf"
-                value={schemeFormData.pdfUrl}
-                onChange={(e) => setSchemeFormData({ ...schemeFormData, pdfUrl: e.target.value, pdfFile: null })}
-                className="text-xs font-mono"
-              />
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => schemePdfInputRef.current?.click()}
+                      className="text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{schemeFormData.pdfFile || schemeFormData.pdfUrl ? 'Change PDF' : 'Upload PDF'}</span>
+                    </Button>
+
+                    {(schemeFormData.pdfFile || schemeFormData.pdfUrl) && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSchemeFormData({ ...schemeFormData, pdfFile: null, pdfUrl: '' });
+                          if (schemePdfInputRef.current) schemePdfInputRef.current.value = '';
+                        }}
+                        className="text-xs text-rose-600 hover:text-rose-700 font-semibold rounded-xl cursor-pointer"
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+
+                  <input
+                    ref={schemePdfInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (file) {
+                        setSchemeFormData({ ...schemeFormData, pdfFile: file, pdfUrl: '' });
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <p className="text-[11px] text-slate-500">Supports PDF format (Max 15MB).</p>
+                </div>
+              </div>
             </div>
 
             <DialogFooter className="border-t border-slate-100 pt-4 gap-2">
@@ -905,6 +1071,98 @@ export default function CurriculumManagementSection() {
               disabled={isDeletingScheme}
             >
               {isDeletingScheme ? 'Deleting...' : 'Delete Scheme'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ========================================================= */}
+      {/* MODAL 5: REORDER PROGRAMMES SEQUENCE */}
+      {/* ========================================================= */}
+      <Dialog open={isReorderModalOpen} onOpenChange={setIsReorderModalOpen}>
+        <DialogContent className="max-w-xl bg-white border border-slate-200 p-6 rounded-2xl shadow-xl text-slate-900">
+          <DialogHeader className="border-b border-slate-100 pb-3">
+            <DialogTitle className="text-xl font-serif font-bold text-slate-900 flex items-center gap-2">
+              <GripVertical className="w-5 h-5 text-oxford" />
+              <span>Drag &amp; Drop Programme Order</span>
+            </DialogTitle>
+            <DialogDescription className="text-slate-500 text-sm">
+              Click and drag any programme card up or down to set the exact display sequence for the public website.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-2.5 py-4 max-h-[60vh] overflow-y-auto">
+            {orderedCourses.map((c, index) => {
+              const isDragging = draggedIndex === index;
+              const isDragOver = dragOverIndex === index && draggedIndex !== index;
+
+              return (
+                <div
+                  key={c.id}
+                  draggable
+                  onDragStart={(e) => handleModalDragStart(e, index)}
+                  onDragOver={(e) => handleModalDragOver(e, index)}
+                  onDrop={(e) => handleModalDrop(e, index)}
+                  onDragEnd={handleModalDragEnd}
+                  className={`flex items-center justify-between p-3.5 rounded-xl border transition-all cursor-grab active:cursor-grabbing select-none ${
+                    isDragging
+                      ? 'opacity-40 bg-slate-200 border-2 border-dashed border-oxford scale-[0.98]'
+                      : isDragOver
+                      ? 'border-2 border-cyan-500 bg-cyan-50 shadow-md scale-[1.01]'
+                      : 'bg-slate-50 hover:bg-slate-100/90 border-slate-200 shadow-2xs'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="p-1 text-slate-400 hover:text-oxford">
+                      <GripVertical className="w-5 h-5" />
+                    </div>
+                    <div className="w-8 h-8 rounded-lg bg-oxford text-white flex items-center justify-center font-bold font-mono text-xs shrink-0">
+                      #{index + 1}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-900 leading-snug">{c.title}</h4>
+                      <div className="flex items-center gap-2 text-xs text-slate-500 pt-0.5">
+                        <span className="font-semibold text-cyan-700 bg-cyan-50 px-2 py-0.5 rounded border border-cyan-100">
+                          {c.level}
+                        </span>
+                        <span>•</span>
+                        <span>{c.duration}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <span className="text-xs text-slate-400 font-medium hidden sm:inline-block pr-2">
+                    Drag to move
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          <DialogFooter className="border-t border-slate-100 pt-4 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsReorderModalOpen(false)}
+              disabled={savingReorder}
+              className="cursor-pointer"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSaveReorder}
+              disabled={savingReorder}
+              className="bg-oxford hover:bg-slate-800 text-white font-semibold cursor-pointer"
+            >
+              {savingReorder ? (
+                <span className="flex items-center gap-1.5">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>Saving Order...</span>
+                </span>
+              ) : (
+                'Save Sequence'
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>

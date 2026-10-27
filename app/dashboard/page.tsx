@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { sanitizeWebUrl } from '@/lib/url-security';
+import { parseInlineMarkdown as parseSharedInlineMarkdown } from '@/lib/markdown';
 import {
   ShieldCheck,
   LogOut,
@@ -21,7 +22,6 @@ import {
   Users,
   UserPlus,
   Atom,
-  UserCheck,
   KeyRound,
   Lock,
   CheckCircle2,
@@ -31,20 +31,10 @@ import {
   Phone,
   Globe,
   BookOpen,
-  Share2,
   Upload,
-  FileCheck,
-  FilePlus,
   Image as ImageIcon,
-  Download,
   User,
-  Heading,
-  Bold,
-  Italic,
-  List,
-  Quote as QuoteIcon,
   Code,
-  Link as LinkIcon,
   Edit3,
   ChevronUp,
   ChevronDown,
@@ -52,21 +42,27 @@ import {
   Calendar,
   Wrench,
   GripVertical,
-  ArrowUpDown,
   Mail,
   Building2,
   Check,
-  Award,
   Info,
   ArrowRight,
   Settings,
   Newspaper,
-  Sparkles,
   Radio,
+  Briefcase,
+  Tv,
 } from 'lucide-react';
+const AdminStaffManagementSection = dynamic(
+  () => import('@/components/AdminStaffManagementSection'),
+);
+const AdminAlumniManagementSection = dynamic(
+  () => import('@/components/AdminAlumniManagementSection'),
+);
 const AdminFacultyFullManageModal = dynamic(
   () => import('@/components/AdminFacultyFullManageModal'),
 );
+import type { QueuedGalleryImage } from '@/components/EventGallerySection';
 const EventGallerySection = dynamic(() => import('@/components/EventGallerySection'));
 const CurriculumManagementSection = dynamic(
   () => import('@/components/CurriculumManagementSection'),
@@ -89,11 +85,13 @@ const NewsAwardsManagementSection = dynamic(
 const MultiChannelBroadcastModal = dynamic(
   () => import('@/components/MultiChannelBroadcastModal'),
 );
+const TvManagementSection = dynamic(
+  () => import('@/components/TvManagementSection'),
+);
 
 // Import Shadcn UI elements
 import {
   Card,
-  CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
@@ -132,6 +130,7 @@ interface NotificationItem {
   title: string;
   category: string;
   link: string | null;
+  pdfUrl?: string | null;
   content: string | null;
   isActive: boolean;
   date: string;
@@ -144,24 +143,16 @@ interface FacultyItem {
   email: string;
   designation: string | null;
   department: string | null;
+  qualification?: string | null;
+  room?: string | null;
   mustChangePassword: boolean;
   isActive: boolean;
+  isRetired?: boolean;
   sortOrder?: number;
   createdAt: string;
   updatedAt: string;
 }
 
-// Types for Faculty View
-interface FacultyProfile {
-  id: string;
-  name: string;
-  email: string;
-  designation: string | null;
-  department: string | null;
-  mustChangePassword: boolean;
-  isActive: boolean;
-  phone?: string | null;
-}
 
 interface PublicationItem {
   id: string;
@@ -263,6 +254,7 @@ interface StudentItem {
   name: string;
   description: string | null;
   image: string | null;
+  expiryDate?: string | null;
   createdAt: string;
 }
 
@@ -394,59 +386,12 @@ function renderMarkdown(md: string) {
 }
 
 function parseInlineMarkdown(text: string): React.ReactNode {
-  const parts: React.ReactNode[] = [];
-  let remaining = text;
-  let keyIdx = 0;
-
-  while (remaining) {
-    const linkMatch = remaining.match(/^([\s\S]*?)\[([^\]]+)\]\(([^)]+)\)([\s\S]*)$/);
-    if (linkMatch) {
-      const [, before, label, url, after] = linkMatch;
-      if (before) parts.push(parseFormatting(before, keyIdx++));
-      parts.push(
-        <a key={keyIdx++} href={sanitizeWebUrl(url) || '#'} target="_blank" rel="noopener noreferrer" className="text-oxford hover:text-cyan-700 underline font-semibold inline-flex items-center gap-1">
-          <span>{label}</span>
-          <ExternalLink className="w-3.5 h-3.5 opacity-80" />
-        </a>
-      );
-      remaining = after;
-      continue;
-    }
-
-    parts.push(parseFormatting(remaining, keyIdx++));
-    break;
-  }
-
-  return parts;
-}
-
-function parseFormatting(text: string, keyPrefix: number): React.ReactNode {
-  const elements: React.ReactNode[] = [];
-  const regex = /(\*\*|__)(.*?)\1|(\*|_)(.*?)\3|(`)(.*?)\5/g;
-  let lastIndex = 0;
-  let match: RegExpExecArray | null;
-
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) {
-      elements.push(text.substring(lastIndex, match.index));
-    }
-
-    if (match[1]) {
-      elements.push(<strong key={`${keyPrefix}_b_${match.index}`} className="font-bold text-slate-900">{match[2]}</strong>);
-    } else if (match[3]) {
-      elements.push(<em key={`${keyPrefix}_i_${match.index}`} className="italic text-slate-700">{match[4]}</em>);
-    } else if (match[5]) {
-      elements.push(<code key={`${keyPrefix}_c_${match.index}`} className="bg-slate-200 text-oxford px-1.5 py-0.5 rounded font-mono text-xs font-semibold">{match[6]}</code>);
-    }
-
-    lastIndex = regex.lastIndex;
-  }
-
-  if (lastIndex < text.length) {
-    elements.push(text.substring(lastIndex));
-  }
-
-  return elements.length === 1 ? elements[0] : <React.Fragment key={keyPrefix}>{elements}</React.Fragment>;
+  return parseSharedInlineMarkdown(text, {
+    linkClassName: 'text-oxford hover:text-cyan-700 underline font-semibold inline-flex items-center gap-1',
+    strongClassName: 'font-bold text-slate-900',
+    emClassName: 'italic text-slate-700',
+    codeClassName: 'bg-slate-200 text-oxford px-1.5 py-0.5 rounded font-mono text-xs font-semibold',
+  });
 }
 
 interface HeroSlideItem {
@@ -471,11 +416,18 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // ADMIN DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'page-heroes' | 'events' | 'notifications' | 'news-awards' | 'faculty' | 'curriculum' | 'labs' | 'facilities' | 'settings'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'page-heroes' | 'events' | 'tv' | 'notifications' | 'news-awards' | 'faculty' | 'staff' | 'alumni' | 'curriculum' | 'labs' | 'facilities' | 'settings'>('dashboard');
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [deletingNotifId, setDeletingNotifId] = useState<string | null>(null);
+  const [deletingNotifTitle, setDeletingNotifTitle] = useState<string>('');
+  const [isDeletingNotif, setIsDeletingNotif] = useState(false);
+
+  const [deletingFacultyId, setDeletingFacultyId] = useState<string | null>(null);
+  const [deletingFacultyName, setDeletingFacultyName] = useState<string>('');
+  const [isDeletingFaculty, setIsDeletingFaculty] = useState(false);
 
   // Events Management States
   const [eventsList, setEventsList] = useState<any[]>([]);
@@ -494,10 +446,18 @@ export default function UnifiedDashboardPage() {
     removeBrochure: false,
     imageFile: null as File | null,
     imageUrl: '',
+    broadcastToTv: false,
+    tvDuration: 12,
   });
   const [eventSaving, setEventSaving] = useState(false);
   const [eventError, setEventError] = useState<string | null>(null);
   const [eventImagePreview, setEventImagePreview] = useState<string | null>(null);
+  const [eventGalleryFiles, setEventGalleryFiles] = useState<QueuedGalleryImage[]>([]);
+  const [eventSearchTerm, setEventSearchTerm] = useState('');
+  const [eventFilterStatus, setEventFilterStatus] = useState<'all' | 'upcoming' | 'past' | 'tv'>('all');
+  const [deletingEventId, setDeletingEventId] = useState<number | null>(null);
+  const [deletingEventTitle, setDeletingEventTitle] = useState<string>('');
+  const [isDeletingEvent, setIsDeletingEvent] = useState(false);
 
   const fetchEvents = async () => {
     setLoadingEvents(true);
@@ -516,6 +476,7 @@ export default function UnifiedDashboardPage() {
 
   const openEventModal = (ev?: any) => {
     setEventError(null);
+    setEventGalleryFiles([]);
     if (ev) {
       setEditingEvent(ev);
       const startRaw = ev.startDate || ev.date;
@@ -537,6 +498,8 @@ export default function UnifiedDashboardPage() {
         removeBrochure: false,
         imageFile: null,
         imageUrl: ev.image || '',
+        broadcastToTv: Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv),
+        tvDuration: ev.tvDuration ?? ev.tv_duration ?? 12,
       });
       setEventImagePreview(ev.image || null);
     } else {
@@ -553,6 +516,8 @@ export default function UnifiedDashboardPage() {
         removeBrochure: false,
         imageFile: null,
         imageUrl: '',
+        broadcastToTv: true, // Default to true so newly added events can be broadcasted to TV easily
+        tvDuration: 12,
       });
       setEventImagePreview(null);
     }
@@ -563,6 +528,29 @@ export default function UnifiedDashboardPage() {
     setIsEventModalOpen(false);
     setEditingEvent(null);
     setEventImagePreview(null);
+    setEventGalleryFiles([]);
+  };
+
+  const handleToggleTvBroadcast = async (ev: any) => {
+    try {
+      const nextVal = !Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv);
+      const res = await fetch(`/api/events/${ev.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ broadcastToTv: nextVal }),
+      });
+      if (res.ok) {
+        setEventsList((prev) =>
+          prev.map((item) =>
+            item.id === ev.id
+              ? { ...item, broadcastToTv: nextVal, broadcast_to_tv: nextVal }
+              : item
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Failed to toggle TV broadcast status:', err);
+    }
   };
 
   const handleEventSave = async (e: React.FormEvent) => {
@@ -581,8 +569,8 @@ export default function UnifiedDashboardPage() {
       setEventError('Event Start Date & Time is required');
       return;
     }
-    if (!editingEvent && !eventFormData.imageFile && !eventFormData.imageUrl.trim()) {
-      setEventError('Please provide an Image File or Image URL');
+    if (!editingEvent && !eventFormData.imageFile) {
+      setEventError('Please select a Cover Image file');
       return;
     }
 
@@ -601,6 +589,8 @@ export default function UnifiedDashboardPage() {
       }
       formData.append('venue', eventFormData.venue.trim());
       formData.append('apply_link', eventFormData.apply_link.trim());
+      formData.append('broadcastToTv', String(eventFormData.broadcastToTv));
+      formData.append('tvDuration', String(eventFormData.tvDuration));
 
       if (eventFormData.removeBrochure) {
         formData.append('removeBrochure', 'true');
@@ -626,6 +616,34 @@ export default function UnifiedDashboardPage() {
         throw new Error(errData.error || 'Failed to save event');
       }
 
+      const savedData = await res.json();
+      const savedEventId = editingEvent ? editingEvent.id : (savedData?.id ?? savedData?.event?.id);
+
+      // Automatically upload any queued gallery photos in the same unified save flow
+      if (savedEventId && eventGalleryFiles.length > 0) {
+        try {
+          const galleryFormData = new FormData();
+          eventGalleryFiles.forEach((item) => {
+            galleryFormData.append('images', item.file);
+            galleryFormData.append('captions', item.caption || '');
+          });
+
+          const galleryRes = await fetch(`/api/events/${savedEventId}/images`, {
+            method: 'POST',
+            body: galleryFormData,
+          });
+
+          if (!galleryRes.ok) {
+            const galleryErr = await galleryRes.json();
+            console.error('Failed to upload gallery images:', galleryErr);
+            alert(`Event details saved, but some gallery photos failed to upload: ${galleryErr.error || 'Unknown error'}`);
+          }
+        } catch (uploadErr) {
+          console.error('Error uploading gallery photos:', uploadErr);
+          alert('Event details saved, but a network error occurred while uploading gallery photos.');
+        }
+      }
+
       await fetchEvents();
       closeEventModal();
     } catch (err: any) {
@@ -635,26 +653,63 @@ export default function UnifiedDashboardPage() {
     }
   };
 
-  const handleDeleteEvent = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this event?')) return;
-
+  const confirmDeleteEvent = async () => {
+    if (!deletingEventId) return;
+    setIsDeletingEvent(true);
     try {
-      const res = await fetch(`/api/events/${id}`, {
+      const res = await fetch(`/api/events/${deletingEventId}`, {
         method: 'DELETE',
       });
       if (res.ok) {
-        setEventsList((prev) => prev.filter((item) => item.id !== id));
+        setEventsList((prev) => prev.filter((item) => item.id !== deletingEventId));
+        setDeletingEventId(null);
+        setDeletingEventTitle('');
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete event');
       }
     } catch (err) {
       console.error('Failed to delete event:', err);
+    } finally {
+      setIsDeletingEvent(false);
     }
   };
+
+  const filteredEventsList = eventsList.filter((ev) => {
+    const q = eventSearchTerm.trim().toLowerCase();
+    if (q) {
+      const matchesSearch =
+        ev.title.toLowerCase().includes(q) ||
+        (ev.venue && ev.venue.toLowerCase().includes(q)) ||
+        String(ev.id).includes(q);
+      if (!matchesSearch) return false;
+    }
+
+    if (eventFilterStatus === 'tv') {
+      return Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv);
+    }
+
+    if (eventFilterStatus === 'upcoming') {
+      const sRaw = ev.startDate || ev.date;
+      const sDate = sRaw ? new Date(sRaw) : null;
+      return sDate ? sDate >= new Date() : true;
+    }
+
+    if (eventFilterStatus === 'past') {
+      const sRaw = ev.startDate || ev.date;
+      const sDate = sRaw ? new Date(sRaw) : null;
+      return sDate ? sDate < new Date() : false;
+    }
+
+    return true;
+  });
 
   // About Us CMS States
   const [aboutContent, setAboutContent] = useState('');
   const [aboutImageUrl, setAboutImageUrl] = useState('');
   const [aboutImageFile, setAboutImageFile] = useState<File | null>(null);
   const [aboutImagePreview, setAboutImagePreview] = useState<string | null>(null);
+  const aboutFileInputRef = useRef<HTMLInputElement>(null);
   const [aboutActiveTab, setAboutActiveTab] = useState<'write' | 'preview'>('write');
   const [loadingAbout, setLoadingAbout] = useState(false);
   const [savingAbout, setSavingAbout] = useState(false);
@@ -776,6 +831,8 @@ export default function UnifiedDashboardPage() {
   const [heroSaving, setHeroSaving] = useState(false);
   const [heroFormError, setHeroFormError] = useState<string | null>(null);
   const [heroImagePreview, setHeroImagePreview] = useState<string | null>(null);
+  const heroFileInputRef = useRef<HTMLInputElement>(null);
+  const heroFileInputRef2 = useRef<HTMLInputElement>(null);
 
   const fetchHeroSlides = async () => {
     setLoadingHero(true);
@@ -823,6 +880,8 @@ export default function UnifiedDashboardPage() {
     setEditingHeroSlide(null);
     setHeroImagePreview(null);
     setHeroFormError(null);
+    if (heroFileInputRef.current) heroFileInputRef.current.value = '';
+    if (heroFileInputRef2.current) heroFileInputRef2.current.value = '';
   };
 
   const handleHeroSave = async (e: React.FormEvent) => {
@@ -845,7 +904,7 @@ export default function UnifiedDashboardPage() {
     }
 
     if (!editingHeroSlide && !heroFormData.imageFile && !heroFormData.imageUrl.trim()) {
-      setHeroFormError('Please provide an image file or image URL');
+      setHeroFormError('Please upload an image photo for this hero slide');
       return;
     }
 
@@ -955,10 +1014,14 @@ export default function UnifiedDashboardPage() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingNotif, setEditingNotif] = useState<NotificationItem | null>(null);
+  const [actionType, setActionType] = useState<'none' | 'link' | 'pdf'>('none');
   const [formData, setFormData] = useState({
     title: '',
     category: 'General',
     link: '',
+    pdfUrl: '',
+    pdfFile: null as File | null,
+    removePdf: false,
     isActive: true,
   });
   const [saving, setSaving] = useState(false);
@@ -976,7 +1039,10 @@ export default function UnifiedDashboardPage() {
     password: '',
     designation: 'Faculty Member',
     department: 'Department of Physics',
+    qualification: 'Ph.D. in Physics',
+    room: 'Department Building',
     isActive: true,
+    isRetired: false,
     newPredefinedPassword: '',
   });
   const [facultySaving, setFacultySaving] = useState(false);
@@ -1006,6 +1072,8 @@ export default function UnifiedDashboardPage() {
   const [passwordSuccess, setPasswordSuccess] = useState<string | null>(null);
 
   const [phone, setPhone] = useState('');
+  const [qualification, setQualification] = useState('');
+  const [room, setRoom] = useState('');
   const [selectedPlatforms, setSelectedPlatforms] = useState<Set<string>>(new Set());
   const [platformUrls, setPlatformUrls] = useState<Record<string, string>>({});
   const [otherProfiles, setOtherProfiles] = useState<CustomProfileEntry[]>([]);
@@ -1036,6 +1104,7 @@ export default function UnifiedDashboardPage() {
   const [editingStudent, setEditingStudent] = useState<StudentItem | null>(null);
   const [studentName, setStudentName] = useState('');
   const [studentDescription, setStudentDescription] = useState('');
+  const [studentExpiryDate, setStudentExpiryDate] = useState('');
   const [selectedStudentImageFile, setSelectedStudentImageFile] = useState<File | null>(null);
   const [studentImagePreviewUrl, setStudentImagePreviewUrl] = useState<string | null>(null);
   const [deleteStudentImageFlag, setDeleteStudentImageFlag] = useState(false);
@@ -1316,6 +1385,123 @@ export default function UnifiedDashboardPage() {
   };
 
   // -------------------------------------------------------------
+  // DATA FETCH FUNCTIONS
+  // -------------------------------------------------------------
+  const fetchNotifications = async () => {
+    setLoadingNotifs(true);
+    try {
+      const res = await fetch('/api/admin/notifications');
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err);
+    } finally {
+      setLoadingNotifs(false);
+    }
+  };
+
+  const fetchFaculty = async () => {
+    setLoadingFaculty(true);
+    try {
+      const res = await fetch('/api/admin/faculty');
+      if (res.ok) {
+        const data = await res.json();
+        setFacultyList(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch faculty:', err);
+    } finally {
+      setLoadingFaculty(false);
+    }
+  };
+
+  const fetchFacultySelfData = async (userData?: any) => {
+    try {
+      const [profileRes, docRes, descRes, studentsRes, projectsRes, publicationsRes, allFacultyRes] = await Promise.all([
+        fetch('/api/faculty/profile'),
+        fetch('/api/faculty/documents'),
+        fetch('/api/faculty/description'),
+        fetch('/api/faculty/students'),
+        fetch('/api/faculty/projects'),
+        fetch('/api/faculty/publications'),
+        fetch('/api/public/faculty'),
+      ]);
+
+      if (userData?.mustChangePassword) {
+        setShowPasswordModal(true);
+      }
+
+      if (profileRes.ok) {
+        const pData = await profileRes.json();
+        setPhone(pData.phone || userData?.phone || '');
+        setQualification(pData.qualification || userData?.qualification || '');
+        setRoom(pData.room || userData?.room || '');
+
+        const profs = pData.profiles || {};
+        const sel = new Set<string>();
+        const urls: Record<string, string> = {};
+
+        PREDEFINED_PLATFORMS.forEach((p) => {
+          if (profs[p.key]) {
+            sel.add(p.key);
+            urls[p.key] = profs[p.key];
+          }
+        });
+
+        setSelectedPlatforms(sel);
+        setPlatformUrls(urls);
+
+        if (Array.isArray(profs.other)) {
+          setOtherProfiles(
+            profs.other.map((item: any, idx: number) => ({
+              id: `custom_${idx}_${Date.now()}`,
+              name: item.name || '',
+              url: item.url || '',
+            }))
+          );
+        } else {
+          setOtherProfiles([]);
+        }
+      }
+
+      if (docRes.ok) {
+        const dData = await docRes.json();
+        setImagePath(dData.image || null);
+        setCvPath(dData.cv || null);
+      }
+
+      if (descRes.ok) {
+        const descData = await descRes.json();
+        setMarkdownContent(descData.description || '');
+      }
+
+      if (studentsRes.ok) {
+        const stData = await studentsRes.json();
+        setStudentsList(stData);
+      }
+
+      if (projectsRes.ok) {
+        const prData = await projectsRes.json();
+        setProjectsList(prData);
+      }
+
+      if (publicationsRes.ok) {
+        const pubData = await publicationsRes.json();
+        setPublicationsList(pubData);
+      }
+
+      if (allFacultyRes.ok) {
+        const afData = await allFacultyRes.json();
+        setAllDbFaculty(afData.map((f: any) => ({ id: f.id, name: f.name, designation: f.designation })));
+      }
+    } catch (err) {
+      console.error('Failed to load faculty self data:', err);
+    }
+  };
+
+  // -------------------------------------------------------------
   // INITIAL SESSION FETCH
   // -------------------------------------------------------------
   useEffect(() => {
@@ -1355,61 +1541,45 @@ export default function UnifiedDashboardPage() {
     setLoggingOut(true);
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
-      window.location.href = '/login';
+      router.replace('/login');
     } catch {
       setLoggingOut(false);
     }
   };
 
   // -------------------------------------------------------------
-  // ADMIN FETCH & HANDLERS
+  // ADMIN HANDLERS
   // -------------------------------------------------------------
-  const fetchNotifications = async () => {
-    setLoadingNotifs(true);
-    try {
-      const res = await fetch('/api/admin/notifications');
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch notifications:', err);
-    } finally {
-      setLoadingNotifs(false);
-    }
-  };
-
-  const fetchFaculty = async () => {
-    setLoadingFaculty(true);
-    try {
-      const res = await fetch('/api/admin/faculty');
-      if (res.ok) {
-        const data = await res.json();
-        setFacultyList(data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch faculty:', err);
-    } finally {
-      setLoadingFaculty(false);
-    }
-  };
 
   const openModal = (notif?: NotificationItem) => {
     setFormError(null);
     if (notif) {
       setEditingNotif(notif);
+      const initialActionType: 'none' | 'link' | 'pdf' = notif.pdfUrl
+        ? 'pdf'
+        : notif.link
+        ? 'link'
+        : 'none';
+      setActionType(initialActionType);
       setFormData({
         title: notif.title,
         category: notif.category || 'General',
         link: notif.link || '',
+        pdfUrl: notif.pdfUrl || '',
+        pdfFile: null,
+        removePdf: false,
         isActive: notif.isActive,
       });
     } else {
       setEditingNotif(null);
+      setActionType('none');
       setFormData({
         title: '',
         category: 'General',
         link: '',
+        pdfUrl: '',
+        pdfFile: null,
+        removePdf: false,
         isActive: true,
       });
     }
@@ -1437,10 +1607,32 @@ export default function UnifiedDashboardPage() {
         : '/api/admin/notifications';
       const method = editingNotif ? 'PUT' : 'POST';
 
+      const data = new FormData();
+      data.append('title', formData.title.trim());
+      data.append('category', formData.category);
+      data.append('isActive', String(formData.isActive));
+
+      // Mutually exclusive: strictly enforce either Link OR PDF, not both
+      if (actionType === 'link') {
+        data.append('link', formData.link.trim());
+        data.append('removePdf', 'true');
+      } else if (actionType === 'pdf') {
+        data.append('link', '');
+        if (formData.removePdf) {
+          data.append('removePdf', 'true');
+        } else if (formData.pdfFile) {
+          data.append('pdf', formData.pdfFile);
+        } else if (formData.pdfUrl) {
+          data.append('pdfUrl', formData.pdfUrl.trim());
+        }
+      } else {
+        data.append('link', '');
+        data.append('removePdf', 'true');
+      }
+
       const res = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: data,
       });
 
       if (!res.ok) {
@@ -1480,18 +1672,25 @@ export default function UnifiedDashboardPage() {
     }
   };
 
-  const handleDeleteNotification = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this notification?')) return;
-
+  const confirmDeleteNotification = async () => {
+    if (!deletingNotifId) return;
+    setIsDeletingNotif(true);
     try {
-      const res = await fetch(`/api/admin/notifications/${id}`, {
+      const res = await fetch(`/api/admin/notifications/${deletingNotifId}`, {
         method: 'DELETE',
       });
       if (res.ok) {
-        setNotifications((prev) => prev.filter((item) => item.id !== id));
+        setNotifications((prev) => prev.filter((item) => item.id !== deletingNotifId));
+        setDeletingNotifId(null);
+        setDeletingNotifTitle('');
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete notification');
       }
     } catch (err) {
       console.error('Failed to delete notification:', err);
+    } finally {
+      setIsDeletingNotif(false);
     }
   };
 
@@ -1505,7 +1704,10 @@ export default function UnifiedDashboardPage() {
         password: '',
         designation: faculty.designation || 'Faculty Member',
         department: faculty.department || 'Department of Physics',
+        qualification: faculty.qualification || 'Ph.D. in Physics',
+        room: faculty.room || 'Department Building',
         isActive: faculty.isActive,
+        isRetired: Boolean(faculty.isRetired),
         newPredefinedPassword: '',
       });
     } else {
@@ -1516,7 +1718,10 @@ export default function UnifiedDashboardPage() {
         password: '',
         designation: 'Professor',
         department: 'Department of Physics',
+        qualification: 'Ph.D. in Physics',
+        room: 'Department Building',
         isActive: true,
+        isRetired: false,
         newPredefinedPassword: '',
       });
     }
@@ -1560,7 +1765,10 @@ export default function UnifiedDashboardPage() {
         email: facultyFormData.email,
         designation: facultyFormData.designation,
         department: facultyFormData.department,
+        qualification: facultyFormData.qualification,
+        room: facultyFormData.room,
         isActive: facultyFormData.isActive,
+        isRetired: facultyFormData.isRetired,
       };
 
       if (!editingFaculty) {
@@ -1611,18 +1819,48 @@ export default function UnifiedDashboardPage() {
     }
   };
 
-  const handleDeleteFaculty = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this faculty account record?')) return;
-
+  const toggleFacultyRetired = async (faculty: FacultyItem) => {
     try {
-      const res = await fetch(`/api/admin/faculty/${id}`, {
+      const nextRetired = !faculty.isRetired;
+      const res = await fetch(`/api/admin/faculty/${faculty.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          isRetired: nextRetired,
+        }),
+      });
+
+      if (res.ok) {
+        setFacultyList((prev) =>
+          prev.map((item) =>
+            item.id === faculty.id ? { ...item, isRetired: nextRetired } : item
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Failed to toggle faculty retired status:', err);
+    }
+  };
+
+  const confirmDeleteFaculty = async () => {
+    if (!deletingFacultyId) return;
+    setIsDeletingFaculty(true);
+    try {
+      const res = await fetch(`/api/admin/faculty/${deletingFacultyId}`, {
         method: 'DELETE',
       });
       if (res.ok) {
-        setFacultyList((prev) => prev.filter((item) => item.id !== id));
+        setFacultyList((prev) => prev.filter((item) => item.id !== deletingFacultyId));
+        setDeletingFacultyId(null);
+        setDeletingFacultyName('');
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete faculty account');
       }
     } catch (err) {
       console.error('Failed to delete faculty record:', err);
+    } finally {
+      setIsDeletingFaculty(false);
     }
   };
 
@@ -1726,89 +1964,8 @@ export default function UnifiedDashboardPage() {
   };
 
   // -------------------------------------------------------------
-  // FACULTY FETCH & HANDLERS
+  // FACULTY HANDLERS
   // -------------------------------------------------------------
-  const fetchFacultySelfData = async (userData?: any) => {
-    try {
-      const [profileRes, docRes, descRes, studentsRes, projectsRes, publicationsRes, allFacultyRes] = await Promise.all([
-        fetch('/api/faculty/profile'),
-        fetch('/api/faculty/documents'),
-        fetch('/api/faculty/description'),
-        fetch('/api/faculty/students'),
-        fetch('/api/faculty/projects'),
-        fetch('/api/faculty/publications'),
-        fetch('/api/public/faculty'),
-      ]);
-
-      if (userData?.mustChangePassword) {
-        setShowPasswordModal(true);
-      }
-
-      if (profileRes.ok) {
-        const pData = await profileRes.json();
-        setPhone(pData.phone || userData?.phone || '');
-
-        const profs = pData.profiles || {};
-        const sel = new Set<string>();
-        const urls: Record<string, string> = {};
-
-        PREDEFINED_PLATFORMS.forEach((p) => {
-          if (profs[p.key]) {
-            sel.add(p.key);
-            urls[p.key] = profs[p.key];
-          }
-        });
-
-        setSelectedPlatforms(sel);
-        setPlatformUrls(urls);
-
-        if (Array.isArray(profs.other)) {
-          setOtherProfiles(
-            profs.other.map((item: any, idx: number) => ({
-              id: `custom_${idx}_${Date.now()}`,
-              name: item.name || '',
-              url: item.url || '',
-            }))
-          );
-        } else {
-          setOtherProfiles([]);
-        }
-      }
-
-      if (docRes.ok) {
-        const dData = await docRes.json();
-        setImagePath(dData.image || null);
-        setCvPath(dData.cv || null);
-      }
-
-      if (descRes.ok) {
-        const descData = await descRes.json();
-        setMarkdownContent(descData.description || '');
-      }
-
-      if (studentsRes.ok) {
-        const stData = await studentsRes.json();
-        setStudentsList(stData);
-      }
-
-      if (projectsRes.ok) {
-        const prData = await projectsRes.json();
-        setProjectsList(prData);
-      }
-
-      if (publicationsRes.ok) {
-        const pubData = await publicationsRes.json();
-        setPublicationsList(pubData);
-      }
-
-      if (allFacultyRes.ok) {
-        const afData = await allFacultyRes.json();
-        setAllDbFaculty(afData.map((f: any) => ({ id: f.id, name: f.name, designation: f.designation })));
-      }
-    } catch (err) {
-      console.error('Failed to load faculty self data:', err);
-    }
-  };
 
   const handlePasswordChangeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1917,6 +2074,8 @@ export default function UnifiedDashboardPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           phone: phone.trim(),
+          qualification: qualification.trim(),
+          room: room.trim(),
           profiles: profilesPayload,
         }),
       });
@@ -1926,6 +2085,17 @@ export default function UnifiedDashboardPage() {
       if (!res.ok) {
         throw new Error(data.error || 'Failed to update contact & public profiles.');
       }
+
+      setCurrentUser((prev: any) =>
+        prev
+          ? {
+              ...prev,
+              phone: phone.trim(),
+              qualification: qualification.trim(),
+              room: room.trim(),
+            }
+          : prev
+      );
 
       setProfilesSuccess('Contact details and public profiles updated successfully!');
       setTimeout(() => {
@@ -2136,6 +2306,7 @@ export default function UnifiedDashboardPage() {
       setEditingStudent(student);
       setStudentName(student.name);
       setStudentDescription(student.description || '');
+      setStudentExpiryDate(student.expiryDate ? student.expiryDate.slice(0, 10) : '');
       setSelectedStudentImageFile(null);
       setStudentImagePreviewUrl(student.image || null);
       setDeleteStudentImageFlag(false);
@@ -2143,6 +2314,7 @@ export default function UnifiedDashboardPage() {
       setEditingStudent(null);
       setStudentName('');
       setStudentDescription('');
+      setStudentExpiryDate('');
       setSelectedStudentImageFile(null);
       setStudentImagePreviewUrl(null);
       setDeleteStudentImageFlag(false);
@@ -2173,6 +2345,7 @@ export default function UnifiedDashboardPage() {
       const formData = new FormData();
       formData.append('name', studentName.trim());
       formData.append('description', studentDescription.trim());
+      formData.append('expiryDate', studentExpiryDate);
 
       if (selectedStudentImageFile) {
         formData.append('image', selectedStudentImageFile);
@@ -2272,13 +2445,13 @@ export default function UnifiedDashboardPage() {
         <aside className="w-full md:w-80 lg:w-[320px] bg-oxford border-none text-white flex flex-col justify-between shrink-0 h-auto md:h-screen md:sticky md:top-0 p-4 sm:p-5 lg:p-6 shadow-2xl z-40 overflow-hidden">
           {/* Portal Branding Header */}
           <div className="shrink-0 flex items-center gap-3.5 px-2 pt-1 pb-5 border-b border-white/10">
-            <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent shrink-0 shadow-inner">
+            <div className="w-11 h-11 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0 shadow-inner">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <h1 className="text-xl font-bold text-white font-serif leading-tight">Admin Portal</h1>
-                <Badge className="bg-cyan-accent text-oxford font-sans font-bold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded-md">
+                <Badge className="bg-white/15 text-white border border-white/20 font-sans font-bold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded-md">
                   CMS
                 </Badge>
               </div>
@@ -2318,7 +2491,7 @@ export default function UnifiedDashboardPage() {
                   <Sliders className="w-4 h-4" />
                   <span>Home Hero Carousel</span>
                 </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                   {heroSlides.length}/10
                 </Badge>
               </TabsTrigger>
@@ -2331,7 +2504,7 @@ export default function UnifiedDashboardPage() {
                   <ImageIcon className="w-4 h-4" />
                   <span>Page Banners</span>
                 </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                   13 Pages
                 </Badge>
               </TabsTrigger>
@@ -2344,8 +2517,21 @@ export default function UnifiedDashboardPage() {
                   <Calendar className="w-4 h-4" />
                   <span>Events Management</span>
                 </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                   {eventsList.length}
+                </Badge>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="tv"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <Tv className="w-4 h-4" />
+                  <span>TV Signage</span>
+                </div>
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
+                  {eventsList.filter((e) => Boolean(e.broadcastToTv ?? e.broadcast_to_tv)).length} Live
                 </Badge>
               </TabsTrigger>
 
@@ -2357,7 +2543,7 @@ export default function UnifiedDashboardPage() {
                   <Bell className="w-4 h-4" />
                   <span>Notifications</span>
                 </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                   {notifications.length}
                 </Badge>
               </TabsTrigger>
@@ -2380,9 +2566,29 @@ export default function UnifiedDashboardPage() {
                   <Users className="w-4 h-4" />
                   <span>Faculty Accounts</span>
                 </div>
-                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+                <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                   {facultyList.length}
                 </Badge>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="staff"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <Briefcase className="w-4 h-4" />
+                  <span>Office Staff</span>
+                </div>
+              </TabsTrigger>
+
+              <TabsTrigger
+                value="alumni"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <GraduationCap className="w-4 h-4" />
+                  <span>Alumni Management</span>
+                </div>
               </TabsTrigger>
 
               <TabsTrigger
@@ -2459,7 +2665,7 @@ export default function UnifiedDashboardPage() {
                   onClick={() => setIsBroadcastModalOpen(true)}
                   className="flex items-center gap-2 py-3 px-5 font-semibold rounded-xl shadow-xs transition-all text-sm cursor-pointer"
                 >
-                  <Radio className="w-4 h-4 text-cyan-accent" />
+                  <Radio className="w-4 h-4 text-white" />
                   <span>Multi-Channel Broadcast</span>
                 </Button>
               </div>
@@ -2474,7 +2680,7 @@ export default function UnifiedDashboardPage() {
                       <FileText className="w-5 h-5" />
                     </div>
                   </div>
-                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">About Us Page</CardTitle>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">About Us</CardTitle>
                   <CardDescription className="text-sm text-slate-600 leading-normal">
                     Manage department history, research text (Markdown), and top hero background banner image.
                   </CardDescription>
@@ -2485,11 +2691,11 @@ export default function UnifiedDashboardPage() {
                   className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <FileText className="w-4 h-4" />
-                  <span>Manage About Us</span>
+                  <span>About Us</span>
                 </Button>
               </Card>
 
-              {/* Module 2: Hero Carousel */}
+              {/* Module 2: Home Hero Carousel */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2500,7 +2706,7 @@ export default function UnifiedDashboardPage() {
                       {heroSlides.length}/10
                     </span>
                   </div>
-                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Hero Carousel</CardTitle>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Home Hero Carousel</CardTitle>
                   <CardDescription className="text-sm text-slate-600 leading-normal">
                     Manage home page background slides with titles, descriptions, visibility toggles, and reordering.
                   </CardDescription>
@@ -2511,11 +2717,37 @@ export default function UnifiedDashboardPage() {
                   className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <Sliders className="w-4 h-4" />
-                  <span>Manage Hero</span>
+                  <span>Hero Carousel</span>
                 </Button>
               </Card>
 
-              {/* Module 3: Events Management */}
+              {/* Module 3: Page Banners */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <ImageIcon className="w-5 h-5" />
+                    </div>
+                    <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">
+                      13
+                    </span>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Page Banners</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Customize top background banners, badges, titles, and subheadings across all subpages.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('page-heroes')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  <span>Page Banners</span>
+                </Button>
+              </Card>
+
+              {/* Module 4: Events Management */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2537,11 +2769,37 @@ export default function UnifiedDashboardPage() {
                   className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <Calendar className="w-4 h-4" />
-                  <span>Manage Events</span>
+                  <span>Events Management</span>
                 </Button>
               </Card>
 
-              {/* Module 4: Notifications */}
+              {/* Module 5: TV Signage */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <Tv className="w-5 h-5" />
+                    </div>
+                    <span className="text-2xl sm:text-3xl font-bold font-serif text-slate-900">
+                      {eventsList.filter((e) => Boolean(e.broadcastToTv ?? e.broadcast_to_tv)).length}
+                    </span>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">TV Signage</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Control lobby and corridor TV signage broadcast queue, rotation timers, and live ticker previews.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('tv')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <Tv className="w-4 h-4" />
+                  <span>TV Signage</span>
+                </Button>
+              </Card>
+
+              {/* Module 6: Notifications */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2567,7 +2825,30 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
-              {/* Module 5: Faculty Accounts */}
+              {/* Module 7: News & Honors */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <Newspaper className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">News & Honors</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Publish department news stories, press releases, research breakthroughs, faculty and student awards.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('news-awards')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <Newspaper className="w-4 h-4" />
+                  <span>News & Honors</span>
+                </Button>
+              </Card>
+
+              {/* Module 8: Faculty Accounts */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2593,7 +2874,53 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
-              {/* Module 6: Curriculum & Regulations */}
+              {/* Module 9: Office Staff */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <Briefcase className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Office Staff</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Manage administrative and technical staff directory, designations, and contact details.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('staff')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <Briefcase className="w-4 h-4" />
+                  <span>Office Staff</span>
+                </Button>
+              </Card>
+
+              {/* Module 10: Alumni Management */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <GraduationCap className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Alumni Network</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Manage executive committee officers, alumni honors, and sponsored research endowments.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('alumni')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <GraduationCap className="w-4 h-4" />
+                  <span>Alumni Management</span>
+                </Button>
+              </Card>
+
+              {/* Module 10: Curriculum & Regulations */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2616,7 +2943,7 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
-              {/* Module 7: Research Laboratories */}
+              {/* Module 11: Research Laboratories */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2626,7 +2953,7 @@ export default function UnifiedDashboardPage() {
                   </div>
                   <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Research Laboratories</CardTitle>
                   <CardDescription className="text-sm text-slate-600 leading-normal">
-                    Create research laboratory entries, research objectives, hero images, and associated faculty.
+                    Create research laboratory entries, research objectives, hero images, and associated members.
                   </CardDescription>
                 </CardContent>
                 <Button
@@ -2639,7 +2966,7 @@ export default function UnifiedDashboardPage() {
                 </Button>
               </Card>
 
-              {/* Module 8: Facilities Management */}
+              {/* Module 12: Facilities Management */}
               <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
                 <CardContent className="p-0 space-y-3">
                   <div className="flex items-center justify-between">
@@ -2658,30 +2985,7 @@ export default function UnifiedDashboardPage() {
                   className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
                 >
                   <Wrench className="w-4 h-4" />
-                  <span>Central Facilities</span>
-                </Button>
-              </Card>
-
-              {/* Module 9: News & Honors */}
-              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
-                <CardContent className="p-0 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
-                      <Newspaper className="w-5 h-5" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">News & Honors</CardTitle>
-                  <CardDescription className="text-sm text-slate-600 leading-normal">
-                    Publish department news stories, press releases, research breakthroughs, faculty and student awards.
-                  </CardDescription>
-                </CardContent>
-                <Button
-                  variant="default"
-                  onClick={() => setAdminTab('news-awards')}
-                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
-                >
-                  <Newspaper className="w-4 h-4" />
-                  <span>Manage News & Honors</span>
+                  <span>Facilities</span>
                 </Button>
               </Card>
             </div>
@@ -2767,39 +3071,55 @@ export default function UnifiedDashboardPage() {
 
                 <div className="md:col-span-7 space-y-4 font-sans text-sm">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Upload New Photo (PNG, JPG, WebP)
+                    <label className="text-xs font-bold text-slate-700 block mb-2">
+                      Department Photo
                     </label>
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setAboutImageFile(file);
-                          setAboutImagePreview(URL.createObjectURL(file));
-                        }
-                      }}
-                      className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-oxford file:text-white hover:file:bg-oxford/90 cursor-pointer"
-                    />
-                  </div>
+                    <div className="flex flex-col gap-2.5">
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => aboutFileInputRef.current?.click()}
+                          className="text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>{aboutImagePreview ? 'Change Photo' : 'Upload Photo'}</span>
+                        </Button>
 
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                      Or Image URL / Path
-                    </label>
-                    <Input
-                      type="text"
-                      placeholder="/building-black-and-white.webp or https://..."
-                      value={aboutImageUrl}
-                      onChange={(e) => {
-                        setAboutImageUrl(e.target.value);
-                        if (!aboutImageFile) {
-                          setAboutImagePreview(e.target.value || null);
-                        }
-                      }}
-                      className="font-sans text-xs"
-                    />
+                        {aboutImagePreview && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setAboutImageFile(null);
+                              setAboutImageUrl('');
+                              setAboutImagePreview(null);
+                              if (aboutFileInputRef.current) aboutFileInputRef.current.value = '';
+                            }}
+                            className="text-xs text-rose-600 hover:text-rose-700 font-semibold rounded-xl cursor-pointer"
+                          >
+                            Remove
+                          </Button>
+                        )}
+                      </div>
+                      <input
+                        ref={aboutFileInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setAboutImageFile(file);
+                            setAboutImageUrl('');
+                            setAboutImagePreview(URL.createObjectURL(file));
+                          }
+                        }}
+                        className="hidden"
+                      />
+                      <p className="text-[11px] text-slate-500">Supports JPG, PNG, or WebP. Auto-optimized to WebP.</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -3084,7 +3404,7 @@ export default function UnifiedDashboardPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-transparent py-2 rounded-none shadow-none">
               <div>
                 <h2 className="text-3xl font-bold font-serif text-slate-900 flex items-center gap-2">
-                  <Bell className="w-7 h-7 text-cyan-accent" />
+                  <Bell className="w-7 h-7 text-oxford" />
                   <span>Notifications Management</span>
                 </h2>
                 <p className="text-slate-600 text-base mt-1">
@@ -3142,7 +3462,7 @@ export default function UnifiedDashboardPage() {
                       <TableHead className="text-base font-bold">Status</TableHead>
                       <TableHead className="text-base font-bold">Title</TableHead>
                       <TableHead className="text-base font-bold">Category</TableHead>
-                      <TableHead className="text-base font-bold">Redirect Link</TableHead>
+                      <TableHead className="text-base font-bold">Action / Destination</TableHead>
                       <TableHead className="text-base font-bold">Date</TableHead>
                       <TableHead className="text-right text-base font-bold">Actions</TableHead>
                     </TableRow>
@@ -3173,24 +3493,42 @@ export default function UnifiedDashboardPage() {
                           <span className="line-clamp-2">{notif.title}</span>
                         </TableCell>
                         <TableCell className="text-base py-4">
-                          <span className="font-semibold text-base text-cyan-700">
+                          <span className="font-semibold text-base text-oxford">
                             {notif.category}
                           </span>
                         </TableCell>
-                        <TableCell className="text-slate-600 text-base py-4">
-                          {notif.link ? (
-                            <a
-                              href={sanitizeWebUrl(notif.link) || '#'}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 text-base text-cyan-accent hover:underline max-w-[150px] truncate font-medium"
-                            >
-                              <span>{notif.link}</span>
-                              <ExternalLink className="w-3.5 h-3.5 shrink-0" />
-                            </a>
-                          ) : (
-                            <span className="text-base text-slate-400">—</span>
-                          )}
+                        <TableCell className="text-slate-600 text-sm py-4">
+                          <div className="flex flex-col gap-1 items-start">
+                            {notif.pdfUrl && (
+                              <a
+                                href={sanitizeWebUrl(notif.pdfUrl, true) || '#'}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-100 text-xs font-semibold"
+                                title="Open PDF Document"
+                              >
+                                <FileText className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                                <span>PDF Notice</span>
+                                <ExternalLink className="w-3 h-3 shrink-0 opacity-70" />
+                              </a>
+                            )}
+                            {notif.link && (
+                              <a
+                                href={sanitizeWebUrl(notif.link) || '#'}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 text-xs text-oxford hover:underline max-w-[160px] truncate font-medium"
+                                title={notif.link}
+                              >
+                                <Globe className="w-3.5 h-3.5 shrink-0 text-slate-500" />
+                                <span className="truncate">{notif.link}</span>
+                                <ExternalLink className="w-3 h-3 shrink-0 opacity-70" />
+                              </a>
+                            )}
+                            {!notif.pdfUrl && !notif.link && (
+                              <span className="text-base text-slate-400">—</span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-base text-slate-600 whitespace-nowrap font-mono py-4">
                           {new Date(notif.date).toLocaleDateString('en-US', {
@@ -3212,8 +3550,11 @@ export default function UnifiedDashboardPage() {
                           <Button
                             variant="destructive"
                             size="icon"
-                            onClick={() => handleDeleteNotification(notif.id)}
-                            className="h-9 w-9"
+                            onClick={() => {
+                              setDeletingNotifId(notif.id);
+                              setDeletingNotifTitle(notif.title);
+                            }}
+                            className="h-9 w-9 cursor-pointer"
                             title="Delete Notification"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -3375,7 +3716,25 @@ export default function UnifiedDashboardPage() {
                           </TableCell>
 
                           <TableCell className="py-4">
-                            <div className="font-bold text-slate-900">{faculty.name}</div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-slate-900">{faculty.name}</span>
+                              <button
+                                type="button"
+                                onClick={() => toggleFacultyRetired(faculty)}
+                                className="cursor-pointer"
+                                title="Click to toggle Serving / Retired status"
+                              >
+                                {faculty.isRetired ? (
+                                  <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 text-[10px] px-1.5 py-0 font-medium hover:bg-amber-100 transition-colors">
+                                    Retired
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 text-[10px] px-1.5 py-0 font-medium hover:bg-blue-100 transition-colors">
+                                    Serving
+                                  </Badge>
+                                )}
+                              </button>
+                            </div>
                             <div className="text-sm text-slate-500 font-sans">{faculty.designation || 'Faculty Member'}</div>
                           </TableCell>
 
@@ -3409,7 +3768,7 @@ export default function UnifiedDashboardPage() {
                                 Pending Password Reset
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="border-emerald-400 bg-emerald-50 text-emerald-800 font-sans font-medium text-xs">
+                              <Badge variant="outline" className="border-slate-200 bg-slate-100 text-slate-700 font-sans font-medium text-xs">
                                 Password Set & Active
                               </Badge>
                             )}
@@ -3445,7 +3804,10 @@ export default function UnifiedDashboardPage() {
                             <Button
                               variant="destructive"
                               size="icon"
-                              onClick={() => handleDeleteFaculty(faculty.id)}
+                              onClick={() => {
+                                setDeletingFacultyId(faculty.id);
+                                setDeletingFacultyName(faculty.name);
+                              }}
                               className="h-9 w-9 cursor-pointer"
                               title="Delete Faculty Account"
                             >
@@ -3459,6 +3821,16 @@ export default function UnifiedDashboardPage() {
                 </Table>
               )}
             </div>
+          </TabsContent>
+
+          {/* OFFICE STAFF MANAGEMENT TAB */}
+          <TabsContent value="staff" className="space-y-10 animate-fadeIn mt-0">
+            <AdminStaffManagementSection />
+          </TabsContent>
+
+          {/* ALUMNI MANAGEMENT TAB */}
+          <TabsContent value="alumni" className="space-y-10 animate-fadeIn mt-0">
+            <AdminAlumniManagementSection />
           </TabsContent>
 
           {/* EVENTS MANAGEMENT TAB */}
@@ -3495,6 +3867,75 @@ export default function UnifiedDashboardPage() {
               </div>
             </div>
 
+            {/* Search & Filter Bar */}
+            <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 font-sans">
+              <div className="relative flex-1">
+                <Search className="w-5 h-5 absolute left-3.5 top-3.5 text-slate-400" />
+                <Input
+                  type="text"
+                  placeholder="Search events by title, venue, or ID..."
+                  value={eventSearchTerm}
+                  onChange={(e) => setEventSearchTerm(e.target.value)}
+                  className="pl-11 text-base h-12 w-full"
+                />
+              </div>
+
+              {/* Status Filter Buttons */}
+              <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl shrink-0 overflow-x-auto">
+                <button
+                  type="button"
+                  onClick={() => setEventFilterStatus('all')}
+                  className={`px-3 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                    eventFilterStatus === 'all'
+                      ? 'bg-white text-oxford shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  All ({eventsList.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventFilterStatus('upcoming')}
+                  className={`px-3 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                    eventFilterStatus === 'upcoming'
+                      ? 'bg-white text-oxford shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Upcoming ({eventsList.filter((e) => {
+                    const s = e.startDate || e.date;
+                    return s ? new Date(s) >= new Date() : true;
+                  }).length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventFilterStatus('past')}
+                  className={`px-3 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap ${
+                    eventFilterStatus === 'past'
+                      ? 'bg-white text-oxford shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Past ({eventsList.filter((e) => {
+                    const s = e.startDate || e.date;
+                    return s ? new Date(s) < new Date() : false;
+                  }).length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEventFilterStatus('tv')}
+                  className={`px-3 py-2 text-xs font-semibold rounded-lg transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+                    eventFilterStatus === 'tv'
+                      ? 'bg-white text-oxford shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Tv className="w-3.5 h-3.5 text-oxford" />
+                  <span>On TV ({eventsList.filter((e) => Boolean(e.broadcastToTv ?? e.broadcast_to_tv)).length})</span>
+                </button>
+              </div>
+            </div>
+
             <div className="bg-white rounded-2xl border border-slate-200/80 p-6 shadow-sm">
               {eventsList.length === 0 ? (
                 <div className="text-center py-12 space-y-3">
@@ -3504,6 +3945,21 @@ export default function UnifiedDashboardPage() {
                     Create First Event
                   </Button>
                 </div>
+              ) : filteredEventsList.length === 0 ? (
+                <div className="text-center py-12 space-y-3">
+                  <Search className="w-10 h-10 mx-auto text-slate-400" />
+                  <p className="text-base font-semibold text-slate-800">No events matching &ldquo;{eventSearchTerm}&rdquo;</p>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setEventSearchTerm('');
+                      setEventFilterStatus('all');
+                    }}
+                    className="mt-2 text-xs"
+                  >
+                    Clear Search Filter
+                  </Button>
+                </div>
               ) : (
                 <Table className="text-base">
                   <TableHeader>
@@ -3511,13 +3967,14 @@ export default function UnifiedDashboardPage() {
                       <TableHead className="text-base font-bold">Cover Image</TableHead>
                       <TableHead className="text-base font-bold">Event Title & ID</TableHead>
                       <TableHead className="text-base font-bold">Event Date</TableHead>
+                      <TableHead className="text-base font-bold text-center">TV Signage</TableHead>
                       <TableHead className="text-base font-bold">Brochure PDF</TableHead>
                       <TableHead className="text-base font-bold">Apply Link</TableHead>
                       <TableHead className="text-right text-base font-bold">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {eventsList.map((ev) => (
+                    {filteredEventsList.map((ev) => (
                       <TableRow key={ev.id} className="hover:bg-slate-50/40">
                         <TableCell className="py-3">
                           <div className="w-16 h-12 rounded-lg bg-slate-900 overflow-hidden border border-slate-200">
@@ -3527,7 +3984,19 @@ export default function UnifiedDashboardPage() {
 
                         <TableCell className="py-3 max-w-xs">
                           <div className="font-bold text-slate-900 truncate" title={ev.title}>{ev.title}</div>
-                          <div className="text-xs text-slate-500 font-mono">ID: {ev.id}</div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-xs text-slate-500 font-mono">ID: #{ev.id}</span>
+                            <a
+                              href={`/events/${ev.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-[11px] font-sans font-semibold text-oxford hover:underline inline-flex items-center gap-1"
+                              title="View published event on public website"
+                            >
+                              <span>View Live Page</span>
+                              <ExternalLink className="w-2.5 h-2.5 opacity-80" />
+                            </a>
+                          </div>
                         </TableCell>
 
                         <TableCell className="font-mono text-sm text-slate-700 py-3 whitespace-nowrap">
@@ -3543,6 +4012,23 @@ export default function UnifiedDashboardPage() {
                               : null;
                             return eStr ? `${sStr} to ${eStr}` : sStr;
                           })()}
+                        </TableCell>
+
+                        {/* TV Broadcast Toggle */}
+                        <TableCell className="py-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleTvBroadcast(ev)}
+                            title={Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv) ? 'Click to remove from TV display' : 'Click to broadcast to TV display'}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
+                              Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv)
+                                ? 'bg-oxford text-white border-oxford hover:bg-oxford-dark'
+                                : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                            }`}
+                          >
+                            <Tv className="w-3.5 h-3.5" />
+                            <span>{Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv) ? 'Live on TV' : 'Off'}</span>
+                          </button>
                         </TableCell>
 
                         <TableCell className="py-3">
@@ -3582,7 +4068,7 @@ export default function UnifiedDashboardPage() {
                             variant="secondary"
                             size="icon"
                             onClick={() => openEventModal(ev)}
-                            className="h-9 w-9 text-slate-600 hover:text-slate-900"
+                            className="h-9 w-9 text-slate-600 hover:text-slate-900 cursor-pointer"
                             title="Edit Event"
                           >
                             <Edit className="w-4 h-4" />
@@ -3590,8 +4076,11 @@ export default function UnifiedDashboardPage() {
                           <Button
                             variant="destructive"
                             size="icon"
-                            onClick={() => handleDeleteEvent(ev.id)}
-                            className="h-9 w-9"
+                            onClick={() => {
+                              setDeletingEventId(ev.id);
+                              setDeletingEventTitle(ev.title);
+                            }}
+                            className="h-9 w-9 cursor-pointer"
                             title="Delete Event"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -3603,6 +4092,15 @@ export default function UnifiedDashboardPage() {
                 </Table>
               )}
             </div>
+          </TabsContent>
+
+          {/* TV SIGNAGE MANAGEMENT TAB */}
+          <TabsContent value="tv" className="space-y-10 animate-fadeIn mt-0">
+            <TvManagementSection
+              onSwitchToNotifications={() => setAdminTab('notifications')}
+              onSwitchToEvents={() => setAdminTab('events')}
+              onEventEdited={fetchEvents}
+            />
           </TabsContent>
 
           {/* NEWS & AWARDS TAB */}
@@ -3634,7 +4132,7 @@ export default function UnifiedDashboardPage() {
         {/* ADMIN MODALS */}
         {/* Event Create / Edit Modal */}
         <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
-          <DialogContent className="max-w-lg bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[95vw] sm:max-w-4xl lg:max-w-5xl bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[90vh] overflow-y-auto">
             <DialogHeader className="border-b border-slate-100 pb-4">
               <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
                 <Calendar className="w-5 h-5 text-oxford" />
@@ -3682,57 +4180,44 @@ export default function UnifiedDashboardPage() {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700">Event Venue (Optional)</label>
-                <Input
-                  type="text"
-                  placeholder="e.g. Department Auditorium, CUSAT"
-                  value={eventFormData.venue}
-                  onChange={(e) => setEventFormData({ ...eventFormData, venue: e.target.value })}
-                  className="w-full text-sm font-sans"
-                />
-              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-slate-700">Event Venue (Optional)</label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Department Auditorium, CUSAT"
+                    value={eventFormData.venue}
+                    onChange={(e) => setEventFormData({ ...eventFormData, venue: e.target.value })}
+                    className="w-full text-sm font-sans"
+                  />
+                </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700">Apply / Registration URL (Optional)</label>
-                <Input
-                  type="url"
-                  placeholder="https://forms.gle/..."
-                  value={eventFormData.apply_link}
-                  onChange={(e) => setEventFormData({ ...eventFormData, apply_link: e.target.value })}
-                  className="w-full text-sm font-mono"
-                />
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-slate-700">Apply / Registration URL (Optional)</label>
+                  <Input
+                    type="url"
+                    placeholder="https://forms.gle/..."
+                    value={eventFormData.apply_link}
+                    onChange={(e) => setEventFormData({ ...eventFormData, apply_link: e.target.value })}
+                    className="w-full text-sm font-mono"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Cover Image File OR Image URL *</label>
-                <div className="space-y-2">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setEventFormData({ ...eventFormData, imageFile: file, imageUrl: '' });
-                        setEventImagePreview(URL.createObjectURL(file));
-                      }
-                    }}
-                    className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-cyan-accent hover:file:text-oxford transition-all"
-                  />
-
-                  <div className="text-center text-xs text-slate-400 font-sans">OR</div>
-
-                  <Input
-                    type="text"
-                    placeholder="https://images.unsplash.com/..."
-                    value={eventFormData.imageUrl}
-                    onChange={(e) => {
-                      setEventFormData({ ...eventFormData, imageUrl: e.target.value, imageFile: null });
-                      setEventImagePreview(e.target.value);
-                    }}
-                    className="w-full text-xs font-mono"
-                  />
-                </div>
+                <label className="text-sm font-bold text-slate-700">Cover Image *</label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setEventFormData({ ...eventFormData, imageFile: file, imageUrl: '' });
+                      setEventImagePreview(URL.createObjectURL(file));
+                    }
+                  }}
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-oxford-dark transition-all cursor-pointer"
+                />
 
                 {eventImagePreview && (
                   <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-200 mt-2 group">
@@ -3770,41 +4255,22 @@ export default function UnifiedDashboardPage() {
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <input
-                    type="file"
-                    accept="application/pdf,.pdf"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setEventFormData({
-                          ...eventFormData,
-                          brochureFile: file,
-                          brochureUrl: '',
-                          removeBrochure: false,
-                        });
-                      }
-                    }}
-                    className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-oxford-dark transition-all cursor-pointer"
-                  />
-
-                  <div className="text-center text-xs text-slate-400 font-sans">OR PDF URL</div>
-
-                  <Input
-                    type="text"
-                    placeholder="/uploads/events/... or https://..."
-                    value={eventFormData.brochureUrl}
-                    onChange={(e) => {
+                <input
+                  type="file"
+                  accept="application/pdf,.pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
                       setEventFormData({
                         ...eventFormData,
-                        brochureUrl: e.target.value,
-                        brochureFile: null,
+                        brochureFile: file,
+                        brochureUrl: '',
                         removeBrochure: false,
                       });
-                    }}
-                    className="w-full text-xs font-mono"
-                  />
-                </div>
+                    }
+                  }}
+                  className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-oxford-dark transition-all cursor-pointer"
+                />
 
                 {(eventFormData.brochureFile || (eventFormData.brochureUrl && !eventFormData.removeBrochure)) && (
                   <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs text-slate-800 mt-2 font-sans">
@@ -3844,17 +4310,207 @@ export default function UnifiedDashboardPage() {
               </div>
 
               {/* Event Gallery Management Section */}
-              <EventGallerySection eventId={editingEvent ? editingEvent.id : null} />
+              <EventGallerySection
+                eventId={editingEvent ? editingEvent.id : null}
+                queuedFiles={eventGalleryFiles}
+                setQueuedFiles={setEventGalleryFiles}
+              />
+
+              {/* TV Display Broadcasting Options */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 font-sans">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <label className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                      <Tv className="w-4 h-4 text-oxford" />
+                      <span>Broadcast to TV Display (/display)</span>
+                    </label>
+                    <p className="text-xs text-slate-500">
+                      Feature this event on the 16:9 full-screen department TV signage display.
+                    </p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={eventFormData.broadcastToTv}
+                    onChange={(e) => setEventFormData({ ...eventFormData, broadcastToTv: e.target.checked })}
+                    className="w-5 h-5 accent-oxford rounded cursor-pointer"
+                  />
+                </div>
+
+                {eventFormData.broadcastToTv && (
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-3 text-xs">
+                    <span className="text-slate-600 font-medium">Slide Display Duration on TV:</span>
+                    <div className="flex items-center gap-1.5 font-mono">
+                      <input
+                        type="number"
+                        min={5}
+                        max={120}
+                        value={eventFormData.tvDuration}
+                        onChange={(e) => setEventFormData({ ...eventFormData, tvDuration: parseInt(e.target.value, 10) || 12 })}
+                        className="w-16 px-2 py-1 bg-white border border-slate-200 rounded-lg text-center font-bold text-slate-900"
+                      />
+                      <span className="text-slate-500">seconds</span>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
                 <Button variant="outline" type="button" onClick={closeEventModal} className="px-4">
                   Cancel
                 </Button>
                 <Button type="submit" disabled={eventSaving} className="px-5 font-semibold">
-                  {eventSaving ? 'Saving Event...' : editingEvent ? 'Update Event' : 'Create Event'}
+                  {eventSaving
+                    ? eventGalleryFiles.length > 0
+                      ? 'Saving Event & Photos...'
+                      : 'Saving Event...'
+                    : editingEvent
+                    ? 'Update Event'
+                    : 'Create Event'}
                 </Button>
               </DialogFooter>
             </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Event Confirmation Modal */}
+        <Dialog open={deletingEventId !== null} onOpenChange={(open) => { if (!open) setDeletingEventId(null); }}>
+          <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900">
+            <DialogHeader className="border-b border-slate-100 pb-3">
+              <DialogTitle className="text-xl font-bold font-serif text-rose-600 flex items-center gap-2">
+                <Trash2 className="w-5 h-5 text-rose-600" />
+                <span>Confirm Event Deletion</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-2 font-sans text-sm text-slate-600">
+              <p>Are you sure you want to permanently delete this event?</p>
+              <p className="font-bold text-slate-900 bg-slate-50 p-2.5 rounded-xl border border-slate-200 line-clamp-2">
+                &ldquo;{deletingEventTitle}&rdquo;
+              </p>
+              <p className="text-xs text-rose-600">
+                This action will remove the event, its cover image, brochure, and any uploaded highlight gallery photos.
+              </p>
+            </div>
+            <DialogFooter className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 font-sans">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setDeletingEventId(null)}
+                disabled={isDeletingEvent}
+                className="rounded-xl font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                type="button"
+                onClick={confirmDeleteEvent}
+                disabled={isDeletingEvent}
+                className="rounded-xl font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                {isDeletingEvent ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Delete Event</span>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Notification Confirmation Modal */}
+        <Dialog open={deletingNotifId !== null} onOpenChange={(open) => { if (!open) setDeletingNotifId(null); }}>
+          <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900">
+            <DialogHeader className="border-b border-slate-100 pb-3">
+              <DialogTitle className="text-xl font-bold font-serif text-rose-600 flex items-center gap-2">
+                <Trash2 className="w-5 h-5 text-rose-600" />
+                <span>Confirm Notification Deletion</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-2 font-sans text-sm text-slate-600">
+              <p>Are you sure you want to permanently delete this notification announcement?</p>
+              <p className="font-bold text-slate-900 bg-slate-50 p-2.5 rounded-xl border border-slate-200 line-clamp-2">
+                &ldquo;{deletingNotifTitle}&rdquo;
+              </p>
+              <p className="text-xs text-rose-600">This action will remove it from the home page marquee ticker immediately.</p>
+            </div>
+            <DialogFooter className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 font-sans">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setDeletingNotifId(null)}
+                disabled={isDeletingNotif}
+                className="rounded-xl font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                type="button"
+                onClick={confirmDeleteNotification}
+                disabled={isDeletingNotif}
+                className="rounded-xl font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                {isDeletingNotif ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Delete Notification</span>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Faculty Confirmation Modal */}
+        <Dialog open={deletingFacultyId !== null} onOpenChange={(open) => { if (!open) setDeletingFacultyId(null); }}>
+          <DialogContent className="max-w-md bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900">
+            <DialogHeader className="border-b border-slate-100 pb-3">
+              <DialogTitle className="text-xl font-bold font-serif text-rose-600 flex items-center gap-2">
+                <Trash2 className="w-5 h-5 text-rose-600" />
+                <span>Confirm Faculty Deletion</span>
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4 space-y-2 font-sans text-sm text-slate-600">
+              <p>Are you sure you want to delete this faculty member&apos;s account?</p>
+              <p className="font-bold text-slate-900 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                {deletingFacultyName || 'Faculty Member'}
+              </p>
+              <p className="text-xs text-rose-600">
+                This will delete their login credentials and associated research profile from the public directory.
+              </p>
+            </div>
+            <DialogFooter className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 font-sans">
+              <Button
+                variant="outline"
+                type="button"
+                onClick={() => setDeletingFacultyId(null)}
+                disabled={isDeletingFaculty}
+                className="rounded-xl font-semibold text-xs cursor-pointer"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                type="button"
+                onClick={confirmDeleteFaculty}
+                disabled={isDeletingFaculty}
+                className="rounded-xl font-semibold text-xs flex items-center gap-1.5 cursor-pointer"
+              >
+                {isDeletingFaculty ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  <span>Delete Account</span>
+                )}
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 
@@ -3875,7 +4531,12 @@ export default function UnifiedDashboardPage() {
               )}
 
               <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700">Notification Title *</label>
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-bold text-slate-700">Notification Title *</label>
+                  <span className={`text-[11px] font-mono ${formData.title.length > 150 ? 'text-amber-600 font-semibold' : 'text-slate-400'}`}>
+                    {formData.title.length} chars {formData.title.length > 150 ? '(long for marquee)' : '(recommended < 150)'}
+                  </span>
+                </div>
                 <Input
                   type="text"
                   placeholder="e.g. National Physics Seminar 2026 Registration Open"
@@ -3895,24 +4556,172 @@ export default function UnifiedDashboardPage() {
                     <SelectValue placeholder="Select Category" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="General">General</SelectItem>
+                    <SelectItem value="Event">Event</SelectItem>
+                    <SelectItem value="News">News</SelectItem>
+                    <SelectItem value="Notice">Notice</SelectItem>
                     <SelectItem value="Admissions">Admissions</SelectItem>
-                    <SelectItem value="Research">Research & Conferences</SelectItem>
-                    <SelectItem value="Exams">Exams & Timetables</SelectItem>
-                    <SelectItem value="Events">Events & Workshops</SelectItem>
+                    <SelectItem value="Academic">Academic</SelectItem>
+                    <SelectItem value="General">General</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-bold text-slate-700">Destination Link (Optional)</label>
-                <Input
-                  type="url"
-                  placeholder="https://..."
-                  value={formData.link}
-                  onChange={(e) => setFormData({ ...formData, link: e.target.value })}
-                  className="w-full text-base font-mono text-sm"
-                />
+              {/* Notice Action Destination: Mutually Exclusive (Link OR PDF) */}
+              <div className="space-y-3 pt-2 border-t border-slate-100 font-sans">
+                <div>
+                  <label className="text-sm font-bold text-slate-800 block">
+                    Notice Action (Choose At Most One)
+                  </label>
+                  <p className="text-xs text-slate-500">
+                    Choose whether clicking this notice redirects to a webpage or opens a PDF document.
+                  </p>
+                </div>
+
+                {/* 3-way Segmented Control */}
+                <div className="grid grid-cols-3 gap-2 bg-slate-100 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActionType('none');
+                      setFormData({
+                        ...formData,
+                        link: '',
+                        pdfFile: null,
+                        pdfUrl: '',
+                        removePdf: true,
+                      });
+                    }}
+                    className={`py-2 px-3 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                      actionType === 'none'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    None (Text Only)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActionType('link');
+                      setFormData({
+                        ...formData,
+                        pdfFile: null,
+                        pdfUrl: '',
+                        removePdf: true,
+                      });
+                    }}
+                    className={`py-2 px-3 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      actionType === 'link'
+                        ? 'bg-white text-oxford shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Globe className="w-3.5 h-3.5 text-oxford" />
+                    <span>Webpage Link</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActionType('pdf');
+                      setFormData({
+                        ...formData,
+                        link: '',
+                      });
+                    }}
+                    className={`py-2 px-3 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      actionType === 'pdf'
+                        ? 'bg-white text-rose-700 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <FileText className="w-3.5 h-3.5 text-rose-600" />
+                    <span>PDF Document</span>
+                  </button>
+                </div>
+
+                {/* Option: Webpage Link */}
+                {actionType === 'link' && (
+                  <div className="space-y-1.5 p-3.5 bg-blue-50/50 border border-blue-100 rounded-xl">
+                    <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                      <Globe className="w-3.5 h-3.5 text-oxford" />
+                      <span>Webpage Destination URL *</span>
+                    </label>
+                    <Input
+                      type="url"
+                      placeholder="https://..."
+                      value={formData.link}
+                      onChange={(e) => setFormData({ ...formData, link: e.target.value })}
+                      className="w-full text-xs font-mono bg-white"
+                      required
+                    />
+                  </div>
+                )}
+
+                {/* Option: PDF Document */}
+                {actionType === 'pdf' && (
+                  <div className="space-y-2.5 p-3.5 bg-rose-50/40 border border-rose-100 rounded-xl">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                        <FileText className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Upload PDF Notice Document (.pdf) *</span>
+                      </label>
+                      {formData.pdfUrl && !formData.removePdf && (
+                        <a
+                          href={sanitizeWebUrl(formData.pdfUrl, true) || '#'}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-oxford hover:underline flex items-center gap-1 font-semibold"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                          <span>Preview Current PDF</span>
+                        </a>
+                      )}
+                    </div>
+
+                    <input
+                      type="file"
+                      accept="application/pdf,.pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setFormData({
+                            ...formData,
+                            pdfFile: file,
+                            pdfUrl: '',
+                            removePdf: false,
+                            link: '',
+                          });
+                        }
+                      }}
+                      className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-oxford/90 cursor-pointer"
+                    />
+
+                    {(formData.pdfFile || (formData.pdfUrl && !formData.removePdf)) && (
+                      <div className="p-2.5 bg-white border border-rose-200 rounded-xl flex items-center justify-between text-xs text-slate-800 shadow-xs">
+                        <div className="flex items-center gap-2 truncate">
+                          <FileText className="w-4 h-4 text-rose-600 shrink-0" />
+                          <span className="truncate font-semibold text-slate-800">
+                            {formData.pdfFile ? formData.pdfFile.name : formData.pdfUrl}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              pdfFile: null,
+                              pdfUrl: '',
+                              removePdf: true,
+                            })
+                          }
+                          className="text-rose-600 hover:text-rose-800 font-bold ml-2 shrink-0 cursor-pointer"
+                        >
+                          Remove PDF
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
@@ -4024,6 +4833,29 @@ export default function UnifiedDashboardPage() {
                 </div>
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-slate-700">Qualification</label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Ph.D. in Physics"
+                    value={facultyFormData.qualification}
+                    onChange={(e) => setFacultyFormData({ ...facultyFormData, qualification: e.target.value })}
+                    className="w-full text-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-bold text-slate-700">Office Room</label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Department Building"
+                    value={facultyFormData.room}
+                    onChange={(e) => setFacultyFormData({ ...facultyFormData, room: e.target.value })}
+                    className="w-full text-sm"
+                  />
+                </div>
+              </div>
+
               <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
                 <div>
                   <span className="text-sm font-bold text-slate-900 block">Account Active</span>
@@ -4032,6 +4864,17 @@ export default function UnifiedDashboardPage() {
                 <Switch
                   checked={facultyFormData.isActive}
                   onCheckedChange={(checked) => setFacultyFormData({ ...facultyFormData, isActive: checked })}
+                />
+              </div>
+
+              <div className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-200">
+                <div>
+                  <span className="text-sm font-bold text-slate-900 block">Retired Faculty</span>
+                  <span className="text-xs text-slate-500">Place in Retired Faculty section on website</span>
+                </div>
+                <Switch
+                  checked={facultyFormData.isRetired}
+                  onCheckedChange={(checked) => setFacultyFormData({ ...facultyFormData, isRetired: checked })}
                 />
               </div>
 
@@ -4101,39 +4944,71 @@ export default function UnifiedDashboardPage() {
               </div>
 
               {/* Image Input */}
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Upload Image File OR Image URL *</label>
-                <div className="space-y-2">
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        setHeroFormData({ ...heroFormData, imageFile: file });
-                        setHeroImagePreview(URL.createObjectURL(file));
-                      }
-                    }}
-                    className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
-                  />
-                  <div className="text-xs text-slate-400 text-center font-bold font-sans">OR</div>
-                  <Input
-                    type="text"
-                    placeholder="https://images.unsplash.com/... or /uploads/..."
-                    value={heroFormData.imageUrl}
-                    onChange={(e) => {
-                      setHeroFormData({ ...heroFormData, imageUrl: e.target.value, imageFile: null });
-                      setHeroImagePreview(e.target.value);
-                    }}
-                    className="w-full text-xs font-mono"
-                  />
-                </div>
-
-                {heroImagePreview && (
-                  <div className="mt-2 w-full h-24 rounded-xl border border-slate-200 overflow-hidden relative">
-                    <img src={heroImagePreview} alt="Preview" className="w-full h-full object-cover" />
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-2">
+                  Slide Photo <span className="text-rose-500">*</span>
+                </label>
+                <div className="flex items-center gap-4">
+                  <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                    {heroImagePreview ? (
+                      <img
+                        src={heroImagePreview}
+                        alt="Hero Slide Preview"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                        <ImageIcon className="w-6 h-6 mb-1 opacity-50" />
+                        <span className="text-[10px] font-medium">No photo</span>
+                      </div>
+                    )}
                   </div>
-                )}
+
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => heroFileInputRef.current?.click()}
+                        className="text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>{heroImagePreview ? 'Change Photo' : 'Upload Photo'}</span>
+                      </Button>
+
+                      {heroImagePreview && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setHeroFormData({ ...heroFormData, imageFile: null, imageUrl: '' });
+                            setHeroImagePreview(null);
+                            if (heroFileInputRef.current) heroFileInputRef.current.value = '';
+                          }}
+                          className="text-xs text-rose-600 hover:text-rose-700 font-semibold rounded-xl cursor-pointer"
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                    <input
+                      ref={heroFileInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        if (file) {
+                          setHeroFormData({ ...heroFormData, imageFile: file, imageUrl: '' });
+                          setHeroImagePreview(URL.createObjectURL(file));
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <p className="text-[11px] text-slate-500">Supports JPG, PNG, or WebP. Auto-optimized to WebP.</p>
+                  </div>
+                </div>
               </div>
 
               {/* Visibility Status Switch */}
@@ -4193,13 +5068,13 @@ export default function UnifiedDashboardPage() {
       <aside className="w-full md:w-80 lg:w-[320px] bg-oxford border-none text-white flex flex-col justify-between shrink-0 h-auto md:h-screen md:sticky md:top-0 p-4 sm:p-5 lg:p-6 shadow-2xl z-40 font-sans overflow-hidden">
         {/* Portal Branding Header */}
         <div className="shrink-0 flex items-center gap-3.5 px-2 pt-1 pb-5 border-b border-white/10">
-          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-cyan-accent shrink-0 shadow-inner">
-            <Atom className="w-6 h-6 animate-pulse" />
+          <div className="w-12 h-12 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center text-white shrink-0 shadow-inner">
+            <Atom className="w-6 h-6" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold text-white font-serif leading-tight">Faculty Portal</h1>
-              <Badge className="bg-cyan-accent text-oxford font-sans font-bold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded-md">
+              <Badge className="bg-white/15 text-white border border-white/20 font-sans font-bold uppercase tracking-wider text-[10px] px-2 py-0.5 rounded-md">
                 Faculty
               </Badge>
             </div>
@@ -4242,7 +5117,7 @@ export default function UnifiedDashboardPage() {
                 <GraduationCap className="w-4 h-4" />
                 <span>Research Scholars</span>
               </div>
-              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                 {studentsList.length}
               </Badge>
             </TabsTrigger>
@@ -4256,7 +5131,7 @@ export default function UnifiedDashboardPage() {
                 <FlaskConical className="w-4 h-4" />
                 <span>Research Projects</span>
               </div>
-              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                 {projectsList.length}
               </Badge>
             </TabsTrigger>
@@ -4270,7 +5145,7 @@ export default function UnifiedDashboardPage() {
                 <BookOpen className="w-4 h-4" />
                 <span>Publications</span>
               </div>
-              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-cyan-accent bg-white/5 px-2 py-0.5 rounded-md">
+              <Badge variant="outline" className="font-mono text-[11px] border-white/20 text-slate-200 bg-white/5 px-2 py-0.5 rounded-md">
                 {publicationsList.length}
               </Badge>
             </TabsTrigger>
@@ -4286,7 +5161,7 @@ export default function UnifiedDashboardPage() {
             onClick={() => setShowPasswordModal(true)}
             className="w-full bg-white/10 hover:bg-white/20 border border-white/15 text-white flex items-center justify-center gap-2 text-xs font-semibold rounded-xl py-3 cursor-pointer shadow-xs transition-all"
           >
-            <KeyRound className="w-3.5 h-3.5 text-cyan-accent" />
+            <KeyRound className="w-3.5 h-3.5 text-slate-300" />
             <span>Change Password</span>
           </Button>
 
@@ -4434,10 +5309,7 @@ export default function UnifiedDashboardPage() {
           </div>
 
           {/* FACULTY HERO CARD */}
-          <Card className="bg-gradient-to-br from-white via-slate-50/50 to-cyan-50/20 rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 relative overflow-hidden">
-            {/* Subtle decorative background glow */}
-            <div className="absolute -top-24 -right-24 w-72 h-72 bg-cyan-100/40 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -left-24 w-72 h-72 bg-oxford/5 rounded-full blur-3xl pointer-events-none" />
+          <Card className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 relative overflow-hidden">
 
             <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center gap-6 lg:gap-8 justify-between">
               {/* Left: Avatar + Identity */}
@@ -4482,6 +5354,15 @@ export default function UnifiedDashboardPage() {
                       <Building2 className="w-3.5 h-3.5 text-slate-500" />
                       <span>{currentUser?.department || 'Department of Physics'}</span>
                     </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsProfilesModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100 transition-colors cursor-pointer"
+                      title="Click to edit qualification"
+                    >
+                      <GraduationCap className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>{qualification || currentUser?.qualification || 'Add Qualification'}</span>
+                    </button>
                   </div>
 
                   {/* Contact Badges Row */}
@@ -4501,6 +5382,13 @@ export default function UnifiedDashboardPage() {
                     >
                       <Phone className="w-3.5 h-3.5 text-cyan-700" />
                       <span>{phone || 'Add Phone Number'}</span>
+                    </button>
+                    <button
+                      onClick={() => setIsProfilesModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 text-slate-600 hover:text-oxford bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs transition-colors cursor-pointer"
+                    >
+                      <Building2 className="w-3.5 h-3.5 text-cyan-700" />
+                      <span>{room || currentUser?.room || 'Add Office Room'}</span>
                     </button>
                     {cvPath ? (
                       <a
@@ -4549,7 +5437,7 @@ export default function UnifiedDashboardPage() {
                   className="w-full justify-center border-slate-300 text-slate-700 hover:bg-slate-100 font-sans text-xs font-semibold py-2.5 h-auto rounded-xl cursor-pointer"
                 >
                   <Globe className="w-3.5 h-3.5 mr-1.5 text-cyan-700" />
-                  <span>Manage Links</span>
+                  <span>Edit Contact & Profiles</span>
                 </Button>
               </div>
             </div>
@@ -4861,8 +5749,20 @@ export default function UnifiedDashboardPage() {
                       )}
                     </div>
                     <div className="space-y-1 flex-1 pr-6 font-serif">
-                      <p className="text-base font-bold text-slate-900">{st.name}</p>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <p className="text-base font-bold text-slate-900">{st.name}</p>
+                        {st.expiryDate && new Date(st.expiryDate) < new Date() && (
+                          <Badge variant="outline" className="text-[10px] bg-amber-50 text-amber-800 border-amber-200">
+                            Expired
+                          </Badge>
+                        )}
+                      </div>
                       <p className="text-xs text-slate-600 line-clamp-2 font-sans">{st.description || 'Research Scholar'}</p>
+                      {st.expiryDate && (
+                        <p className="text-[10px] text-slate-400 font-sans">
+                          Expiry: {new Date(st.expiryDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </p>
+                      )}
                     </div>
                     <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1">
                       <button onClick={() => openStudentModal(st)} className="p-1 text-slate-500 hover:text-slate-900" title="Edit Scholar">
@@ -4964,7 +5864,12 @@ export default function UnifiedDashboardPage() {
           </div>
 
           <Card className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            {publicationsList.length === 0 ? (
+            {loadingPublications ? (
+              <div className="p-12 text-center text-slate-500 space-y-2">
+                <BookOpen className="w-8 h-8 mx-auto text-slate-400 animate-pulse" />
+                <p className="text-sm font-semibold text-slate-700">Loading publications...</p>
+              </div>
+            ) : publicationsList.length === 0 ? (
               <div className="p-12 text-center text-slate-500 space-y-3">
                 <BookOpen className="w-10 h-10 mx-auto text-slate-400" />
                 <p className="text-base font-semibold text-slate-800">No publications listed yet.</p>
@@ -5162,6 +6067,7 @@ export default function UnifiedDashboardPage() {
                     <TableHead className="text-base font-bold">Cover Image</TableHead>
                     <TableHead className="text-base font-bold">Event Title & ID</TableHead>
                     <TableHead className="text-base font-bold">Event Date</TableHead>
+                    <TableHead className="text-base font-bold text-center">TV Signage</TableHead>
                     <TableHead className="text-base font-bold">Apply Link</TableHead>
                     <TableHead className="text-right text-base font-bold">Actions</TableHead>
                   </TableRow>
@@ -5195,6 +6101,23 @@ export default function UnifiedDashboardPage() {
                         })()}
                       </TableCell>
 
+                      {/* TV Broadcast Toggle */}
+                      <TableCell className="py-3 text-center">
+                        <button
+                          type="button"
+                          onClick={() => handleToggleTvBroadcast(ev)}
+                          title={Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv) ? 'Click to remove from TV display' : 'Click to broadcast to TV display'}
+                          className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer border ${
+                            Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv)
+                              ? 'bg-oxford text-white border-oxford hover:bg-oxford-dark'
+                              : 'bg-slate-50 border-slate-200 text-slate-500 hover:bg-slate-100'
+                          }`}
+                        >
+                          <Tv className="w-3.5 h-3.5" />
+                          <span>{Boolean(ev.broadcastToTv ?? ev.broadcast_to_tv) ? 'Live on TV' : 'Off'}</span>
+                        </button>
+                      </TableCell>
+
                       <TableCell className="py-3">
                         {ev.apply_link ? (
                           <a
@@ -5224,8 +6147,11 @@ export default function UnifiedDashboardPage() {
                         <Button
                           variant="destructive"
                           size="icon"
-                          onClick={() => handleDeleteEvent(ev.id)}
-                          className="h-9 w-9"
+                          onClick={() => {
+                            setDeletingEventId(ev.id);
+                            setDeletingEventTitle(ev.title || 'Untitled Event');
+                          }}
+                          className="h-9 w-9 cursor-pointer"
                           title="Delete Event"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -5517,7 +6443,7 @@ export default function UnifiedDashboardPage() {
           <DialogHeader className="border-b border-slate-100 pb-4">
             <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
               <Globe className="w-5 h-5 text-oxford" />
-              <span>Contact Info & Academic Profiles</span>
+              <span>Contact Info, Qualification & Academic Profiles</span>
             </DialogTitle>
           </DialogHeader>
 
@@ -5533,6 +6459,36 @@ export default function UnifiedDashboardPage() {
                 <span>{profilesSuccess}</span>
               </div>
             )}
+
+            {/* Qualification */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Highest Qualification</label>
+              <div className="relative">
+                <GraduationCap className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Input
+                  type="text"
+                  placeholder="e.g. Ph.D. in Physics"
+                  value={qualification}
+                  onChange={(e) => setQualification(e.target.value)}
+                  className="w-full pl-10 text-sm rounded-xl"
+                />
+              </div>
+            </div>
+
+            {/* Office Room */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block">Office Room / Location</label>
+              <div className="relative">
+                <Building2 className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Input
+                  type="text"
+                  placeholder="e.g. Department Building / Room 204"
+                  value={room}
+                  onChange={(e) => setRoom(e.target.value)}
+                  className="w-full pl-10 text-sm rounded-xl"
+                />
+              </div>
+            </div>
 
             {/* Phone */}
             <div className="space-y-1.5">
@@ -5980,6 +6936,19 @@ export default function UnifiedDashboardPage() {
               />
             </div>
 
+            <div className="space-y-1.5">
+              <label className="text-sm font-bold text-slate-700">Tenure Expiry Date (Optional)</label>
+              <Input
+                type="date"
+                value={studentExpiryDate}
+                onChange={(e) => setStudentExpiryDate(e.target.value)}
+                className="w-full text-sm font-sans"
+              />
+              <p className="text-[11px] text-slate-500 font-sans">
+                After this date, the scholar is hidden from the main Research Scholars directory, but remains listed on your faculty profile.
+              </p>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700">Scholar Photo (Optional)</label>
               <input
@@ -5988,6 +6957,11 @@ export default function UnifiedDashboardPage() {
                 onChange={handleStudentImageSelect}
                 className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
               />
+              {studentImagePreviewUrl && (
+                <div className="relative w-16 h-16 rounded-xl overflow-hidden border border-slate-200 mt-2">
+                  <img src={studentImagePreviewUrl} alt="Scholar preview" className="w-full h-full object-cover" />
+                </div>
+              )}
             </div>
 
             <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
@@ -6200,6 +7174,8 @@ export default function UnifiedDashboardPage() {
                     <SelectItem value="Conference Paper">Conference Paper</SelectItem>
                     <SelectItem value="Book Chapter">Book Chapter</SelectItem>
                     <SelectItem value="Preprint">Preprint</SelectItem>
+                    <SelectItem value="Patent">Patent</SelectItem>
+                    <SelectItem value="Popular Article">Popular Article</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -6254,7 +7230,7 @@ export default function UnifiedDashboardPage() {
 
       {/* Event Create / Edit Modal for Faculty */}
       <Dialog open={isEventModalOpen} onOpenChange={setIsEventModalOpen}>
-        <DialogContent className="max-w-lg bg-white border border-slate-200 p-6 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[95vw] sm:max-w-4xl lg:max-w-5xl bg-white border border-slate-200 p-6 sm:p-8 rounded-2xl shadow-xl font-serif text-slate-900 max-h-[90vh] overflow-y-auto">
           <DialogHeader className="border-b border-slate-100 pb-4">
             <DialogTitle className="text-xl font-bold text-slate-900 font-serif flex items-center gap-2">
               <Calendar className="w-5 h-5 text-oxford" />
@@ -6302,57 +7278,44 @@ export default function UnifiedDashboardPage() {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-slate-700">Event Venue (Optional)</label>
-              <Input
-                type="text"
-                placeholder="e.g. Department Auditorium, CUSAT"
-                value={eventFormData.venue}
-                onChange={(e) => setEventFormData({ ...eventFormData, venue: e.target.value })}
-                className="w-full text-sm font-sans"
-              />
-            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Event Venue (Optional)</label>
+                <Input
+                  type="text"
+                  placeholder="e.g. Department Auditorium, CUSAT"
+                  value={eventFormData.venue}
+                  onChange={(e) => setEventFormData({ ...eventFormData, venue: e.target.value })}
+                  className="w-full text-sm font-sans"
+                />
+              </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-bold text-slate-700">Apply / Registration URL (Optional)</label>
-              <Input
-                type="url"
-                placeholder="https://forms.gle/..."
-                value={eventFormData.apply_link}
-                onChange={(e) => setEventFormData({ ...eventFormData, apply_link: e.target.value })}
-                className="w-full text-sm font-mono"
-              />
+              <div className="space-y-1.5">
+                <label className="text-sm font-bold text-slate-700">Apply / Registration URL (Optional)</label>
+                <Input
+                  type="url"
+                  placeholder="https://forms.gle/..."
+                  value={eventFormData.apply_link}
+                  onChange={(e) => setEventFormData({ ...eventFormData, apply_link: e.target.value })}
+                  className="w-full text-sm font-mono"
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Cover Image File OR Image URL *</label>
-              <div className="space-y-2">
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setEventFormData({ ...eventFormData, imageFile: file, imageUrl: '' });
-                      setEventImagePreview(URL.createObjectURL(file));
-                    }
-                  }}
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-cyan-accent hover:file:text-oxford transition-all"
-                />
-
-                <div className="text-center text-xs text-slate-400 font-sans">OR</div>
-
-                <Input
-                  type="text"
-                  placeholder="https://images.unsplash.com/..."
-                  value={eventFormData.imageUrl}
-                  onChange={(e) => {
-                    setEventFormData({ ...eventFormData, imageUrl: e.target.value, imageFile: null });
-                    setEventImagePreview(e.target.value);
-                  }}
-                  className="w-full text-xs font-mono"
-                />
-              </div>
+              <label className="text-sm font-bold text-slate-700">Cover Image *</label>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setEventFormData({ ...eventFormData, imageFile: file, imageUrl: '' });
+                    setEventImagePreview(URL.createObjectURL(file));
+                  }
+                }}
+                className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-oxford file:text-white hover:file:bg-oxford-dark transition-all cursor-pointer"
+              />
 
               {eventImagePreview && (
                 <div className="relative aspect-[16/9] w-full rounded-xl overflow-hidden bg-slate-900 border border-slate-200 mt-2 group">
@@ -6385,14 +7348,62 @@ export default function UnifiedDashboardPage() {
             </div>
 
             {/* Event Gallery Management Section */}
-            <EventGallerySection eventId={editingEvent ? editingEvent.id : null} />
+            <EventGallerySection
+              eventId={editingEvent ? editingEvent.id : null}
+              queuedFiles={eventGalleryFiles}
+              setQueuedFiles={setEventGalleryFiles}
+            />
+
+            {/* TV Display Broadcasting Options */}
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3 font-sans">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <label className="text-sm font-bold text-slate-800 flex items-center gap-2">
+                    <Tv className="w-4 h-4 text-oxford" />
+                    <span>Broadcast to TV Display (/display)</span>
+                  </label>
+                  <p className="text-xs text-slate-500">
+                    Feature this event on the 16:9 full-screen department TV signage display.
+                  </p>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={eventFormData.broadcastToTv}
+                  onChange={(e) => setEventFormData({ ...eventFormData, broadcastToTv: e.target.checked })}
+                  className="w-5 h-5 accent-oxford rounded cursor-pointer"
+                />
+              </div>
+
+              {eventFormData.broadcastToTv && (
+                <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between gap-3 text-xs">
+                  <span className="text-slate-600 font-medium">Slide Display Duration on TV:</span>
+                  <div className="flex items-center gap-1.5 font-mono">
+                    <input
+                      type="number"
+                      min={5}
+                      max={120}
+                      value={eventFormData.tvDuration}
+                      onChange={(e) => setEventFormData({ ...eventFormData, tvDuration: parseInt(e.target.value, 10) || 12 })}
+                      className="w-16 px-2 py-1 bg-white border border-slate-200 rounded-lg text-center font-bold text-slate-900"
+                    />
+                    <span className="text-slate-500">seconds</span>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <DialogFooter className="pt-4 flex gap-3 justify-end border-t border-slate-100">
               <Button variant="outline" type="button" onClick={closeEventModal} className="px-4">
                 Cancel
               </Button>
               <Button type="submit" disabled={eventSaving} className="px-5 font-semibold">
-                {eventSaving ? 'Saving Event...' : editingEvent ? 'Update Event' : 'Create Event'}
+                {eventSaving
+                  ? eventGalleryFiles.length > 0
+                    ? 'Saving Event & Photos...'
+                    : 'Saving Event...'
+                  : editingEvent
+                  ? 'Update Event'
+                  : 'Create Event'}
               </Button>
             </DialogFooter>
           </form>
@@ -6519,7 +7530,7 @@ export default function UnifiedDashboardPage() {
                         >
                           <span>{fac.name}</span>
                           {isSelected ? (
-                            <CheckCircle2 className="w-3.5 h-3.5 text-cyan-accent" />
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                           ) : (
                             <Plus className="w-3.5 h-3.5 text-slate-400" />
                           )}
@@ -6640,39 +7651,71 @@ export default function UnifiedDashboardPage() {
             </div>
 
             {/* Image Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">Upload Image File OR Image URL / Local Path *</label>
-              <div className="space-y-2">
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      setHeroFormData({ ...heroFormData, imageFile: file });
-                      setHeroImagePreview(URL.createObjectURL(file));
-                    }
-                  }}
-                  className="w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-800 hover:file:bg-slate-200"
-                />
-                <div className="text-xs text-slate-400 text-center font-bold font-sans">OR</div>
-                <Input
-                  type="text"
-                  placeholder="https://images.unsplash.com/... or /uploads/..."
-                  value={heroFormData.imageUrl}
-                  onChange={(e) => {
-                    setHeroFormData({ ...heroFormData, imageUrl: e.target.value, imageFile: null });
-                    setHeroImagePreview(e.target.value);
-                  }}
-                  className="w-full text-xs font-mono"
-                />
-              </div>
-
-              {heroImagePreview && (
-                <div className="mt-2 w-full h-28 rounded-xl border border-slate-200 overflow-hidden relative bg-slate-100">
-                  <img src={heroImagePreview} alt="Preview" className="w-full h-full object-cover" />
+            <div>
+              <label className="text-xs font-bold text-slate-700 block mb-2">
+                Slide Photo <span className="text-rose-500">*</span>
+              </label>
+              <div className="flex items-center gap-4">
+                <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0">
+                  {heroImagePreview ? (
+                    <img
+                      src={heroImagePreview}
+                      alt="Hero Slide Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+                      <ImageIcon className="w-6 h-6 mb-1 opacity-50" />
+                      <span className="text-[10px] font-medium">No photo</span>
+                    </div>
+                  )}
                 </div>
-              )}
+
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => heroFileInputRef2.current?.click()}
+                      className="text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>{heroImagePreview ? 'Change Photo' : 'Upload Photo'}</span>
+                    </Button>
+
+                    {heroImagePreview && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setHeroFormData({ ...heroFormData, imageFile: null, imageUrl: '' });
+                          setHeroImagePreview(null);
+                          if (heroFileInputRef2.current) heroFileInputRef2.current.value = '';
+                        }}
+                        className="text-xs text-rose-600 hover:text-rose-700 font-semibold rounded-xl cursor-pointer"
+                      >
+                        Remove
+                      </Button>
+                    )}
+                  </div>
+                  <input
+                    ref={heroFileInputRef2}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] || null;
+                      if (file) {
+                        setHeroFormData({ ...heroFormData, imageFile: file, imageUrl: '' });
+                        setHeroImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    className="hidden"
+                  />
+                  <p className="text-[11px] text-slate-500">Supports JPG, PNG, or WebP. Auto-optimized to WebP.</p>
+                </div>
+              </div>
             </div>
 
             {/* Visibility Status Switch */}

@@ -1,19 +1,13 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { revalidatePublicPages } from '@/lib/public-cache';
-import { verifyAdminToken, hashPassword } from '@/lib/auth';
-
-async function authenticateAdmin() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token')?.value;
-  if (!token) return null;
-  return verifyAdminToken(token);
-}
+import { hashPassword } from '@/lib/auth';
+import { authenticateAdmin } from '@/lib/api-auth';
 
 // GET /api/admin/faculty/[id] - Fetch full faculty details including profile, docs, description, and students
 export async function GET(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const admin = await authenticateAdmin();
@@ -72,23 +66,29 @@ export async function PUT(
       email,
       designation,
       department,
+      qualification,
+      room,
       phone,
       bio,
       isActive,
+      isRetired,
       newPredefinedPassword,
       profiles,
       description,
     } = body;
 
-    const updateData: any = {};
+    const updateData: Prisma.FacultyUpdateInput = {};
 
     if (name !== undefined) updateData.name = name.trim();
     if (email !== undefined) updateData.email = email.trim().toLowerCase();
     if (designation !== undefined) updateData.designation = designation.trim();
     if (department !== undefined) updateData.department = department.trim();
+    if (qualification !== undefined) updateData.qualification = qualification.trim();
+    if (room !== undefined) updateData.room = room.trim();
     if (phone !== undefined) updateData.phone = phone.trim();
     if (bio !== undefined) updateData.bio = bio.trim();
     if (isActive !== undefined) updateData.isActive = Boolean(isActive);
+    if (isRetired !== undefined) updateData.isRetired = Boolean(isRetired);
 
     // Reset password if requested by Admin
     if (newPredefinedPassword !== undefined) {
@@ -104,7 +104,7 @@ export async function PUT(
     }
 
     // Update main faculty record
-    const updatedFaculty = await prisma.faculty.update({
+    await prisma.faculty.update({
       where: { id },
       data: updateData,
     });
@@ -165,7 +165,7 @@ export async function PUT(
 
 // DELETE /api/admin/faculty/[id]
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const admin = await authenticateAdmin();

@@ -31,6 +31,7 @@ model Notification {
   content   String?
   category  String   @default("General")
   link        String?
+  pdfUrl      String?
   isActive    Boolean  @default(true)
   broadcastId String?
   date        DateTime @default(now())
@@ -46,23 +47,27 @@ model ResearchLab {
   category    String?   @default("Experimental")
   description String    @db.Text
   image       String?
-  faculties   Faculty[] @relation("FacultyResearchLabs")
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  sortOrder   Int       @default(0)
+  faculties   Faculty[]        @relation("FacultyResearchLabs")
+  students    FacultyStudent[] @relation("StudentResearchLabs")
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
-  @@index([createdAt(sort: Desc)])
+  @@index([sortOrder, createdAt(sort: Desc)])
 }
 
 model Facility {
-  id          String    @id @default(uuid())
+  id          String           @id @default(uuid())
   name        String
-  description String    @db.Text
+  description String           @db.Text
   image       String?
-  faculties   Faculty[] @relation("FacultyFacilities")
+  sortOrder   Int              @default(0)
+  faculties   Faculty[]        @relation("FacultyFacilities")
+  students    FacultyStudent[] @relation("StudentFacilities")
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  @@index([createdAt(sort: Desc)])
+  @@index([sortOrder, createdAt(sort: Desc)])
 }
 
 model Faculty {
@@ -73,9 +78,12 @@ model Faculty {
   mustChangePassword Boolean              @default(true)
   designation        String?              @default("Faculty Member")
   department         String?              @default("Department of Physics")
+  qualification      String?              @default("Ph.D. in Physics")
+  room               String?              @default("Department Building")
   phone              String?
   bio                String?
   isActive           Boolean              @default(true)
+  isRetired          Boolean              @default(false)
   sortOrder          Int                  @default(0)
   profile            FacultyProfile?
   documents          FacultyDocument?
@@ -88,7 +96,7 @@ model Faculty {
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
 
-  @@index([isActive, sortOrder, createdAt])
+  @@index([isActive, isRetired, sortOrder, createdAt])
 }
 
 model FacultyProject {
@@ -165,10 +173,13 @@ model FacultyStudent {
   facultyId   String
   faculty     Faculty  @relation(fields: [facultyId], references: [id], onDelete: Cascade)
   name        String
-  description String?  @db.Text
+  description String?   @db.Text
   image       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  expiryDate  DateTime?
+  researchLabs ResearchLab[] @relation("StudentResearchLabs")
+  facilities   Facility[]    @relation("StudentFacilities")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   @@index([facultyId])
 }
@@ -204,11 +215,14 @@ model Event {
   apply_link  String?
   brochure    String?      @map("brochure")
   broadcastId String?      @map("broadcast_id")
+  broadcastToTv Boolean    @default(false) @map("broadcast_to_tv")
+  tvDuration    Int        @default(12) @map("tv_duration")
   createdAt   DateTime     @default(now()) @map("created_at")
   updatedAt   DateTime     @updatedAt @map("updated_at")
   images      EventImage[]
 
   @@index([startDate(sort: Desc)])
+  @@index([broadcastToTv])
   @@map("events")
 }
 
@@ -217,6 +231,7 @@ model EventImage {
   eventId   Int      @map("event_id")
   imagePath String   @map("image_path")
   sortOrder Int      @default(0) @map("sort_order")
+  caption   String?  @map("caption")
   createdAt DateTime @default(now()) @map("created_at")
 
   event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
@@ -236,9 +251,12 @@ model Course {
   eligibility String?            @db.Text
   description String             @db.Text
   highlights  String[]           @default([])
+  sortOrder   Int                @default(0)
   schemes     CurriculumScheme[]
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
+
+  @@index([sortOrder, id])
 }
 
 model CurriculumScheme {
@@ -294,4 +312,70 @@ model News {
   updatedAt   DateTime @updatedAt
 
   @@index([date(sort: Desc), createdAt(sort: Desc)])
+}
+
+model Staff {
+  id          String   @id @default(uuid())
+  name        String
+  designation String
+  email       String?
+  phone       String?
+  room        String?
+  image       String?
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, sortOrder, createdAt])
+  @@map("staff")
+}
+
+model AlumniExecutive {
+  id        String   @id @default(uuid())
+  name      String
+  role      String
+  batch     String?
+  image     String?
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder, createdAt])
+  @@map("alumni_executives")
+}
+
+model AlumniAchievement {
+  id        String   @id @default(uuid())
+  awardName String
+  recipient String
+  batch     String?
+  date      String
+  photo     String?
+  desc      String   @db.Text
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder, createdAt(sort: Desc)])
+  @@map("alumni_achievements")
+}
+
+model AlumniSponsoredProgram {
+  id          String   @id @default(uuid())
+  programName String
+  nature      String   @default("Award") // "Award" | "Donation"
+  date        String
+  photo       String?
+  sponsor     String?
+  desc        String   @db.Text
+  proofUrl    String?  // Uploaded proof document/brochure/letter (PDF or image)
+  isRecurring Boolean  @default(false) // Whether program recurs annually
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([nature, isRecurring, sortOrder, createdAt(sort: Desc)])
+  @@map("alumni_sponsored_programs")
 }

@@ -87,12 +87,16 @@ export async function POST(request: Request) {
       imagePath = relativePath;
     }
 
+    const expiryDateRaw = formData.get('expiryDate') as string | null;
+    const expiryDate = expiryDateRaw && expiryDateRaw.trim() ? new Date(expiryDateRaw.trim()) : null;
+
     const newStudent = await prisma.facultyStudent.create({
       data: {
         facultyId: payload.id,
         name: name.trim(),
         description: description?.trim() || null,
         image: imagePath,
+        expiryDate,
       },
     });
 

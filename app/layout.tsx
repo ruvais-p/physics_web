@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
 import '@/app/globals.css';
 import LayoutWrapper from '@/components/LayoutWrapper';
+import { getProgrammesNavItems } from '@/lib/nav-programmes-server';
+import { DEFAULT_PROGRAMME_ITEMS } from '@/lib/nav-programmes';
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -30,18 +32,25 @@ export const metadata: Metadata = {
   authors: [{ name: 'Department of Physics, CUSAT' }],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  let programmes = DEFAULT_PROGRAMME_ITEMS;
+  try {
+    programmes = await getProgrammesNavItems();
+  } catch (error) {
+    console.error('Error fetching programmes in RootLayout:', error);
+  }
+
   return (
     <html lang="en" className={`${poppins.variable} font-sans`} suppressHydrationWarning>
       <body
         className="min-h-screen flex flex-col bg-surface-canvas text-on-surface font-sans antialiased"
         suppressHydrationWarning
       >
-        <LayoutWrapper>{children}</LayoutWrapper>
+        <LayoutWrapper initialProgrammes={programmes}>{children}</LayoutWrapper>
       </body>
     </html>
   );

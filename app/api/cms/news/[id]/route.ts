@@ -9,20 +9,17 @@ interface Params {
   params: Promise<{ id: string }>;
 }
 
-export async function GET(request: Request, { params }: Params) {
+export async function GET(_request: Request, { params }: Params) {
   try {
     const { id } = await params;
-    const records = await prisma.$queryRaw<any[]>`
-      SELECT id, title, description, image, date, link, "broadcastId", "createdAt", "updatedAt"
-      FROM "News"
-      WHERE id = ${id}
-      LIMIT 1
-    `;
-    if (records.length === 0) {
+    const record = await prisma.news.findUnique({
+      where: { id },
+    });
+    if (!record) {
       return NextResponse.json({ error: 'News item not found' }, { status: 404 });
     }
-    return NextResponse.json(records[0]);
-  } catch (error) {
+    return NextResponse.json(record);
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch news item' }, { status: 500 });
   }
 }
@@ -35,13 +32,12 @@ export async function PUT(request: Request, { params }: Params) {
 
   try {
     const { id } = await params;
-    const existingRecords = await prisma.$queryRaw<any[]>`
-      SELECT * FROM "News" WHERE id = ${id} LIMIT 1
-    `;
-    if (existingRecords.length === 0) {
+    const existing = await prisma.news.findUnique({
+      where: { id },
+    });
+    if (!existing) {
       return NextResponse.json({ error: 'News item not found' }, { status: 404 });
     }
-    const existing = existingRecords[0];
 
     const contentType = request.headers.get('content-type') || '';
     let title = existing.title;
@@ -92,22 +88,28 @@ export async function PUT(request: Request, { params }: Params) {
 
     const newsDate = dateStr ? new Date(dateStr) : new Date();
 
-    await prisma.$queryRaw`
-      UPDATE "News"
-      SET title = ${title}, description = ${description}, image = ${imagePath || null}, date = ${newsDate}, link = ${link}, "updatedAt" = NOW()
-      WHERE id = ${id}
-    `;
+    await prisma.news.update({
+      where: { id },
+      data: {
+        title,
+        description,
+        image: imagePath || null,
+        date: newsDate,
+        link,
+      },
+    });
 
     revalidatePublicPages();
 
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error updating news:', error);
-    return NextResponse.json({ error: error?.message || 'Failed to update news.' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Failed to update news.';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
-export async function DELETE(request: Request, { params }: Params) {
+export async function DELETE(_request: Request, { params }: Params) {
   const user = await getAdminSession();
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized. Admin session required.' }, { status: 401 });
@@ -115,10 +117,12 @@ export async function DELETE(request: Request, { params }: Params) {
 
   try {
     const { id } = await params;
-    await prisma.$queryRaw`DELETE FROM "News" WHERE id = ${id}`;
+    await prisma.news.delete({
+      where: { id },
+    });
     revalidatePublicPages();
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to delete news item.' }, { status: 500 });
   }
 }

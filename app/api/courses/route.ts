@@ -7,6 +7,9 @@ async function verifyAuthorizedUser() {
   return getAdminSession();
 }
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // GET /api/courses - List all courses with curriculum schemes
 export async function GET() {
   try {
@@ -16,10 +19,17 @@ export async function GET() {
           orderBy: { sortOrder: 'asc' },
         },
       },
-      orderBy: { id: 'asc' },
+      orderBy: [{ sortOrder: 'asc' }, { id: 'asc' }],
     });
 
-    return NextResponse.json({ courses });
+    return NextResponse.json(
+      { courses },
+      {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        },
+      }
+    );
   } catch (error) {
     console.error('GET /api/courses error:', error);
     return NextResponse.json({ error: 'Failed to fetch courses' }, { status: 500 });
@@ -35,7 +45,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { id, code, title, level, duration, eligibility, description, highlights } = body;
+    const { id, code, title, level, duration, eligibility, description, highlights, sortOrder } = body;
 
     if (!title || !title.trim()) {
       return NextResponse.json({ error: 'Course Title is required.' }, { status: 400 });
@@ -59,6 +69,11 @@ export async function POST(request: Request) {
       courseId = `c_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
     }
 
+    const totalCourses = await prisma.course.count();
+    const effectiveSortOrder = sortOrder !== undefined && !isNaN(Number(sortOrder))
+      ? Number(sortOrder)
+      : totalCourses + 1;
+
     const newCourse = await prisma.course.create({
       data: {
         id: courseId,
@@ -69,6 +84,7 @@ export async function POST(request: Request) {
         eligibility: eligibility?.trim() || '',
         description: description.trim(),
         highlights: Array.isArray(highlights) ? highlights.filter((h: string) => h && h.trim()) : [],
+        sortOrder: effectiveSortOrder,
       },
       include: {
         schemes: true,

@@ -135,8 +135,8 @@ export async function saveImageAsWebp(
   // Ensure target directory exists
   const resolvedTargetDir = path.isAbsolute(targetDir)
     ? path.resolve(targetDir)
-    : path.resolve(process.cwd(), targetDir);
-  const uploadsRoot = path.resolve(process.cwd(), 'public', 'uploads');
+    : path.resolve(/*turbopackIgnore: true*/ process.cwd(), targetDir);
+  const uploadsRoot = path.resolve(/*turbopackIgnore: true*/ process.cwd(), 'public', 'uploads');
 
   if (resolvedTargetDir !== uploadsRoot && !resolvedTargetDir.startsWith(`${uploadsRoot}${path.sep}`)) {
     throw new Error('Image target must be inside public/uploads.');

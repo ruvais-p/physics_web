@@ -1,16 +1,8 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { revalidatePublicPages } from '@/lib/public-cache';
-import { verifyAdminToken, hashPassword } from '@/lib/auth';
-
-// Utility to verify admin authentication
-async function authenticateAdmin() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get('admin_token')?.value;
-  if (!token) return null;
-  return verifyAdminToken(token);
-}
+import { hashPassword } from '@/lib/auth';
+import { authenticateAdmin } from '@/lib/api-auth';
 
 // GET /api/admin/faculty - List all faculty members
 export async function GET() {
@@ -27,8 +19,11 @@ export async function GET() {
         email: true,
         designation: true,
         department: true,
+        qualification: true,
+        room: true,
         mustChangePassword: true,
         isActive: true,
+        isRetired: true,
         sortOrder: true,
         createdAt: true,
         updatedAt: true,
@@ -52,7 +47,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { name, email, password, designation, department } = body;
+    const { name, email, password, designation, department, qualification, room, isRetired } = body;
 
     // Validate required fields
     if (!name || !name.trim()) {
@@ -95,6 +90,9 @@ export async function POST(request: Request) {
         mustChangePassword: true,
         designation: designation?.trim() || 'Faculty Member',
         department: department?.trim() || 'Department of Physics',
+        qualification: qualification?.trim() || 'Ph.D. in Physics',
+        room: room?.trim() || 'Department Building',
+        isRetired: Boolean(isRetired),
         sortOrder: nextSortOrder,
       },
       select: {
@@ -103,8 +101,11 @@ export async function POST(request: Request) {
         email: true,
         designation: true,
         department: true,
+        qualification: true,
+        room: true,
         mustChangePassword: true,
         isActive: true,
+        isRetired: true,
         sortOrder: true,
         createdAt: true,
       },

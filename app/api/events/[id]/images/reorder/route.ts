@@ -29,16 +29,16 @@ export async function PUT(request: Request, { params }: Params) {
     }
 
     // Perform atomic transaction updating sortOrder for all specified image IDs
-    await (prisma as any).$transaction(
+    await prisma.$transaction(
       imageIds.map((id, index) =>
-        (prisma as any).eventImage.updateMany({
+        prisma.eventImage.updateMany({
           where: { id, eventId },
           data: { sortOrder: index + 1 },
         })
       )
     );
 
-    const updatedImages = await (prisma as any).eventImage.findMany({
+    const updatedImages = await prisma.eventImage.findMany({
       where: { eventId },
       orderBy: { sortOrder: 'asc' },
     });
