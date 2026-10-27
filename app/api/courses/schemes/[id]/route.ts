@@ -16,7 +16,7 @@ async function ensureDirExists() {
 }
 
 async function deletePhysicalFile(relativeWebPath: string | null) {
-  if (!relativeWebPath || relativeWebPath.includes('cv_placeholder.pdf')) return;
+  if (!relativeWebPath || relativeWebPath.includes('placeholder.pdf')) return;
   try {
     await deleteUploadedFile(relativeWebPath, 'curriculum');
   } catch (error) {
@@ -95,7 +95,7 @@ export async function PUT(
       await fs.writeFile(filePath, buffer);
 
       // Remove old file if replacing custom upload
-      if (existingScheme.pdfUrl && !existingScheme.pdfUrl.includes('cv_placeholder.pdf')) {
+      if (existingScheme.pdfUrl && !existingScheme.pdfUrl.includes('placeholder.pdf')) {
         await deletePhysicalFile(existingScheme.pdfUrl);
       }
 
