@@ -59,6 +59,12 @@ export default function ResearchContent({ labs }: ResearchPageData) {
           >
             Facilities
           </Link>
+          <Link
+            href="/centres"
+            className="px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 text-oxford hover:text-cyan-accent hover:bg-slate-50 cursor-pointer"
+          >
+            Associated Centres
+          </Link>
         </div>
       </div>
 
@@ -66,12 +72,6 @@ export default function ResearchContent({ labs }: ResearchPageData) {
         id="labs"
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 pt-10 font-sans"
       >
-        <div className="text-center space-y-3">
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#0B1E36]">
-            Research Laboratories
-          </h2>
-        </div>
-
         {labs.length === 0 ? (
           <EmptyState
             icon={FlaskConical}

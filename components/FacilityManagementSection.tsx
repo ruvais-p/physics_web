@@ -63,6 +63,17 @@ interface FacilityData {
   createdAt?: string;
 }
 
+interface RawFacilityResponse extends Omit<FacilityData, 'students'> {
+  students?: Array<{
+    id?: string;
+    uid?: string;
+    name: string;
+    faculty?: { name: string };
+    supervisor?: string;
+    description?: string | null;
+  }>;
+}
+
 export default function FacilityManagementSection() {
   const [facilities, setFacilities] = useState<FacilityData[]>([]);
   const [facultyList, setFacultyList] = useState<FacultyOption[]>([]);
@@ -204,12 +215,12 @@ export default function FacilityManagementSection() {
       ]);
 
       if (facilitiesRes.ok) {
-        const data = await facilitiesRes.json();
+        const data: RawFacilityResponse[] = await facilitiesRes.json();
         setFacilities(
-          (data || []).map((fac: any) => ({
+          (data || []).map((fac) => ({
             ...fac,
-            students: (fac.students || []).map((s: any) => ({
-              id: s.uid || s.id,
+            students: (fac.students || []).map((s) => ({
+              id: s.uid || s.id || '',
               name: s.name,
               supervisor: s.faculty?.name || s.supervisor,
               description: s.description,
@@ -219,14 +230,14 @@ export default function FacilityManagementSection() {
       }
 
       if (facultyRes.ok) {
-        const fData = await facultyRes.json();
-        setFacultyList(fData.map((f: any) => ({ id: f.id, name: f.name, designation: f.designation })));
+        const fData: FacultyOption[] = await facultyRes.json();
+        setFacultyList(fData.map((f) => ({ id: f.id, name: f.name, designation: f.designation })));
       }
 
       if (scholarsRes.ok) {
-        const sData = await scholarsRes.json();
+        const sData: ScholarOption[] = await scholarsRes.json();
         setScholarList(
-          (sData || []).map((s: any) => ({
+          (sData || []).map((s) => ({
             id: s.id,
             name: s.name,
             supervisor: s.supervisor,
@@ -269,7 +280,7 @@ export default function FacilityManagementSection() {
       imageFile: null,
       imageUrl: facItem.image || '',
       selectedFacultyIds: facItem.faculties ? facItem.faculties.map((f) => f.id) : [],
-      selectedStudentIds: facItem.students ? facItem.students.map((s: any) => s.id || s.uid) : [],
+      selectedStudentIds: facItem.students ? facItem.students.map((s) => s.id) : [],
     });
     setImagePreview(facItem.image || null);
     setIsModalOpen(true);
@@ -338,6 +349,8 @@ export default function FacilityManagementSection() {
 
       if (formData.imageFile) {
         payload.append('image', formData.imageFile);
+      } else if (!imagePreview) {
+        payload.append('removeImage', 'true');
       } else if (formData.imageUrl) {
         payload.append('imageUrl', formData.imageUrl.trim());
       }
@@ -518,24 +531,22 @@ export default function FacilityManagementSection() {
                         onDragOver={(e) => handleDragOver(e, idx)}
                         onDrop={(e) => handleDrop(e, idx)}
                         onDragEnd={handleDragEnd}
-                        className={`transition-all duration-200 select-none ${
-                          isDragging
+                        className={`transition-all duration-200 select-none ${isDragging
                             ? 'opacity-30 bg-slate-200 scale-[0.99] border-2 border-dashed border-oxford'
                             : isDragOver
-                            ? 'border-t-4 border-oxford bg-oxford/10 shadow-lg'
-                            : 'hover:bg-slate-50/60'
-                        }`}
+                              ? 'border-t-4 border-oxford bg-oxford/10 shadow-lg'
+                              : 'hover:bg-slate-50/60'
+                          }`}
                       >
                         {/* Drag Handle & Order Controls */}
                         <TableCell className="py-4 whitespace-nowrap">
                           <div className="flex items-center gap-2">
                             {/* Grip Icon */}
                             <div
-                              className={`p-1 rounded transition-colors ${
-                                searchTerm
+                              className={`p-1 rounded transition-colors ${searchTerm
                                   ? 'opacity-30 cursor-not-allowed text-slate-300'
                                   : 'cursor-grab active:cursor-grabbing text-slate-400 hover:text-oxford hover:bg-slate-200/60'
-                              }`}
+                                }`}
                               title={searchTerm ? 'Clear search filter to reorder' : 'Drag to reorder facility'}
                             >
                               <GripVertical className="w-4 h-4" />
@@ -626,7 +637,7 @@ export default function FacilityManagementSection() {
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-950 transition-all"
                           >
-                            <Eye className="w-3.5 h-3.5" /> View Public Page
+                            <Eye className="w-3.5 h-3.5" /> View Page
                           </a>
                           <Button
                             variant="secondary"
@@ -787,11 +798,10 @@ export default function FacilityManagementSection() {
                         key={fac.id}
                         type="button"
                         onClick={() => toggleFacultySelection(fac.id)}
-                        className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                          isSelected
+                        className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${isSelected
                             ? 'bg-oxford text-white border border-oxford shadow-xs'
                             : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                        }`}
+                          }`}
                       >
                         <span>{fac.name} ({fac.designation || 'Faculty'})</span>
                         {isSelected ? (
@@ -828,11 +838,10 @@ export default function FacilityManagementSection() {
                         key={sch.id}
                         type="button"
                         onClick={() => toggleStudentSelection(sch.id)}
-                        className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer text-left ${
-                          isSelected
+                        className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer text-left ${isSelected
                             ? 'bg-emerald-700 text-white border border-emerald-700 shadow-xs'
                             : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-                        }`}
+                          }`}
                       >
                         <div className="flex flex-col">
                           <span>{sch.name}</span>

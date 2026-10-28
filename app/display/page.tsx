@@ -77,29 +77,61 @@ export default function TvDisplayPage() {
     return () => clearInterval(interval);
   }, []);
 
-  // 2. Fetch Display Feed from API
+  // 2. Fetch Display Feed & Listen via SSE
+  const handleFeedData = useCallback((data: { events?: DisplayEvent[]; notices?: DisplayNotice[] }) => {
+    if (Array.isArray(data.events)) {
+      setEvents(data.events);
+    }
+    if (Array.isArray(data.notices)) {
+      setNotices(data.notices);
+    }
+  }, []);
+
   const fetchFeed = useCallback(async () => {
     try {
       const res = await fetch('/api/display/events', { cache: 'no-store' });
       if (!res.ok) return;
       const data = await res.json();
-      if (Array.isArray(data.events)) {
-        setEvents(data.events);
-      }
-      if (Array.isArray(data.notices)) {
-        setNotices(data.notices);
-      }
+      handleFeedData(data);
     } catch (err) {
       console.error('Failed to fetch TV display events:', err);
     }
-  }, []);
+  }, [handleFeedData]);
 
-  // Initial load + periodic 30s background poll
+  // Initial load + real-time SSE stream with auto-reconnection
   useEffect(() => {
     fetchFeed();
-    const pollInterval = setInterval(fetchFeed, 30000);
-    return () => clearInterval(pollInterval);
-  }, [fetchFeed]);
+
+    let eventSource: EventSource | null = null;
+    try {
+      eventSource = new EventSource('/api/display/stream');
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleFeedData(data);
+        } catch (err) {
+          console.error('Failed to parse TV SSE stream payload:', err);
+        }
+      };
+
+      eventSource.onerror = (err) => {
+        console.warn('TV SSE stream connection lost, reconnecting...', err);
+      };
+    } catch (err) {
+      console.error('Failed to initialize EventSource:', err);
+    }
+
+    // Safety fallback: 60s background poll in case SSE is blocked by network proxy
+    const pollInterval = setInterval(fetchFeed, 60000);
+
+    return () => {
+      if (eventSource) {
+        eventSource.close();
+      }
+      clearInterval(pollInterval);
+    };
+  }, [fetchFeed, handleFeedData]);
 
   // Keep index within bounds if list length changes
   useEffect(() => {

@@ -62,6 +62,12 @@ export default async function FacilitiesPage() {
           <span className="px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide bg-cyan-accent text-white shadow-md">
             Facilities
           </span>
+          <Link
+            href="/centres"
+            className="px-5 sm:px-6 py-2.5 rounded-xl sm:rounded-2xl text-sm sm:text-base font-bold tracking-wide transition-all duration-300 text-oxford hover:text-cyan-accent hover:bg-slate-50 cursor-pointer"
+          >
+            Associated Centres
+          </Link>
         </div>
       </div>
 

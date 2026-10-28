@@ -96,12 +96,15 @@ export async function PUT(
     const description = formData.get('description') as string | null;
     const imageUrlInput = formData.get('imageUrl') as string | null;
     const imageFile = formData.get('image') as File | null;
+    const removeImage = formData.get('removeImage') === 'true';
     const facultyIdsStr = formData.get('facultyIds') as string | null;
     const studentIdsStr = formData.get('studentIds') as string | null;
 
     let newImagePath = existingFacility.image;
 
-    if (imageUrlInput && imageUrlInput.trim() !== '') {
+    if (removeImage) {
+      newImagePath = null;
+    } else if (imageUrlInput && imageUrlInput.trim() !== '') {
       const safeImageUrl = sanitizeWebUrl(imageUrlInput);
       if (!safeImageUrl) {
         return NextResponse.json({ error: 'Image URL must use http, https, or a local path.' }, { status: 400 });
@@ -134,25 +137,8 @@ export async function PUT(
       newImagePath = relativePath;
     }
 
-    let facultyConnectDisconnect: any = {};
-    if (facultyIdsStr !== null) {
-      const facultyIds: string[] = JSON.parse(facultyIdsStr);
-      facultyConnectDisconnect = {
-        faculties: {
-          set: facultyIds.map((fId) => ({ id: fId })),
-        },
-      };
-    }
-
-    let studentConnectDisconnect: any = {};
-    if (studentIdsStr !== null) {
-      const studentIds: string[] = JSON.parse(studentIdsStr);
-      studentConnectDisconnect = {
-        students: {
-          set: studentIds.map((sId) => ({ uid: sId })),
-        },
-      };
-    }
+    const facultyIds = facultyIdsStr !== null ? (JSON.parse(facultyIdsStr) as string[]) : null;
+    const studentIds = studentIdsStr !== null ? (JSON.parse(studentIdsStr) as string[]) : null;
 
     const updatedFacility = await prisma.facility.update({
       where: { id },
@@ -160,8 +146,16 @@ export async function PUT(
         name: name ? name.trim() : existingFacility.name,
         description: description ? description.trim() : existingFacility.description,
         image: newImagePath,
-        ...facultyConnectDisconnect,
-        ...studentConnectDisconnect,
+        ...(facultyIds !== null && {
+          faculties: {
+            set: facultyIds.map((fId) => ({ id: fId })),
+          },
+        }),
+        ...(studentIds !== null && {
+          students: {
+            set: studentIds.map((sId) => ({ uid: sId })),
+          },
+        }),
       },
       include: {
         faculties: {

@@ -15,6 +15,7 @@ function getBreadcrumbHref(segment: string): string {
   if (clean === 'courses' || clean === 'academics' || clean === 'programs') return '/courses';
   if (clean === 'research' || clean === 'research & innovation') return '/research';
   if (clean === 'facilities' || clean === 'central facilities' || clean === 'instrumentation') return '/facilities';
+  if (clean === 'centres' || clean === 'associated centres' || clean === 'research centres') return '/centres';
   if (clean === 'journals' || clean === 'publications') return '/journals';
   if (clean === 'projects' || clean === 'sponsored projects' || clean === 'grants') return '/projects';
   if (clean === 'events' || clean === 'news & events') return '/events';
