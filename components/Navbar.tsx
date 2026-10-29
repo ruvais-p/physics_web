@@ -47,8 +47,9 @@ const NAV_ITEMS: NavItem[] = [
     dropdown: [
       { name: 'Research Laboratories', href: '/research' },
       { name: 'Projects & Grants', href: '/projects' },
-      { name: 'Journals & Publications', href: '/journals' },
+      { name: 'Publications', href: '/journals' },
       { name: 'Facilities', href: '/facilities' },
+      { name: 'Associated Centres', href: '/centres' },
     ],
   },
   {
@@ -88,6 +89,7 @@ const DARK_HERO_ROUTES = [
   '/contact',
   '/alumni',
   '/library',
+  '/centres',
 ];
 
 interface NavbarProps {
@@ -117,7 +119,8 @@ export default function Navbar({ initialProgrammes }: NavbarProps = {}) {
     DARK_HERO_ROUTES.includes(pathname) ||
     pathname.startsWith('/events/') ||
     pathname.startsWith('/research/') ||
-    pathname.startsWith('/facilities/');
+    pathname.startsWith('/facilities/') ||
+    pathname.startsWith('/centres/');
 
   useEffect(() => {
     const handleScroll = () => {

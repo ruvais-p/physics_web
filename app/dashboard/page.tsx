@@ -73,6 +73,9 @@ const ResearchLabManagementSection = dynamic(
 const FacilityManagementSection = dynamic(
   () => import('@/components/FacilityManagementSection'),
 );
+const CentreManagementSection = dynamic(
+  () => import('@/components/CentreManagementSection'),
+);
 const GeneralSettingsSection = dynamic(
   () => import('@/components/GeneralSettingsSection'),
 );
@@ -416,7 +419,7 @@ export default function UnifiedDashboardPage() {
   // -------------------------------------------------------------
   // ADMIN DASHBOARD STATES & HANDLERS
   // -------------------------------------------------------------
-  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'page-heroes' | 'events' | 'tv' | 'notifications' | 'news-awards' | 'faculty' | 'staff' | 'alumni' | 'curriculum' | 'labs' | 'facilities' | 'settings'>('dashboard');
+  const [adminTab, setAdminTab] = useState<'dashboard' | 'about' | 'hero' | 'page-heroes' | 'events' | 'tv' | 'notifications' | 'news-awards' | 'faculty' | 'staff' | 'alumni' | 'curriculum' | 'labs' | 'facilities' | 'centres' | 'settings'>('dashboard');
   const [isBroadcastModalOpen, setIsBroadcastModalOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loadingNotifs, setLoadingNotifs] = useState(false);
@@ -2622,6 +2625,16 @@ export default function UnifiedDashboardPage() {
               </TabsTrigger>
 
               <TabsTrigger
+                value="centres"
+                className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
+              >
+                <div className="flex items-center gap-3.5">
+                  <Building2 className="w-4 h-4" />
+                  <span>Associated Centres</span>
+                </div>
+              </TabsTrigger>
+
+              <TabsTrigger
                 value="settings"
                 className="w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all cursor-pointer text-sm font-semibold text-slate-300 hover:text-white hover:bg-white/10 data-[state=active]:bg-white data-[state=active]:text-oxford data-[state=active]:font-bold data-[state=active]:shadow-lg border-none"
               >
@@ -2986,6 +2999,29 @@ export default function UnifiedDashboardPage() {
                 >
                   <Wrench className="w-4 h-4" />
                   <span>Facilities</span>
+                </Button>
+              </Card>
+
+              {/* Module 13: Associated Centres */}
+              <Card className="bg-transparent border-none rounded-none p-0 flex flex-col justify-between space-y-4 shadow-none group">
+                <CardContent className="p-0 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="w-11 h-11 rounded-xl bg-slate-100 text-slate-700 border border-slate-200 flex items-center justify-center">
+                      <Building2 className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-slate-900 font-serif leading-none">Associated Centres</CardTitle>
+                  <CardDescription className="text-sm text-slate-600 leading-normal">
+                    Manage interdisciplinary research centres, collaborative institutes, external portal links, and faculty in-charge assignments.
+                  </CardDescription>
+                </CardContent>
+                <Button
+                  variant="default"
+                  onClick={() => setAdminTab('centres')}
+                  className="w-full py-3 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer shadow-xs"
+                >
+                  <Building2 className="w-4 h-4" />
+                  <span>Associated Centres</span>
                 </Button>
               </Card>
             </div>
@@ -4121,6 +4157,11 @@ export default function UnifiedDashboardPage() {
           {/* FACILITIES TAB */}
           <TabsContent value="facilities" className="space-y-10 animate-fadeIn mt-0">
             <FacilityManagementSection />
+          </TabsContent>
+
+          {/* ASSOCIATED CENTRES TAB */}
+          <TabsContent value="centres" className="space-y-10 animate-fadeIn mt-0">
+            <CentreManagementSection />
           </TabsContent>
 
           {/* GENERAL SETTINGS TAB */}

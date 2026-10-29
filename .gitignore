@@ -47,4 +47,5 @@ next-env.d.ts
 prisma/*.db
 
 # Runtime uploads can contain personal data (for example faculty CVs).
-/public/uploads/
+/public/uploads/*
+!/public/uploads/.gitkeep

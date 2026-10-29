@@ -100,6 +100,13 @@ export const DEFAULT_PAGE_HEROES: Record<string, PageHeroConfig> = {
     subtitle: '',
     image: '/campus.jpg',
   },
+  centres: {
+    pageKey: 'centres',
+    pageName: 'Associated Centres',
+    title: 'ASSOCIATED RESEARCH CENTRES',
+    subtitle: '',
+    image: '/campus.jpg',
+  },
 };
 
 export async function getPageHero(pageKey: string): Promise<{

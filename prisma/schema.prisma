@@ -70,6 +70,20 @@ model Facility {
   @@index([sortOrder, createdAt(sort: Desc)])
 }
 
+model AssociatedCentre {
+  id          String           @id @default(uuid())
+  name        String
+  description String           @db.Text
+  image       String?
+  website     String?
+  sortOrder   Int              @default(0)
+  faculties   Faculty[]        @relation("FacultyAssociatedCentres")
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([sortOrder, createdAt(sort: Desc)])
+}
+
 model Faculty {
   id                 String               @id @default(uuid())
   name               String
@@ -93,6 +107,7 @@ model Faculty {
   publications       FacultyPublication[]
   researchLabs       ResearchLab[]        @relation("FacultyResearchLabs")
   facilities         Facility[]           @relation("FacultyFacilities")
+  associatedCentres  AssociatedCentre[]   @relation("FacultyAssociatedCentres")
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
 
@@ -176,9 +191,9 @@ model FacultyStudent {
   description String?   @db.Text
   image       String?
   expiryDate  DateTime?
-  researchLabs ResearchLab[] @relation("StudentResearchLabs")
-  facilities   Facility[]    @relation("StudentFacilities")
-  createdAt    DateTime      @default(now())
+  researchLabs      ResearchLab[]      @relation("StudentResearchLabs")
+  facilities        Facility[]         @relation("StudentFacilities")
+  createdAt         DateTime           @default(now())
   updatedAt    DateTime      @updatedAt
 
   @@index([facultyId])

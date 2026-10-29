@@ -105,6 +105,7 @@ export default function Footer({ initialProgrammes }: FooterProps = {}) {
                 { label: 'Faculty & Scholars', href: '/people' },
                 { label: 'Research & Labs', href: '/research' },
                 { label: 'Facilities', href: '/facilities' },
+                { label: 'Associated Centres', href: '/centres' },
                 { label: 'Department Library', href: '/library' },
                 { label: 'Global Alumni', href: '/alumni' },
                 { label: 'Publications & Journals', href: '/journals' },

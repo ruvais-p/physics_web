@@ -1,0 +1,50 @@
+# Dependency directories
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Git metadata
+.git/
+.gitignore
+
+# Environment files and secrets
+.env
+.env*.local
+.env.development
+.env.production
+.env.test
+*.pem
+*.key
+
+# Editor and IDE directories
+.vscode/
+.idea/
+
+# TypeScript cache
+*.tsbuildinfo
+next-env.d.ts
+
+# Debug and runtime logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Database local files
+*.db
+*.db-journal
+prisma/*.db
+
+# Runtime uploads (stored in persistent volumes)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Docker files
+Dockerfile*
+docker-compose*.yml

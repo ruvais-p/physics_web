@@ -32,9 +32,6 @@ export default function AboutPageClient({
       {/* Main Content Area: Simplified, Clean, left-aligned, large text */}
       <section className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 py-16">
         <div className="max-w-4xl space-y-8 text-left">
-          {/* Section Heading */}
-
-
           <div className="space-y-6">
             {renderMarkdown(aboutData?.content || '')}
 
@@ -46,22 +43,31 @@ export default function AboutPageClient({
                 </h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pt-2">
                 {/* Research Card */}
                 <Link
                   href="/research"
                   className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-slate-50 hover:bg-white border border-slate-200/90 hover:border-cyan-500/50 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
                 >
-                  <div className="space-y-2">
-                    <h4 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-dark transition-colors">
-                      Research &amp; Labs
-                    </h4>
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                      Pioneering breakthroughs in quantum materials, photonics, and condensed matter physics.
-                    </p>
-                  </div>
+                  <h4 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-dark transition-colors">
+                    Research &amp; Labs
+                  </h4>
                   <div className="pt-6 flex items-center gap-2 text-xs sm:text-sm font-bold text-oxford group-hover:text-cyan-dark transition-colors">
                     <span>Explore Laboratories</span>
+                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </Link>
+
+                {/* Associated Centres Card */}
+                <Link
+                  href="/centres"
+                  className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-slate-50 hover:bg-white border border-slate-200/90 hover:border-cyan-500/50 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
+                >
+                  <h4 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-dark transition-colors">
+                    Associated Centres
+                  </h4>
+                  <div className="pt-6 flex items-center gap-2 text-xs sm:text-sm font-bold text-oxford group-hover:text-cyan-dark transition-colors">
+                    <span>Explore Centres</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </div>
                 </Link>
@@ -71,14 +77,9 @@ export default function AboutPageClient({
                   href="/people"
                   className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-slate-50 hover:bg-white border border-slate-200/90 hover:border-cyan-500/50 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
                 >
-                  <div className="space-y-2">
-                    <h4 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-dark transition-colors">
-                      Faculty &amp; Scholars
-                    </h4>
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                      Distinguished faculty, principal investigators, and passionate Ph.D. research scholars.
-                    </p>
-                  </div>
+                  <h4 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-dark transition-colors">
+                    Faculty &amp; Scholars
+                  </h4>
                   <div className="pt-6 flex items-center gap-2 text-xs sm:text-sm font-bold text-oxford group-hover:text-cyan-dark transition-colors">
                     <span>Meet Our People</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -90,14 +91,9 @@ export default function AboutPageClient({
                   href="/events"
                   className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-slate-50 hover:bg-white border border-slate-200/90 hover:border-cyan-500/50 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden"
                 >
-                  <div className="space-y-2">
-                    <h4 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-dark transition-colors">
-                      News &amp; Events
-                    </h4>
-                    <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                      Memorial lectures, conferences, hands-on workshops, and national symposiums.
-                    </p>
-                  </div>
+                  <h4 className="font-serif text-xl font-bold text-oxford group-hover:text-cyan-dark transition-colors">
+                    News &amp; Events
+                  </h4>
                   <div className="pt-6 flex items-center gap-2 text-xs sm:text-sm font-bold text-oxford group-hover:text-cyan-dark transition-colors">
                     <span>View Upcoming Events</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

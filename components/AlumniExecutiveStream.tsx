@@ -125,7 +125,7 @@ export default function AlumniExecutiveStream({
           >
             {duplicatedMembers.map((member, idx) => {
               const badge = getRoleBadgeStyle(member.role);
-              const photoSrc = member.image || '/avatar-placeholder.png';
+              const photoSrc = member.image || '/faculty.png';
               return (
                 <article
                   key={`${member.id}-${idx}`}
