@@ -26,18 +26,32 @@ export default function NotificationsTicker({
 
   return (
     <section className="w-full relative z-20">
-      <div className="w-full bg-white border-y border-slate-200/80 shadow-md px-6 sm:px-12 lg:px-16 py-3.5 sm:py-4 flex items-center gap-4 overflow-hidden">
-        {/* Badge */}
-        <div className="flex items-center space-x-2 shrink-0 bg-heritage-red border border-heritage-red px-3.5 py-2 rounded-lg text-white z-10 shadow-sm transition-transform duration-200 hover:-translate-y-0.5">
+      <div className="w-full bg-white border-y border-slate-200/80 shadow-md px-3 sm:px-8 lg:px-16 py-2.5 sm:py-3.5 flex items-center gap-3 sm:gap-4 overflow-hidden">
+        {/* Mobile: Small Red Bell Icon */}
+        <Link
+          href="/announcements"
+          className="flex sm:hidden items-center shrink-0 p-1 text-heritage-red hover:opacity-80 transition-opacity"
+          title="Announcements"
+          aria-label="Announcements"
+        >
+          <Bell className="w-4 h-4 text-heritage-red fill-heritage-red/20" />
+        </Link>
+
+        {/* Desktop / Tablet: Full Red Badge */}
+        <Link
+          href="/announcements"
+          className="hidden sm:flex items-center space-x-2 shrink-0 bg-heritage-red border border-heritage-red px-3.5 py-2 rounded-lg text-white z-10 shadow-sm transition-transform duration-200 hover:-translate-y-0.5"
+          title="View all announcements"
+        >
           <Bell className="w-4 h-4 text-white fill-white/20" />
-          <span className="text-xs sm:text-sm font-extrabold uppercase tracking-wider whitespace-nowrap font-sans">
+          <span className="text-sm font-extrabold uppercase tracking-wider whitespace-nowrap font-sans">
             Announcements
           </span>
-        </div>
+        </Link>
 
         {/* Running Continuous Marquee Ticker */}
         <div className="overflow-hidden whitespace-nowrap flex-1 py-1 relative">
-          <div className="animate-marquee inline-flex space-x-16 items-center text-slate-800 font-sans text-base">
+          <div className="animate-marquee inline-flex space-x-8 sm:space-x-16 items-center text-slate-800 font-sans text-sm sm:text-base">
             {repeatedList.map((item, idx) => (
               <Link
                 key={`notif-${item.id}-${idx}`}

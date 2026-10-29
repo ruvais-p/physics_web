@@ -6,7 +6,7 @@ import { renderMarkdownText } from '@/lib/markdown';
 // Markdown Parser Helper Function
 function renderMarkdown(md: string) {
   return renderMarkdownText(md, 'No About Us content available yet.', {
-    paragraphClassName: 'text-base sm:text-lg lg:text-[20px] text-slate-700 leading-relaxed lg:leading-[1.75] font-sans font-normal text-justify my-5',
+    paragraphClassName: 'text-base sm:text-lg lg:text-[20px] text-slate-700 leading-relaxed lg:leading-[1.75] font-sans font-normal text-left sm:text-justify my-4 sm:my-5',
   });
 }
 
@@ -30,7 +30,7 @@ export default function AboutPageClient({
       />
 
       {/* Main Content Area: Simplified, Clean, left-aligned, large text */}
-      <section className="max-w-6xl mx-auto px-6 sm:px-12 lg:px-20 py-16">
+      <section className="max-w-6xl mx-auto px-4 sm:px-12 lg:px-20 py-10 sm:py-16">
         <div className="max-w-4xl space-y-8 text-left">
           <div className="space-y-6">
             {renderMarkdown(aboutData?.content || '')}

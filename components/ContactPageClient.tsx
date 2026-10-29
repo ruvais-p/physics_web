@@ -128,7 +128,7 @@ export default function ContactPageClient({
 
           {/* Left Column: Online Inquiry Form */}
           <div className="lg:col-span-7">
-            <div className="bg-white p-8 sm:p-10 rounded-3xl border border-slate-200/90 shadow-sm space-y-8">
+            <div className="bg-white p-5 sm:p-10 rounded-2xl sm:rounded-3xl border border-slate-200/90 shadow-sm space-y-6 sm:space-y-8">
               <div className="space-y-2">
                 <div className="text-xs font-bold uppercase tracking-widest text-cyan-dark flex items-center gap-1.5">
                   <MessageSquare className="w-4 h-4 text-cyan-accent" />

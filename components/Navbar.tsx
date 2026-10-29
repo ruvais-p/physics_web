@@ -99,10 +99,17 @@ interface NavbarProps {
 export default function Navbar({ initialProgrammes }: NavbarProps = {}) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [expandedMobileItem, setExpandedMobileItem] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
 
   const programmes = useProgrammes(initialProgrammes);
+
+  // Close mobile drawer when route changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setExpandedMobileItem(null);
+  }, [pathname]);
 
   const navItems = NAV_ITEMS.map((item) => {
     if (item.name === 'Programmes') {
@@ -151,7 +158,7 @@ export default function Navbar({ initialProgrammes }: NavbarProps = {}) {
     <header className="sticky top-0 z-50 w-full transition-all duration-300">
       {/* Dynamic Top-Attached Navbar Container (Sleek & Compact) */}
       <div
-        className={`w-full px-6 sm:px-12 py-3.5 sm:py-4 lg:py-4.5 transition-all duration-300 border-b ${isWhiteNav
+        className={`w-full px-4 sm:px-8 lg:px-12 py-2.5 sm:py-3.5 lg:py-4 transition-all duration-300 border-b ${isWhiteNav
             ? 'bg-white/95 backdrop-blur-xl border-slate-200/80 shadow-md shadow-oxford/5'
             : 'bg-transparent border-transparent'
           }`}
@@ -283,47 +290,92 @@ export default function Navbar({ initialProgrammes }: NavbarProps = {}) {
 
         </div>
 
-        {/* Mobile Menu Drawer */}
+        {/* Mobile Menu Drawer (Scrollable, with Accordion Submenus) */}
         {mobileMenuOpen && (
-          <div className={`lg:hidden mt-4 pt-4 border-t space-y-2 ${isWhiteNav ? 'border-slate-200' : 'border-white/20'
-            }`}>
-            {navItems.map((item) => (
-              <div key={item.name} className="space-y-1">
-                <Link
-                  href={item.href}
-                  scroll={true}
-                  onClick={(e) => handleNavClick(e, item.href, true)}
-                  className={`flex items-center justify-between px-4 py-3 rounded-xl text-base font-medium transition-colors ${isWhiteNav ? 'text-oxford hover:bg-slate-100' : 'text-white hover:bg-white/20'
-                    }`}
-                >
-                  <span className="flex items-center gap-1.5">
-                    {item.name}
-                    {item.dropdown && item.dropdown.length > 0 ? (
-                      <ChevronDown className="w-4 h-4 opacity-80" />
-                    ) : (
-                      <ChevronRight className="w-4 h-4 opacity-80" />
-                    )}
-                  </span>
-                </Link>
-                {item.dropdown && (
-                  <div className={`pl-6 space-y-1 border-l ml-4 ${isWhiteNav ? 'border-slate-200' : 'border-white/20'
-                    }`}>
-                    {item.dropdown.map((sub) => (
-                      <Link
-                        key={`mobile-${sub.name}-${sub.href}`}
-                        href={sub.href}
-                        scroll={true}
-                        onClick={(e) => handleNavClick(e, sub.href, true)}
-                        className={`block px-3 py-2 rounded-lg text-sm transition-colors ${isWhiteNav ? 'text-slate-700 hover:text-cyan-accent' : 'text-slate-200 hover:text-white'
-                          }`}
+          <div
+            className={`lg:hidden mt-3 pt-3 border-t max-h-[calc(100vh-5.5rem)] overflow-y-auto overscroll-contain pb-8 space-y-1.5 ${
+              isWhiteNav ? 'border-slate-200' : 'border-white/20'
+            }`}
+          >
+            {navItems.map((item) => {
+              const isDirectActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href.split('#')[0]));
+              const isDropdownActive = Boolean(item.dropdown?.some((sub) => pathname === sub.href || (sub.href !== '/' && pathname.startsWith(sub.href.split('#')[0]))));
+              const isActive = isDirectActive || isDropdownActive;
+              const hasDropdown = Boolean(item.dropdown && item.dropdown.length > 0);
+              const isExpanded = expandedMobileItem === item.name;
+
+              return (
+                <div key={item.name} className="space-y-1">
+                  <div className="flex items-center justify-between rounded-xl">
+                    <Link
+                      href={item.href}
+                      scroll={true}
+                      onClick={(e) => handleNavClick(e, item.href, !hasDropdown)}
+                      className={`flex-1 flex items-center px-4 py-2.5 rounded-xl text-base font-semibold transition-colors ${
+                        isActive
+                          ? 'text-cyan-accent font-bold bg-cyan-accent/10'
+                          : isWhiteNav
+                          ? 'text-oxford hover:bg-slate-100 hover:text-cyan-accent'
+                          : 'text-white hover:bg-white/15'
+                      }`}
+                    >
+                      <span>{item.name}</span>
+                    </Link>
+
+                    {hasDropdown && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setExpandedMobileItem(isExpanded ? null : item.name)
+                        }
+                        className={`p-2.5 rounded-xl transition-colors cursor-pointer ${
+                          isWhiteNav
+                            ? 'text-slate-600 hover:bg-slate-100 hover:text-oxford'
+                            : 'text-white/80 hover:bg-white/15 hover:text-white'
+                        }`}
+                        aria-expanded={isExpanded}
+                        aria-label={`Toggle ${item.name} submenu`}
                       >
-                        {sub.name}
-                      </Link>
-                    ))}
+                        <ChevronDown
+                          className={`w-5 h-5 transition-transform duration-200 ${
+                            isExpanded ? 'rotate-180 text-cyan-accent' : ''
+                          }`}
+                        />
+                      </button>
+                    )}
                   </div>
-                )}
-              </div>
-            ))}
+
+                  {hasDropdown && isExpanded && (
+                    <div
+                      className={`pl-4 pr-1 py-1 space-y-1 border-l-2 ml-5 ${
+                        isWhiteNav ? 'border-cyan-accent/30 bg-slate-50/60 rounded-r-xl' : 'border-white/30 bg-white/5 rounded-r-xl'
+                      }`}
+                    >
+                      {item.dropdown?.map((sub) => {
+                        const isSubActive = pathname === sub.href || (sub.href !== '/' && pathname.startsWith(sub.href.split('#')[0]));
+                        return (
+                          <Link
+                            key={`mobile-${sub.name}-${sub.href}`}
+                            href={sub.href}
+                            scroll={true}
+                            onClick={(e) => handleNavClick(e, sub.href, true)}
+                            className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              isSubActive
+                                ? 'text-cyan-accent font-bold bg-cyan-accent/10'
+                                : isWhiteNav
+                                ? 'text-slate-700 hover:text-cyan-accent hover:bg-white'
+                                : 'text-slate-200 hover:text-white hover:bg-white/10'
+                            }`}
+                          >
+                            {sub.name}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 

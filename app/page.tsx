@@ -239,8 +239,8 @@ export default async function HomePage() {
       <NotificationsTicker notifications={notifications} />
 
       {/* Department Legacy & Academics Section */}
-      <section className="w-full px-6 sm:px-12 lg:px-16 py-12 sm:py-16 bg-gradient-to-b from-surface-lowest via-surface-low/30 to-surface-lowest">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
+      <section className="w-full px-4 sm:px-12 lg:px-16 py-10 sm:py-16 bg-gradient-to-b from-surface-lowest via-surface-low/30 to-surface-lowest">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center">
 
           {/* Department Building Image Column */}
           <div className="lg:col-span-5 flex justify-center items-center">
@@ -257,23 +257,23 @@ export default async function HomePage() {
           </div>
 
           {/* Content Column */}
-          <div className="lg:col-span-7 space-y-5 text-center lg:text-left">
+          <div className="lg:col-span-7 space-y-4 sm:space-y-5 text-left">
             <div className="space-y-1.5">
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight leading-tight">
-                Academics done <span className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight leading-tight">differently.</span>
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight leading-tight">
+                Academics done <span className="text-2xl sm:text-4xl lg:text-5xl font-extrabold text-oxford tracking-tight leading-tight">differently.</span>
               </h2>
             </div>
 
-            <h3 className="text-xl sm:text-2xl font-bold text-slate-800 tracking-tight">
+            <h3 className="text-lg sm:text-2xl font-bold text-slate-800 tracking-tight">
               Dive into world-class programs &amp; research
             </h3>
 
-            <div className="space-y-4">
+            <div className="space-y-3.5 sm:space-y-4">
               {aboutData.content
                 .split(/\n\s*\n/)
                 .filter((p) => p.trim().length > 0)
                 .map((para, idx) => (
-                  <p key={idx} className="text-base sm:text-lg text-slate-700 leading-relaxed font-normal text-justify">
+                  <p key={idx} className="text-sm sm:text-lg text-slate-700 leading-relaxed font-normal text-left sm:text-justify">
                     {parseMarkdownText(para)}
                   </p>
                 ))}
@@ -365,7 +365,7 @@ export default async function HomePage() {
       </section>
 
       {/* Spotlight Projects Section - Redesigned Navy Research Funding */}
-      <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#00132e] to-[#001b3d] text-white py-20 px-6 sm:px-8 lg:px-12">
+      <section className="relative w-full overflow-hidden bg-gradient-to-b from-[#00132e] to-[#001b3d] text-white py-14 sm:py-20 px-4 sm:px-8 lg:px-12">
         {/* Faint dot texture overlay (5% opacity) */}
         <div className="absolute inset-0 opacity-[0.05] pointer-events-none" aria-hidden="true">
           <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -380,23 +380,23 @@ export default async function HomePage() {
 
         <div className="relative z-10 max-w-6xl mx-auto">
           {/* Top Two Columns (Desktop) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14 items-center">
             {/* Left Column: Heading, Paragraph, CTA Buttons */}
-            <div className="space-y-6 text-left">
+            <div className="space-y-4 sm:space-y-6 text-left">
               <span className="text-xs font-bold uppercase tracking-widest text-[#0284c7] block">
                 Research Funding
               </span>
-              <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
+              <h2 className="font-serif text-2xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
                 Pioneering Research, Powered by National Grants
               </h2>
-              <p className="text-base sm:text-lg text-[#A9B8D0] leading-relaxed max-w-xl">
+              <p className="text-sm sm:text-lg text-[#A9B8D0] leading-relaxed max-w-xl">
                 Our faculty lead cutting-edge research funded by leading national and international agencies—tackling frontier challenges in quantum technology, nanostructured energy materials, photonics, and cosmology.
               </p>
-              <div className="pt-2 flex flex-wrap items-center gap-4">
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                 <Link
                   id="home-explore-projects-cta"
                   href="/projects"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#0284c7] hover:bg-[#0369a1] text-white font-semibold text-sm sm:text-base rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0284c7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#001738] group cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-[#0284c7] hover:bg-[#0369a1] text-white font-semibold text-sm sm:text-base rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0284c7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#001738] group cursor-pointer text-center"
                 >
                   <span>Explore All Research Projects</span>
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-150" />
@@ -404,7 +404,7 @@ export default async function HomePage() {
 
                 <Link
                   href="/research"
-                  className="inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-white/30 hover:border-white/60 hover:bg-white/[0.05] text-white font-semibold text-sm sm:text-base rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0284c7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#001738] cursor-pointer"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 border border-white/30 hover:border-white/60 hover:bg-white/[0.05] text-white font-semibold text-sm sm:text-base rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0284c7] focus-visible:ring-offset-2 focus-visible:ring-offset-[#001738] cursor-pointer text-center"
                 >
                   <span>Research Laboratories</span>
                 </Link>

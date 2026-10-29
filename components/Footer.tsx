@@ -31,8 +31,8 @@ export default function Footer({ initialProgrammes }: FooterProps = {}) {
       <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-sky-300/30 to-transparent" />
 
       {/* Main Content Grid Container */}
-      <div className="w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-16 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-8 xl:gap-12 mb-14">
+      <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-10 lg:px-16 pt-12 sm:pt-16 pb-8 sm:pb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 lg:gap-8 xl:gap-12 mb-10 sm:mb-14">
 
           {/* Column 1: Brand, Emblem & Accreditation */}
           <div className="space-y-6">

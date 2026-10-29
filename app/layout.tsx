@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Poppins } from 'next/font/google';
 import '@/app/globals.css';
 import LayoutWrapper from '@/components/LayoutWrapper';
@@ -11,6 +11,12 @@ const poppins = Poppins({
   variable: '--font-poppins',
   display: 'swap',
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   title: {
@@ -30,6 +36,11 @@ export const metadata: Metadata = {
     'Cochin University',
   ],
   authors: [{ name: 'Department of Physics, CUSAT' }],
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
 };
 
 export default async function RootLayout({

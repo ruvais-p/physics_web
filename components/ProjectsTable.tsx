@@ -56,7 +56,120 @@ export default function ProjectsTable({
 
   return (
     <div className="w-full bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs font-sans">
-      <div className="overflow-x-auto">
+      {/* Mobile Card View (< md) */}
+      <div className="md:hidden divide-y divide-slate-100">
+        {projects.map((proj, index) => {
+          const isExpanded = !!expandedIds[proj.id];
+          const isOngoing = !proj.status || proj.status.toLowerCase() === 'ongoing' || proj.status.toLowerCase() === 'active';
+          
+          const startYear = proj.startDate ? new Date(proj.startDate).getFullYear() : null;
+          const endYear = proj.endDate ? new Date(proj.endDate).getFullYear() : null;
+          const durationStr = startYear && endYear ? `${startYear} – ${endYear}` : startYear ? `${startYear} – Present` : '—';
+
+          return (
+            <div key={`mob-${proj.id || index}`} className="p-4 sm:p-5 space-y-3.5 hover:bg-slate-50/60 transition-colors">
+              {/* Header: Number, Status, and Duration */}
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-full bg-slate-100 text-slate-500 text-xs font-bold flex items-center justify-center shrink-0">
+                    {index + 1}
+                  </span>
+                  {isOngoing ? (
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>Ongoing</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center text-[11px] font-bold text-slate-700 bg-slate-100 border border-slate-200 px-2.5 py-0.5 rounded-full">
+                      Completed
+                    </span>
+                  )}
+                </div>
+
+                <span className="bg-slate-100 text-slate-800 font-bold text-[11px] px-2 py-0.5 rounded-md">
+                  {durationStr}
+                </span>
+              </div>
+
+              {/* Title & Description */}
+              <div>
+                <h3 className="font-bold text-oxford leading-snug text-sm sm:text-base">
+                  {proj.title}
+                </h3>
+
+                {proj.description && (
+                  <div className="mt-1.5 space-y-1">
+                    <p className={`text-xs text-slate-600 leading-relaxed ${isExpanded ? '' : 'line-clamp-2'}`}>
+                      {proj.description}
+                    </p>
+                    {proj.description.length > 100 && (
+                      <button
+                        type="button"
+                        onClick={() => toggleExpand(proj.id)}
+                        className="inline-flex items-center gap-1 text-[11px] font-bold text-cyan-accent hover:text-cyan-800 transition-colors cursor-pointer"
+                      >
+                        <span>{isExpanded ? 'Show less' : 'Read full abstract'}</span>
+                        {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Investigators & Funding Details */}
+              <div className="pt-2.5 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Lead PI:</span>
+                  {proj.faculty?.name ? (
+                    <Link
+                      href={`/people?search=${encodeURIComponent(proj.faculty.name)}`}
+                      className="font-bold text-oxford hover:text-cyan-accent hover:underline transition-colors block"
+                    >
+                      {proj.faculty.name}
+                    </Link>
+                  ) : (
+                    <span className="font-semibold text-oxford">Department Researchers</span>
+                  )}
+                  {proj.otherFaculty && (
+                    <span className="text-[11px] text-slate-500 block truncate mt-0.5">
+                      Co-PI: {proj.otherFaculty}
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex flex-col justify-between items-start sm:items-end">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Funding:</span>
+                  <span className="font-semibold text-oxford leading-tight">
+                    {proj.agency || 'Government Grant'}
+                  </span>
+                  {proj.funding && (
+                    <span className="inline-block mt-1 text-[11px] font-bold bg-cyan-50 text-cyan-800 border border-cyan-200/80 px-2 py-0.5 rounded">
+                      {proj.funding}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {proj.externalLink && (
+                <div className="pt-2 border-t border-slate-100 flex justify-end">
+                  <a
+                    href={proj.externalLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-dark hover:text-cyan-accent hover:underline"
+                  >
+                    <span>View Project Portal</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Desktop Table View (>= md) */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left border-collapse min-w-[750px] lg:min-w-[1000px]">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold text-oxford uppercase tracking-wider">

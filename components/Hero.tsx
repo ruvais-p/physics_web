@@ -216,7 +216,7 @@ export default function Hero({
       <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-black/80 via-black/40 to-transparent z-10 pointer-events-none" />
 
       {/* Main Slide Content Layer */}
-      <div className={`relative z-20 w-full max-w-[1536px] mx-auto px-6 sm:px-12 lg:px-16 pt-40 sm:pt-48 lg:pt-56 pb-6 sm:pb-8 lg:pb-10 flex flex-col justify-end min-h-[630px] sm:min-h-[720px] lg:min-h-[810px] xl:min-h-[850px] ${
+      <div className={`relative z-20 w-full max-w-[1536px] mx-auto px-4 sm:px-12 lg:px-16 pt-28 sm:pt-44 lg:pt-52 pb-12 sm:pb-10 flex flex-col justify-end min-h-[460px] sm:min-h-[640px] lg:min-h-[780px] xl:min-h-[840px] ${
         align === 'center' ? 'items-center text-center' : 'items-start text-left'
       }`}>
         <div className={`max-w-6xl xl:max-w-7xl w-full ${
@@ -225,7 +225,7 @@ export default function Hero({
 
           {/* Optional Badge / Breadcrumbs (Clean Interactive Links) */}
           {currentSlide.badge && (
-            <div className={`text-xs sm:text-sm font-bold tracking-widest text-cyan-accent uppercase drop-shadow-md flex flex-wrap items-center gap-2 mb-2 ${
+            <div className={`text-xs sm:text-sm font-bold tracking-widest text-cyan-accent uppercase drop-shadow-md flex flex-wrap items-center gap-1.5 sm:gap-2 mb-2 ${
               align === 'center' ? 'justify-center' : 'justify-start'
             }`}>
               {currentSlide.badge.includes('>') ? (
@@ -235,7 +235,7 @@ export default function Hero({
                   const href = getBreadcrumbHref(label);
 
                   return (
-                    <span key={pIdx} className="inline-flex items-center gap-2">
+                    <span key={pIdx} className="inline-flex items-center gap-1.5 sm:gap-2">
                       {isLast ? (
                         <span className="text-white font-extrabold">{label}</span>
                       ) : (
@@ -258,7 +258,7 @@ export default function Hero({
 
           {/* Headline */}
           <h1
-            className={`font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight leading-[1.12] drop-shadow-2xl w-full break-words ${
+            className={`font-serif text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-black tracking-tight leading-[1.14] drop-shadow-2xl w-full break-words ${
               align === 'center' ? 'text-center flex flex-col items-center justify-center max-w-5xl mx-auto' : 'text-left max-w-5xl'
             }`}
             style={{ color: currentSlide.titleColor || '#ffffff' }}
@@ -277,7 +277,7 @@ export default function Hero({
 
           {/* Subtitle */}
           {currentSlide.subtitle && (
-            <p className={`font-sans text-base sm:text-lg lg:text-xl text-slate-200 leading-snug max-w-3xl font-normal drop-shadow-md w-full mt-2 sm:mt-3 ${
+            <p className={`font-sans text-sm sm:text-base lg:text-xl text-slate-200 leading-snug sm:leading-relaxed max-w-3xl font-normal drop-shadow-md w-full mt-2 sm:mt-3 line-clamp-3 sm:line-clamp-none ${
               align === 'center' ? 'text-center mx-auto' : 'text-left'
             }`}>
               {currentSlide.subtitle}
@@ -288,9 +288,9 @@ export default function Hero({
       </div>
 
 
-      {/* Bottom Right Slide Controls (Prev/Next Arrows, Dots, Play/Pause Toggle) */}
+      {/* Bottom Slide Controls (Prev/Next Arrows, Dots, Play/Pause Toggle) */}
       {total > 1 && (
-        <div className="absolute bottom-6 right-6 sm:bottom-8 sm:right-12 z-20 flex items-center space-x-3 sm:space-x-4">
+        <div className="absolute hidden sm:flex sm:bottom-8 sm:right-12 z-20 items-center space-x-4">
           {/* Previous Arrow */}
           <button
             type="button"
